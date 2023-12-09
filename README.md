@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > This course is running live as part of MIT's IAP! For details see:
+> 
 > 18.S191 Special Subject in Mathematics: Composable System Modeling and Its Compilation
 > 
 > Dates: Jan 9 - Feb 2
