@@ -3,8 +3,11 @@
 > [!NOTE]
 > This course is running live as part of MIT's IAP! For details see:
 > 18.S191 Special Subject in Mathematics: Composable System Modeling and Its Compilation
+> 
 > Dates: Jan 9 - Feb 2
+>
 > Time: MWF 11-12
+>
 > Location: 2-135
 
 Traditionally, modeling physical systems often requires a deep understanding of the physics and equations of motions or states, simplifying the differential equations using conservation laws and constraints, and finally implementing simplified equations in a scientific computing language to numerically solve them. However, this workflow is tedious and not expressive. A simple change in the underlying physical system often requires a complete re-derivation of the simplified equations. A composable modeling system frees domain experts from the time-consuming derivation, simplification, and implementation by allowing them to model each physical component separately and hierarchically, thereby enabling them to build more accurate and complex models without compromising the simulation performance. In this course, we will dive into the practice of implementing composable physical models and the compilation process of the model system using the ModelingToolkit.jl acausal modeling framework in Julia. Students will learn the mathematics and numerical methods behind solving industry-scale models, covering topics such as differential-algebraic equations (DAEs), modern techniques in implicit integrators (backwards differentiation formulae (BDFs)), symbolic manipulation of equations via techniques like Pantelides algorithm and tearing of nonlinear systems, and more. Applications for solving real-world problems like modeling battery systems of electric vehicles, efficient control of hydraulic and HVAC systems, and more will be used to demonstrate how these techniques are used in industrial settings.
