@@ -1,4 +1,4 @@
-using Documenter
+using Documenter, ModelingToolkitCourse
 
 pages = [
     "Home" => "index.md",
@@ -8,7 +8,7 @@ pages = [
 
 makedocs(sitename = "ModelingToolkit Course",
     authors = "Chris Rackauckas",
-    modules = [],
+    modules = [ModelingToolkitCourse],
     clean = true, doctest = false, linkcheck = true,
     warnonly = [:missing_docs],
     format = Documenter.HTML(assets = ["assets/favicon.ico"],
