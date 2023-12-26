@@ -1,0 +1,10 @@
+name = "ModelingToolkitCourse"
+uuid = "d0ecabdd-fe99-481e-9814-e16fa9c541df"
+authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
+version = "1.0.0"
+
+[deps]
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+
+[compat]
+ModelingToolkit = "8"

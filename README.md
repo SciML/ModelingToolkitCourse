@@ -80,7 +80,7 @@ The following sources can be used as inspiration:
 * January 17th: Real numerical methods for implicit equations and stiff ordinary differential equations (ODEs), i.e., Jacobian-free Newton-Krylov, adaptive time stepping, dense output, sparse automatic differentiation, event handling.
 * January 18th (Make up day for MLK day): Continuing discussion of stiff ODEs and onto numerical methods for differential-algebraic equations (DAEs). Rosenbrock methods, Backwards-Differentiation Formulae (BDF), fully-implicit Runge-Kutta methods.
 * January 19th: Finishing the discussion on stiff ODEs and DAEs. If time allows, discussion of handling inverse problems (parameter estimation), adjoint methods, uncertainty quantification, and the connections to reverse-mode AD.
-* January 21st: Discussion and interactive workshop on debugging difficult stiff ODE/DAE models (featuring Brad Carman and Yingbo Ma).
+* January 22nd: Discussion and interactive workshop on debugging difficult stiff ODE/DAE models (featuring Brad Carman and Yingbo Ma).
 * January 24th: Guest Lecture: Yingbo Ma. How acausal model compilers work: index reduction. Pantelides algorithm, dummy derivatives, and demonstrations.
 * January 26th: Guest Lecture: Yingbo Ma. How acausal model compilers work: Tearing of nonlinear systems and alias elimination.
 * January 29th: Guest Lecture: Yingbo Ma. How acausal model compilers work: Loop rerolling, specialized optimizations for multibody systems, and other generated code robustness and performance optimizations.
