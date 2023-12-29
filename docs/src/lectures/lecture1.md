@@ -40,7 +40,7 @@ xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
 xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
 ```
 
-Note that we can get the derivative for `f` from automatic differentiation using `ForwardDiff.derivative` (or using `ForwardDiff.jacobian` for a system of equations).  To solve for a series of time steps, we can simply update `x` and run again for each time step `Δt`.  
+Note that we can get the derivative for `f` from automatic differentiation using `ForwardDiff.derivative` (or using `ForwardDiff.jacobian` for a system of equations).  To solve for a series of time steps, we can simply update `x` and run again for each time step `Δt`.  This is a simple form of the Implicit/Backwards Euler method.
 
 ```@example l1
 tol = 1e-3
@@ -311,6 +311,8 @@ To define a component, we use the `@mtkmodel` macro and define it's parameters, 
 end
 ```
 
+A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
+
 Similarly the damper component is defined as
 
 ```@example l1 
@@ -365,6 +367,124 @@ As can be seen we arrive at the same equation as derived previously.  Now it wou
 - add a spring component to the above system
 - how to define a spring or damper with 2 ports?
 
+The `Damper` component created previously was a little incomplete because it only had one port.  In reality a damper or spring will be connected between 2 objects, for example the car frame and the wheel.  Therefore a proper component will define 2 ports so that the component can be as analogous with real life as possible.  In the example below the component is defined properly with 2 ports.  Note the velocity of the component `v` is defined as a relative velocity between the 2 ports.  It's easy to understand how this works if it's assumed that `port_b` is connected to a stationary reference frame.
+
+```@example l1 
+@mtkmodel Damper begin
+    @parameters begin
+        d = 1
+        v_a
+        v_b
+    end
+    @variables begin
+        v(t) = v_a - v_b
+        f(t) = d*v
+    end
+    @components begin
+        port_a = MechanicalPort(;v=v_a, f=-f)
+        port_b = MechanicalPort(;v=v_b, f=+f)
+    end
+    @equations begin
+        # connectors
+        (port_a.v - port_b.v) ~ v
+        port_a.f ~ -f
+        port_b.f ~ +f
+        
+        # physics
+        f ~ d*v
+    end
+end
+```
+
+Note the force from the damper is in opposing directions, it's easy to see when drawing a free body diagram.  Note that if the positive direction is to the right, then the force of the damper is pushing left (i.e. in the negative direction) on `port_a` and right (positive direction) on `port_b`.
+
+![damper](img/damper.svg)
+
+Now we can do the same for the spring component.  Note that the spring is of course very similar to the damper, but now we need a relative position.  This can be obtained by integrating the port velocities, but how do we integrate in ModelingToolkit.jl?  We want to write the equation
+
+$x = \int v \space \partial t$
+
+But we know that this is also true
+
+$\frac{\partial x}{\partial t} = v$
+
+So in ModelingToolkit we can "integrate" by moving the differential to the appropriate side of the equation.
+
+```@example l1 
+@mtkmodel Spring begin
+    @parameters begin
+        k = 100
+        v_a
+        v_b
+    end
+    @variables begin
+        x(t) = 0
+        v(t) = v_a - v_b
+        f(t) = k*x
+    end
+    @components begin
+        port_a = MechanicalPort(;v=v_a, f=-f)
+        port_b = MechanicalPort(;v=v_b, f=+f)
+    end
+    @equations begin
+        # derivatives
+        D(x) ~ v
+
+        # connectors
+        (port_a.v - port_b.v) ~ v
+        port_a.f ~ -f
+        port_b.f ~ +f
+        
+        # physics
+        f ~ k*x
+    end
+end
+```
+
+Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Createing a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution.
+
+```@example l1 
+@mtkmodel Reference begin
+    @parameters begin
+        
+    end
+    @variables begin
+        f(t)
+    end
+    @components begin
+        port = MechanicalPort(;v=0, f=f)
+    end
+    @equations begin
+        # connectors
+        port.v ~ 0
+        port.f ~ f
+    end
+end
+```
+
+Finally, considering an input force...
+
+```@example l1 
+@mtkmodel ConstantForce begin
+    @parameters begin
+        f
+    end
+    @variables begin
+        v(t)=0
+    end
+    @components begin
+        port = MechanicalPort(;v=v, f=f)
+    end
+    @equations begin
+        # connectors
+        port.v ~ v
+        port.f ~ f  
+    end
+end
+```
+
 ### Systems and Sub-Systems
+
+
 - how to expose ports and create hierarchy
 

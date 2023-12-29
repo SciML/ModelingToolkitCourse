@@ -92,22 +92,28 @@ sol = solve(prob; abstol=tol)
 plot(sol; layout=2)
 
 
-prob = ODEProblem(fmm, [0.15, 0.0], (0.0, 0.01), [F, k, d])
-sol = solve(prob; abstol=tol, initializealg=NoInit())
-plot(sol; layout=2)
-
-function du_dt1(u,p,t)
+function du_dt1(du,u,p,t)
     F, k, d = p
     x, ẋ, ẍ = u
     
-    eqs = [
-        ẋ                       # D(x) = ẋ
-        ẍ                       # D(ẋ) = ẍ
-        (d*ẋ + k*(x^1.5)) - (F)   #    0 = ( lhs ) - ( rhs )
-    ]
+    du[1] = ẋ
+    du[2] = ẍ
+    du[3] = (d*ẋ + k*(x^1.5)) - (F)
 
-    return eqs
 end
+
+fmm = ODEFunction(du_dt1; mass_matrix=[1 0 0;0 1 0;0 0 0])
+prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
+
+sol = solve(prob, ImplicitEuler(autodiff=false); abstol=tol)
+sol = solve(prob, ImplicitEuler(); abstol=tol, dt=0.001, adaptive=false)
+sol = solve(prob, Rosenbrock23(); abstol=tol)
+
+plot(sol; layout=3)
+
+using ModelingToolkitComponents: SimpleImplicitEuler
+sol = solve(prob, SimpleImplicitEuler(); abstol=tol)
+plot(sol; layout=3)
 
 function du_dt2(u,p,t)
     F, k, d = p
@@ -124,7 +130,7 @@ end
 
 fmm = ODEFunction(du_dt2; mass_matrix=[1 0 0;0 1 0;0 0 0])
 prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
-sol = solve(prob; abstol=tol)
+sol = solve(prob, ImplicitEuler(); abstol=tol)
 
 
 
