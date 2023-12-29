@@ -398,7 +398,7 @@ end
 
 Note the force from the damper is in opposing directions, it's easy to see when drawing a free body diagram.  Note that if the positive direction is to the right, then the force of the damper is pushing left (i.e. in the negative direction) on `port_a` and right (positive direction) on `port_b`.
 
-![damper](img/damper.svg)
+![damper](../img/damper.svg)
 
 Now we can do the same for the spring component.  Note that the spring is of course very similar to the damper, but now we need a relative position.  This can be obtained by integrating the port velocities, but how do we integrate in ModelingToolkit.jl?  We want to write the equation
 
