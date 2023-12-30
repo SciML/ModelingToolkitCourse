@@ -145,7 +145,7 @@ end
 
 fmm = ODEFunction(du_dt; mass_matrix=[1 0 0;0 1 0;0 0 0])
 prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
-sol = solve(prob; abstol=tol)
+sol = solve(prob)
 ```
 
 Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic contraint equation does not use the 2nd derivative term $\ddot{x}$.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segway to the tool that can do this for us: ModelingToolkit.jl
@@ -294,16 +294,16 @@ To define a component, we use the `@mtkmodel` macro and define it's parameters, 
         m = 10
     end
     @variables begin
-        v(t) = 0
-        f(t) = 0
+        v(t)
+        f(t)
     end
     @components begin
-        port = MechanicalPort(;v=v, f=f)
+        port = MechanicalPort()
     end
     @equations begin
         # connectors
         port.v ~ v
-        port.f ~ f
+        port.f ~ -f
         
         # physics
         f ~ m*D(v)
@@ -311,9 +311,13 @@ To define a component, we use the `@mtkmodel` macro and define it's parameters, 
 end
 ```
 
-A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
+Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you've properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
 
-Similarly the damper component is defined as
+The 2nd tricky issue is signs.  Note that the force assigned to the port is negative `port.f ~ -f`.  To determine this I like to draw a diagram like below.  Below the port in black I draw the connection variables, here there is 1 port and I draw them to the right (i.e. positive direction).  Then in green above the port I draw the coresponding variables of the component.  In this case we know from Newton that mass x acceleration equals force, therefore the direction of movement is in the opposite direction of the force.  In other words, if we push the mass from left to right (i.e. in the positive direction), then the mass will generate a force in the negative direction.  Now the diagram shows how the port and component variables are aligned.  
+
+![mass](../img/mass.svg)
+
+Similarly the damper component is defined as below.  
 
 ```@example l1 
 @mtkmodel Damper begin
@@ -321,22 +325,24 @@ Similarly the damper component is defined as
         d = 1
     end
     @variables begin
-        v(t) = 0
-        f(t) = d*v
+        v(t)
+        f(t)
     end
     @components begin
-        port = MechanicalPort(;v=v, f=f)
+        port = MechanicalPort()
     end
     @equations begin
         # connectors
         port.v ~ v
-        port.f ~ f
+        port.f ~ -f
         
         # physics
         f ~ d*v
     end
 end
 ```
+
+![single port damper](../img/damper1.svg)
 
 Now the `Mass` and `Damper` components can be assembled in a system and connected together (note: the `connect` equation).  Also note the parameters `v`, `m`, and `d` are defined to expose the properties which can be set at keyword arguments of the same name.  
 
@@ -373,16 +379,14 @@ The `Damper` component created previously was a little incomplete because it onl
 @mtkmodel Damper begin
     @parameters begin
         d = 1
-        v_a
-        v_b
     end
     @variables begin
-        v(t) = v_a - v_b
-        f(t) = d*v
+        v(t)
+        f(t)
     end
     @components begin
-        port_a = MechanicalPort(;v=v_a, f=-f)
-        port_b = MechanicalPort(;v=v_b, f=+f)
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
     end
     @equations begin
         # connectors
@@ -414,17 +418,15 @@ So in ModelingToolkit we can "integrate" by moving the differential to the appro
 @mtkmodel Spring begin
     @parameters begin
         k = 100
-        v_a
-        v_b
     end
     @variables begin
-        x(t) = 0
-        v(t) = v_a - v_b
-        f(t) = k*x
+        x(t)
+        v(t)
+        f(t)
     end
     @components begin
-        port_a = MechanicalPort(;v=v_a, f=-f)
-        port_b = MechanicalPort(;v=v_b, f=+f)
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
     end
     @equations begin
         # derivatives
@@ -441,7 +443,12 @@ So in ModelingToolkit we can "integrate" by moving the differential to the appro
 end
 ```
 
-Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Createing a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution.
+![spring](../img/spring.svg)
+
+One thing to consider now in the `Spring` component is the meaning of the spring stretch/compression variable `x`.  What does it mean if this variable is positive or negative?  It's important to note when reviewing the model output that a positive `x` means the spring is compressed and vise versa for a negative `x`.
+
+Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Createing a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution. 
+
 
 ```@example l1 
 @mtkmodel Reference begin
@@ -452,17 +459,19 @@ Now, if we want to create a full *mass-spring-damper* system with our new `Dampe
         f(t)
     end
     @components begin
-        port = MechanicalPort(;v=0, f=f)
+        port = MechanicalPort()
     end
     @equations begin
         # connectors
         port.v ~ 0
-        port.f ~ f
+        port.f ~ -f
     end
 end
 ```
 
-Finally, considering an input force...
+![reference](../img/reference.svg)
+
+Finally, considering an input force, we can imagine this to be an invisible hand that pushes with a constant force.  This invisible hand will move with the port with velocity `v`.  We don't know this velocity, it's a variable that will part of the solved system solution.  
 
 ```@example l1 
 @mtkmodel ConstantForce begin
@@ -470,10 +479,10 @@ Finally, considering an input force...
         f
     end
     @variables begin
-        v(t)=0
+        v(t)
     end
     @components begin
-        port = MechanicalPort(;v=v, f=f)
+        port = MechanicalPort()
     end
     @equations begin
         # connectors
@@ -483,7 +492,118 @@ Finally, considering an input force...
 end
 ```
 
+Now let's assemble a *mass-spring-damper* system with the full collection of components.
+
+```@example l1 
+@mtkmodel System begin
+    @parameters begin
+        v=0
+        x=0
+        m=100
+        d=10
+        k=1000
+        f=1
+    end
+    @components begin
+        mass = Mass(;v,m)
+        damper = Damper(;v, d)
+        spring = Spring(;v, k, x)
+        ref = Reference()
+        force = ConstantForce(;v,f)
+    end
+    @equations begin
+        connect(mass.port, damper.port_a, spring.port_a, force.port)
+        connect(damper.port_b, spring.port_b, ref.port)
+    end
+end
+
+@mtkbuild sys = System()
+prob = ODEProblem(sys, [], (0, 10))
+sol = solve(prob)
+plot(sol)
+```
+
+There's a couple things we can do now to ensure the system is correct.  First, we can look at the equations.
+
+```@example l1 
+full_equations(sys)
+```
+
+The first equation (after re-aranging) it can be seen is the classic *mass-spring-damper* equation.
+
+$m*\ddot{x} + d*\dot{x} + k*x = f$
+
+So we know all the signs and equations are set correctly.  Additionally it's easy enough in this case to re-construct the problem directly and solve to check the result.
+
+```@example l1 
+vars = @variables x(t)=0 dx(t)=0 ddx(t)=0
+pars = @parameters m=100 d=10 k=1000 F=1
+eqs = [
+    D(x) ~ dx
+    D(dx) ~ ddx
+    m*ddx + d*dx + k*x ~ F
+]
+@named odesys = ODESystem(eqs, t, vars, pars)
+sys = structural_simplify(odesys)
+prob = ODEProblem(sys, [], (0,10))
+sol = solve(prob)
+plot(sol)
+```
+
+
+
+
 ### Systems and Sub-Systems
+
+
+```@example l1
+@mtkmodel MassSpringDamper begin
+    @parameters begin
+        m
+        k
+        d
+        v
+        x
+    end
+    @components begin
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
+        mass = Mass(;m,v)
+        damper = Damper(;d,v)
+        spring = Spring(;k,v,x)
+    end
+    @equations begin
+        connect(mass.port, damper.port_a, spring.port_a, port_a)
+        connect(damper.port_b, spring.port_b, port_b)
+    end
+end
+
+@mtkmodel System begin
+    @parameters begin
+        v = 0
+        x = 0
+    end
+    @components begin
+        msd1 = MassSpringDamper(;m = 10, d = 1, k = 1000, v, x)
+        msd2 = MassSpringDamper(;m = 20, d = 2, k = 2000, v, x)
+        msd3 = MassSpringDamper(;m = 30, d = 3, k = 3000, v, x)
+        ref = Reference()
+        force = ConstantForce(;f=1,v=0)
+    end
+    @equations begin
+        connect(force.port, msd1.port_a)
+        connect(msd1.port_b, msd2.port_a)
+        connect(msd2.port_b, msd3.port_a)
+        connect(msd3.port_b, ref.port)
+    end
+end
+
+@mtkbuild sys = System()
+prob = ODEProblem(sys, [], (0, 2))
+sol = solve(prob)
+plot(sol; idxs=[sys.msd1.spring.x, sys.msd2.spring.x, sys.msd3.spring.x])
+```
+
 
 
 - how to expose ports and create hierarchy
