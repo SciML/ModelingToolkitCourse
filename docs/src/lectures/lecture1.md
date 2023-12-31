@@ -2,15 +2,18 @@
 
 ## Background
 ### Julia
-This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package writen in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the mass-spring-damper.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring ($k \cdot x^{1.5}$)
+This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package writen in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the mass-spring-damper.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
 
 ![](../img/spring_damper.svg)
 
 This system can be represented by the ordinary differential equation (ODE):
 
-$d \cdot \dot{x} + k \cdot x^{1.5} = F$
+```math
+d \cdot \dot{x} + k \cdot x^{1.5} = F
+```
 
-To solve this in Julia we can apply finite differencing $\dot{x}_i = \frac{x_i - x_{i-1}}{\Delta t}$ and [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).  Here we solve for the first time step...
+
+To solve this in Julia we can apply finite differencing ``\dot{x}_i = \frac{x_i - x_{i-1}}{\Delta t}`` and [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).  Here we solve for the first time step...
 
 ```@example l1
 using ForwardDiff
@@ -40,7 +43,11 @@ xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
 xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
 ```
 
-Note that we can get the derivative for `f` from automatic differentiation using `ForwardDiff.derivative` (or using `ForwardDiff.jacobian` for a system of equations).  To solve for a series of time steps, we can simply update `x` and run again for each time step `Δt`.  This is a simple form of the Implicit/Backwards Euler method.
+!!! note "about derivatives"
+    We can get the derivative for `f` from automatic differentiation using `ForwardDiff.derivative` (or using `ForwardDiff.jacobian` for a system of equations).
+!!!
+
+To solve for a series of time steps, we can simply update `x` and run again for each time step `Δt`.  This is a simple form of the Implicit/Backwards Euler method.
 
 ```@example l1
 tol = 1e-3
@@ -59,12 +66,12 @@ plot(x; ylabel="x [m]", xlabel="time step")
 
 
 ### DifferentialEquations.jl
-For this simple problem it's easy enough to implement the Newton method and solve directly, however it's possible to instead use the solvers from DifferentialEquations.jl.  To do this, we simply need to defined a `NonlinearProblem` by supplying the function `f` of the form $f(u,p)$ where:
+For this simple problem it's easy enough to implement the Newton method and solve directly, however it's possible to instead use the solvers from DifferentialEquations.jl.  To do this, we simply need to defined a `NonlinearProblem` by supplying the function `f` of the form ``f(u,p)`` where:
 
-- $u$ is the variable (scalar or vector)
-- $p$ is the parameters (scalar or vector)
+- ``u`` is the variable (scalar or vector)
+- ``p`` is the parameters (scalar or vector)
 
-In this case $u$ and $p$ corespond to `xᵢ` and `xᵢ₋₁`, respectfully.  This is refered to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define $f(du,u,p)$ as "in-place" form that gives $du$ as a pre-allocated memory space to mutate.  
+In this case ``u`` and ``p`` corespond to `xᵢ` and `xᵢ₋₁`, respectfully.  This is refered to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define ``f(du,u,p)`` as "in-place" form that gives ``du`` as a pre-allocated memory space to mutate.  
 
 Then we can solve by specifying the method, in this case we specify `NewtonRaphson` to implement Newton's method.
 
@@ -89,9 +96,12 @@ end
 plot(x; ylabel="x [m]", xlabel="time step")
 ```
 
-This approach requires the use of finite differencing and building a solution vector of solves for each time step, which was done only for demonstration purposes.  Since this problem is an ODE, it can and should be solved directly with an ODE solver.  To do this with DifferentialEquations.jl, we simply re-arrange the equation in the form $\frac{\partial u}{\partial t} = f(u,p,t)$.  In this case we have
+This approach requires the use of finite differencing and building a solution vector of solves for each time step, which was done only for demonstration purposes.  Since this problem is an ODE, it can and should be solved directly with an ODE solver.  To do this with DifferentialEquations.jl, we simply re-arrange the equation in the form ``\frac{\partial u}{\partial t} = f(u,p,t)``.  In this case we have
 
-$\dot{x}= \frac{F - k \cdot x^{1.5}}{d}$
+```math
+\dot{x}= \frac{F - k \cdot x^{1.5}}{d}
+```
+
 
 ```@example l1
 function du_dt(u,p,t)
@@ -105,7 +115,7 @@ sol = solve(prob)
 plot(sol; xlabel="time [s]", ylabel="x [m]")
 ```
 
-In some cases, it may not be so easy to rearrange the equations in such a way to provide an ODE form.  We can also solve the problem in another way: Differential Algebraic Equations (DAE) form.  Here we have a mix of differential and algebraic equations.  A mass matrix is used to specify which equations are differential vs. algebraic.  Note that we are now solving for both $x$ and $\dot{x}$ and therefore need to supply initial conditions for each.  To satisfy the system at time 0 with $x=0$, we can see that $\dot{x} = \frac{F}{d}$.  
+In some cases, it may not be so easy to rearrange the equations in such a way to provide an ODE form.  We can also solve the problem in another way: Differential Algebraic Equations (DAE) form.  Here we have a mix of differential and algebraic equations.  A mass matrix is used to specify which equations are differential vs. algebraic.  Note that we are now solving for both ``x`` and ``\dot{x}`` and therefore need to supply initial conditions for each.  To satisfy the system at time 0 with ``x=0``, we can see that ``\dot{x} = \frac{F}{d}``.  
 
 
 ```@example l1
@@ -127,7 +137,7 @@ sol = solve(prob)
 plot(sol; idxs=1, xlabel="time [s]", ylabel="x [m]")
 ```
 
-Now, maybe we would like to know the 2nd derivative of $x$.  It should be easy enough to simply provide this in our function and solve.
+Now, maybe we would like to know the 2nd derivative of ``x``.  It should be easy enough to simply provide this in our function and solve.
 
 ```@example l1
 function du_dt(u,p,t)
@@ -148,10 +158,10 @@ prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
 sol = solve(prob)
 ```
 
-Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic contraint equation does not use the 2nd derivative term $\ddot{x}$.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segway to the tool that can do this for us: ModelingToolkit.jl
+Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic contraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segway to the tool that can do this for us: ModelingToolkit.jl
 
 ### ModelingToolkit.jl
-ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplificaiton to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independant variable $t$ and it's differential operator
+ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplificaiton to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independant variable ``t`` and it's differential operator
 
 ```@example l1
 using ModelingToolkit
@@ -245,21 +255,36 @@ ModelingToolkit.jl enables the appliction of Physical Network Acausal modeling, 
 - *through* variables sum to zero at connection points
 - *across* variables are equal at connection points
 
-Consider a simple mechanical translational system of a mass and damper.  In this domain the *through* variable is force ($f$) and the *across* velocity ($v$).  We can define the mass component as
+Consider a simple mechanical translational system of a mass and damper.  In this domain the *through* variable is force (``f``) and the *across* velocity (``v``).  We can define the mass component as
 
-$f_{mass} = m_{mass} \cdot \dot{v}_{mass}$
+```math
+f_{mass} = m_{mass} \cdot \dot{v}_{mass}
+```
+
 
 And the damper component as
 
-$f_{damper} = d_{damper} \cdot v_{damper}$
+```math
+f_{damper} = d_{damper} \cdot v_{damper}
+```
+
 
 Based on the rules above, connecting these 2 components together would give the following additional equations
 
-$\begin{aligned} 0 &= f_{mass} + f_{damper} \\ v_{mass} &= v_{damper} \end{aligned}  $
+```math
+\begin{aligned} 
+    0 &= f_{mass} + f_{damper} \\ 
+    v_{mass} &= v_{damper} 
+\end{aligned}  
+```
+
 
 With simple substitution it can be seen that this gives the expected mass-damper system
 
-$m \cdot \dot{v} + d \cdot v = 0$
+```math
+m \cdot \dot{v} + d \cdot v = 0
+```
+
 
 Let's try this again by defining this system in ModelingToolkit.jl
 
@@ -406,11 +431,17 @@ Note the force from the damper is in opposing directions, it's easy to see when 
 
 Now we can do the same for the spring component.  Note that the spring is of course very similar to the damper, but now we need a relative position.  This can be obtained by integrating the port velocities, but how do we integrate in ModelingToolkit.jl?  We want to write the equation
 
-$x = \int v \space \partial t$
+```math
+x = \int v \space \partial t
+```
+
 
 But we know that this is also true
 
-$\frac{\partial x}{\partial t} = v$
+```math
+\frac{\partial x}{\partial t} = v
+```
+
 
 So in ModelingToolkit we can "integrate" by moving the differential to the appropriate side of the equation.
 
@@ -531,7 +562,10 @@ full_equations(sys)
 
 The first equation (after re-aranging) it can be seen is the classic *mass-spring-damper* equation.
 
-$m*\ddot{x} + d*\dot{x} + k*x = f$
+```math
+m*\ddot{x} + d*\dot{x} + k*x = f
+```
+
 
 So we know all the signs and equations are set correctly.  Additionally it's easy enough in this case to re-construct the problem directly and solve to check the result.
 
