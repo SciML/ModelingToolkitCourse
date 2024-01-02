@@ -90,14 +90,72 @@ Given ``\dot{\rho} = \rho_0 (\dot{p} / \beta)``, and ``q = \dot{m}/\rho_0`` the 
 [^1]: See [simscape hydraulic chamber](https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html).  Note the deprication warning moving to isothermal liquid library which uses the correct derivation.
 
 ### Example
-Problem Definition - Given
+Problem Definition - Given:
 
-- ``ṁ_{in} = f(t)``
 - ``m = 3,000 kg``
-- ``A = 900 cm^2``
+- ``A = 900 cm^2`` 
 - ``\rho_0 = 876 kg/m^3``
 - ``\beta = 1.2e9 Pa/m^3``
 - ``g = 9.807 m/s^2``
 
 ![example](../img/Example.svg)
+
+Find the mass flow rate (``\dot{m}``) that provides a sinusodial output of ``x``:
+
+```math
+x(t) = amp \cdot sin(2πtf) + x_0
+```
+
+There are 3 fundamental equations needed to solve this problem, mass balance: 
+
+```math
+\dot{m} = \dot{\rho} \cdot V + \rho \cdot \dot{V}
+```
+
+Where - 
+- ``V`` is the cylinder volume ``=x \cdot A``
+
+Newton's law:
+
+```math
+m \cdot \ddot{x} = p*A - m*g
+```
+
+And the density equation.  The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By including 1 input condition that gives 4 equations and 4 variables to be solved.  We can supply a guess for mass flow rate:
+
+```math
+\dot{m} = \rho \cdot \dot{x} \cdot A
+```
+
+To solve this in ModelingToolkit.jl, let's start by defining our parameters and `x` function
+
+```@example l2
+using ModelingToolkit
+using DifferentialEquations
+using Symbolics
+using Plots
+
+@parameters t
+D = Differential(t)
+
+# parameters -------
+pars = @parameters begin
+    r₀ = 876 #kg/s
+    β = 1.2e9 #Pa
+    A = 0.01 #m²
+    x₀ = 1.0 #m
+    m = 1000 #kg
+    g = 9.807 #m/s²
+    amp = 1e-3 #m
+    f = 10 #Hz    
+    ξ = 1.0
+end
+
+dt = 1e-4 #s
+t_end = 0.2 #s
+time = 0:dt:t_end
+
+x_fun(t,amp,f) = amp*sin(2π*t*f) + x₀
+```
+
 

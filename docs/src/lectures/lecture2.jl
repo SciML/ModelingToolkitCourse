@@ -1,6 +1,7 @@
 using ModelingToolkit
 using DifferentialEquations
 using Symbolics
+using Plots
 
 @parameters t
 D = Differential(t)
@@ -15,6 +16,7 @@ pars = @parameters begin
     g = 9.807 #m/s²
     amp = 1e-3 #m
     f = 10 #Hz    
+    ξ = 1.0
 end
 
 dt = 1e-4 #s
@@ -24,7 +26,7 @@ time = 0:dt:t_end
 x_fun(t,amp,f) = amp*sin(2π*t*f) + x₀
 ẋ_fun = build_function(expand_derivatives(D(x_fun(t,amp,f))), t, amp, f; expression=false)
 ẍ_fun = build_function(expand_derivatives(D(ẋ_fun(t,amp,f))), t, amp, f; expression=false)
-
+dẍ_fun = build_function(expand_derivatives(D(ẍ_fun(t,amp,f))), t, amp, f; expression=false)
 
 vars = @variables begin
     x(t) = x₀
@@ -32,8 +34,8 @@ vars = @variables begin
     ẍ(t) = ẍ_fun(0.0, amp, f)
     p(t) = m*g/A #Pa
     ṁ(t)
-    r(t)=r₀*(1 + p/β)
-    ṙ(t)=0.0
+    r(t) = r₀*(1 + p/β)
+    ṙ(t) = r₀*((dẍ_fun(0.0, amp, f)*m/A)/β)
 end 
 
 # let ------
@@ -49,38 +51,34 @@ eqs = [
 
     ṁ ~ ṙ*V + r*V̇
     m*ẍ ~ p*A - m*g
-
-    ṁ ~ ẋ_fun(t,amp,f)*A*r
 ]
 
-@named odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
-prob = ODEProblem(sys, [], (0, t_end))
+eqs_ṁ = [
+    eqs...
+    ṁ ~ ẋ_fun(t,amp,f)*A*r*ξ
+]
 
-sol_ṁ = solve(prob)
-
-eqs = [
-    D(x) ~ ẋ 
-    D(ẋ) ~ ẍ
-    D(r) ~ ṙ
-
-    r ~ r₀*(1 + p/β)
-
-    ṁ ~ ṙ*V + r*V̇
-    m*ẍ ~ p*A - m*g
-
+eqs_x = [
+    eqs...
     x ~ x_fun(t)
 ]
 
-@named odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
-prob = ODEProblem(sys, [], (0, t_end))
-sol_x = solve(prob)
+@named odesys_ṁ = ODESystem(eqs_ṁ, t, vars, pars)
+sys_ṁ = structural_simplify(odesys_ṁ)
+prob_ṁ = ODEProblem(sys_ṁ, [], (0, t_end))
+sol_ṁ = solve(prob_ṁ)
+
+@named odesys_x = ODESystem(eqs_x, t, vars, pars)
+sys_x = structural_simplify(odesys_x)
+prob_x = ODEProblem(sys_x, [], (0, t_end))
+sol_x = solve(prob_x)
 
 
-using Plots
 plot(sol_ṁ; idxs=r)
 plot!(time, sol_x(time)[r])
+
+plot(sol_ṁ; idxs=ṙ)
+plot!(time, sol_x(time)[ṙ])
 
 plot(sol_ṁ; idxs=p/1e5)
 plot!(time, sol_x(time)[p]/1e5)
@@ -91,11 +89,26 @@ plot!(time, sol_x(time)[x])
 plot(sol_ṁ; idxs=ṁ)
 plot!(time, sol_x(time)[ṁ])
 
+plot(sol_ṁ; idxs=ṁ*0.67)
+plot!(time, sol_x(time)[ṁ])
 
+# =========================
+sol_ṁ′ = solve(remake(prob_ṁ; p=[ξ=>0.67]))
 
+plot(sol_ṁ′; idxs=ṙ)
+plot!(time, sol_x(time)[ṙ])
 
+plot(sol_ṁ′; idxs=p/1e5)
+plot!(time, sol_x(time)[p]/1e5)
 
+plot(sol_ṁ′; idxs=x)
+plot!(time, sol_x(time)[x])
 
+plot(sol_ṁ′; idxs=ṁ)
+plot!(time, sol_x(time)[ṁ])
+
+plot(sol_ṁ′; idxs=ṁ)
+plot!(time, sol_x(time)[ṁ])
 
 
 
