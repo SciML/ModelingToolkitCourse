@@ -106,26 +106,36 @@ Find the mass flow rate (``\dot{m}``) that provides a sinusodial output of ``x``
 x(t) = amp \cdot sin(2πtf) + x_0
 ```
 
-There are 3 fundamental equations needed to solve this problem, mass balance: 
+There are 3 fundamental equations needed to solve this problem, **(1) Mass balance**: 
 
 ```math
 \dot{m} = \dot{\rho} \cdot V + \rho \cdot \dot{V}
 ```
 
-Where - 
-- ``V`` is the cylinder volume ``=x \cdot A``
+where ``V`` is the cylinder volume ``=x \cdot A``
 
-Newton's law:
+**(2) Newton's law**:
 
 ```math
 m \cdot \ddot{x} = p*A - m*g
 ```
 
-And the density equation.  The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By including 1 input condition that gives 4 equations and 4 variables to be solved.  We can supply a guess for mass flow rate:
+And the **(3) Density equation**.  
+
+
+The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By including 1 input condition that gives 4 equations and 4 variables to be solved.  Now, the problem to be solved is, "what is the mass flow rate, ``\dot{m}``, that gives the desired sinusodial ``x``?  There are 2 ways to go about finding the correct ``\dot{m}``.  The first is to guess.  We know that mass flow rate thru a pipe is equal to 
+
+```math
+\dot{m} = \rho \bar{u} A
+```
+
+where ``\bar{u}`` is the average flow velocity thru cross section ``A``.  We can assume that ``\bar{u} \approx \dot{x}``.  Therefore we have
 
 ```math
 \dot{m} = \rho \cdot \dot{x} \cdot A
 ```
+
+The second way to find the correct ``\dot{m}`` is to solve for it directly.  We can do this by simply supplying the target ``x`` function as the input to the system.  In this example we will do both and compare the results.
 
 To solve this in ModelingToolkit.jl, let's start by defining our parameters and `x` function
 
@@ -158,4 +168,56 @@ time = 0:dt:t_end
 x_fun(t,amp,f) = amp*sin(2π*t*f) + x₀
 ```
 
+Now, to supply ``\dot{m}`` we need an ``\dot{x}`` function.  This can be automatically generated for us with Symbolics.jl
+
+```@example l2
+ẋ_fun = build_function(expand_derivatives(D(x_fun(t,amp,f))), t, amp, f; expression=false)
+```
+
+As can be seen, we get a `cos` function as expected taking the derivative of `sin`.  Now let's build the variables and equations of our system.
+
+```@example l2
+vars = @variables begin
+    x(t) = x₀
+    ẋ(t)
+    ẍ(t)
+    p(t) = m*g/A #Pa
+    ṁ(t)
+    r(t)
+    ṙ(t)
+end 
+
+eqs = [
+    D(x) ~ ẋ 
+    D(ẋ) ~ ẍ
+    D(r) ~ ṙ
+
+    ṁ ~ ṙ*x*A + r*ẋ*A # (1) Mass balance
+    m*ẍ ~ p*A - m*g   # (2) Newton's law
+    r ~ r₀*(1 + p/β)  # (3) Density equation
+]
+```
+
+Note: we've only specified the known states of `x` and `p`.  We will find the additional unknowns before solving.  Now we have 7 variables defined and only 6 equations, missing the final driving input equation.  Let's add the 2 cases discussed:
+
+```@example l2
+eqs_ṁ = [
+    eqs...
+    ṁ ~ ẋ_fun(t,amp,f)*A*r*ξ # (4) Input - mass flow guess
+]
+
+eqs_x = [
+    eqs...
+    x ~ x_fun(t) # (4) Input - target x 
+]
+```
+
+Now we have 2 sets of equations, let's construct the systems and solve.  If we start with the 2nd system with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
+
+```@example l2
+@named odesys_x = ODESystem(eqs_x, t, vars, pars)
+sys_x = structural_simplify(odesys_x)
+```
+
+What this means is ModelingToolkit.jl has found that this model can be solved entirely analytically.  
 
