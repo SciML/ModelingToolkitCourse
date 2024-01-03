@@ -45,7 +45,6 @@ xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
 
 !!! note "about derivatives"
     We can get the derivative for `f` from automatic differentiation using `ForwardDiff.derivative` (or using `ForwardDiff.jacobian` for a system of equations).
-!!!
 
 To solve for a series of time steps, we can simply update `x` and run again for each time step `Δt`.  This is a simple form of the Implicit/Backwards Euler method.
 

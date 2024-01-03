@@ -67,7 +67,7 @@ Taking the derivative gives us the rate of mass change
 \dot{m}_{in} - \dot{m}_{out} = \frac{\delta (\rho V)}{\delta t} 
 ```
 
-Here is where the standard hydraulic modeling gets the physics wrong...
+Here is where the standard hydraulic modeling often makes a simplification.  
 
 Correct Derivation (1):  
 
@@ -92,7 +92,7 @@ Given ``\dot{\rho} = \rho_0 (\dot{p} / \beta)``, and ``q = \dot{m}/\rho_0`` the 
 ### Example
 Problem Definition - Given:
 
-- ``m = 3,000 kg``
+- ``M = 10,000 kg``
 - ``A = 900 cm^2`` 
 - ``\rho_0 = 876 kg/m^3``
 - ``\beta = 1.2e9 Pa/m^3``
@@ -154,11 +154,10 @@ pars = @parameters begin
     β = 1.2e9 #Pa
     A = 0.01 #m²
     x₀ = 1.0 #m
-    m = 1000 #kg
+    M = 10_000 #kg
     g = 9.807 #m/s²
-    amp = 1e-3 #m
-    f = 10 #Hz    
-    ξ = 1.0
+    amp = 5e-2 #m
+    f = 15 #Hz    
 end
 
 dt = 1e-4 #s
@@ -174,7 +173,7 @@ Now, to supply ``\dot{m}`` we need an ``\dot{x}`` function.  This can be automat
 ẋ_fun = build_function(expand_derivatives(D(x_fun(t,amp,f))), t, amp, f; expression=false)
 ```
 
-As can be seen, we get a `cos` function as expected taking the derivative of `sin`.  Now let's build the variables and equations of our system.
+As can be seen, we get a `cos` function as expected taking the derivative of `sin`.  Now let's build the variables and equations of our system.  The base equations are generated in a function so we can easily compare the correct derivation of mass balance (`density_type = r(t)`) with the standard practice (`density_type = r₀`).
 
 ```@example l2
 vars = @variables begin
@@ -187,37 +186,115 @@ vars = @variables begin
     ṙ(t)
 end 
 
-eqs = [
-    D(x) ~ ẋ 
-    D(ẋ) ~ ẍ
-    D(r) ~ ṙ
+function get_base_equations(density_type) 
+    
+    eqs = [
+        D(x) ~ ẋ 
+        D(ẋ) ~ ẍ
+        D(r) ~ ṙ
 
-    ṁ ~ ṙ*x*A + r*ẋ*A # (1) Mass balance
-    m*ẍ ~ p*A - m*g   # (2) Newton's law
-    r ~ r₀*(1 + p/β)  # (3) Density equation
+        r ~ r₀*(1 + p/β)
+
+        ṁ ~ ṙ*x*A + (density_type)*ẋ*A
+        m*ẍ ~ p*A - m*g
+    ]
+
+    return eqs
+end
+```
+
+Note: we've only specified the initial values for the known states of `x` and `p`.  We will find the additional unknown initial conditions before solving.  Now we have 7 variables defined and only 6 equations, missing the final driving input equation.  Let's build 3 different cases:
+
+- case 1: mass flow guess using standard practice mass flow balance
+
+```@example l2
+eqs_ṁ1 = [
+    get_base_equations(r₀)...
+    ṁ ~ ẋ_fun(t,amp,f)*A*r # (4) Input - mass flow guess
 ]
 ```
 
-Note: we've only specified the known states of `x` and `p`.  We will find the additional unknowns before solving.  Now we have 7 variables defined and only 6 equations, missing the final driving input equation.  Let's add the 2 cases discussed:
+- case 2: mass flow guess using correct compressibility equation
 
 ```@example l2
-eqs_ṁ = [
-    eqs...
-    ṁ ~ ẋ_fun(t,amp,f)*A*r*ξ # (4) Input - mass flow guess
+eqs_ṁ2 = [
+    get_base_equations(r)...
+    ṁ ~ ẋ_fun(t,amp,f)*A*r # (4) Input - mass flow guess
 ]
+```
 
+- case 3: solution
+
+```@example l2
 eqs_x = [
-    eqs...
+    get_base_equations(r)...
     x ~ x_fun(t) # (4) Input - target x 
 ]
 ```
 
-Now we have 2 sets of equations, let's construct the systems and solve.  If we start with the 2nd system with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
+Now we have 3 sets of equations, let's construct the systems and solve.  If we start with the 3rd system with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
 
 ```@example l2
 @named odesys_x = ODESystem(eqs_x, t, vars, pars)
 sys_x = structural_simplify(odesys_x)
 ```
 
-What this means is ModelingToolkit.jl has found that this model can be solved entirely analytically.  
+What this means is ModelingToolkit.jl has found that this model can be solved entirely analytically.  The full system of equations has been moved to what is called "observables", which can be obtained using the `observed()` function
 
+```@example l2
+observed(sys_x)
+```
+
+!!! note "dummy derivatives"
+    Some of the observables have a `ˍt` appended to the name.  These are called dummy derivatives, which are a consequence of the algorithm to reduce the system DAE index.  
+
+This system can still be "solved" using the same steps to generate an `ODESolution` which allows us to easily obtain any calculated observed state.
+
+```@example l2
+prob_x = ODEProblem(sys_x, [], (0, t_end))
+sol_x = solve(prob_x; saveat=time)
+plot(sol_x; idxs=ṁ)
+```
+
+Now let's solve the other system and compare the results. 
+
+```@example l2
+@named odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
+sys_ṁ1 = structural_simplify(odesys_ṁ1)
+```
+
+Notice that now, with a simple change of the system input variable, `structural_simplify()` outputs a system with 4 states to be solved.  We can find the initial conditions needed for these states from `sol_x` and solve.
+
+```@example l2
+u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
+prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
+sol_ṁ1 = solve(prob_ṁ1)
+```
+
+The resulting mass flow rate required to hit the target ``x`` position can be seen to be completely wrong.  This is the large impact that compressibility can have when high forces are involved.
+
+```@example l2
+plot(sol_ṁ1; idxs=ṁ, label="guess", ylabel="ṁ")
+plot!(sol_x; idxs=ṁ, label="solution")
+```
+
+If we now solve for case 2, we can study the impact the compressibility derivation
+
+```@example l2
+@named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
+sys_ṁ2 = structural_simplify(odesys_ṁ2)
+prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
+sol_ṁ2 = solve(prob_ṁ2)
+```
+
+As can be seen, a significant error forms between the 2 cases. 
+
+```@example l2
+plot(sol_x; idxs=x, label="solution", ylabel="x")
+plot!(sol_ṁ1; idxs=x, label="case 1: r₀")
+plot!(sol_ṁ2; idxs=x, label="case 2: r")
+```
+
+```@example l2
+plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, label="x", ylabel="error (case 1 - case 2) [mm]", xlabel="t [s]")
+```
