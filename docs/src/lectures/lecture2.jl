@@ -46,7 +46,7 @@ function get_base_equations(density_type)
         r ~ r₀*(1 + p/β)
 
         ṁ ~ ṙ*x*A + (density_type)*ẋ*A
-        m*ẍ ~ p*A - m*g
+        M*ẍ ~ p*A - M*g
     ]
 
     return eqs
@@ -100,9 +100,54 @@ mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
 
 using ModelingToolkitStandardLibrary.Mechanical.Translational
 using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible
+using ModelingToolkitStandardLibrary.Blocks
 
-@mtkmodel begin
+using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_density
+
+@mtkmodel Volume begin
     @parameters begin
+        area
+        direction = +1
+    end
+    @variables begin
+        x(t)
+        dx(t)
+        p(t)
+        r(t)
+        dr(t)
+        dm(t)
+        f(t)=p*area
+    end
+    @components begin
+        port = HydraulicPort(; p_int=p)
+        flange = MechanicalPort(; v=dx, f)
+    end
+    @equations begin
+
+        # connectors
+        port.p ~ p
+        port.dm ~ dm
+
+        flange.v * direction ~ dx
+        flange.f * direction ~ f
+        
+        # differentials
+        D(x) ~ dx
+        D(r) ~ dr
+
+        # physics
+        r ~ liquid_density(port, p)
+        f ~ p*area
+
+        dm ~ dr*x*area + r*dx*area
+    end
+end
+
+
+
+function MassVolume(; name,dx,r,dr,dm)
+
+    pars = @parameters begin
         A = 0.01 #m²
         x₀ = 1.0 #m
         M = 10_000 #kg
@@ -110,16 +155,70 @@ using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible
         amp = 5e-2 #m
         f = 15 #Hz   
         p_int=M*g/A
+        dx=dx
+        r=r
+        dr=dr
+        dm=dm
     end
-    @components begin
-        mass = Mass(;m=M)
-        vol = DynamicVolume(0, false; p_int, area=A, x_int=x₀, x_max=10*x₀)
+    vars = []
+    systems = @named begin
+        fluid = HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
+        mass = Mass(;v=dx,m=M,g=-g)
+        vol = Volume(;area=A, x=x₀, p=p_int, dx, r, dr, dm)
         mass_flow = MassFlow(;p_int)
         mass_flow_input = TimeVaryingFunction(;f = mass_flow_fun)
     end
-    @equations begin
-        connect()
-    end
-    
+
+    eqs = [
+        connect(mass.flange, vol.flange)
+        connect(vol.port, mass_flow.port)
+        connect(mass_flow.dm, mass_flow_input.output)
+        connect(mass_flow.port, fluid)
+    ]
+
+    return ODESystem(eqs, t, vars, pars; systems, name)
 end
 
+dx = sol_x[ẋ][1]
+rho = sol_x[r][1]
+dr = sol_x[ṙ][1]
+dm = sol_x[ṁ][1]
+
+@named odesys = MassVolume(; dx, r=rho, dr, dm)
+# using DAE2AE
+sys = structural_simplify(odesys)
+# sys = no_simplify(expand_connections(odesys)) |> complete
+prob = ODEProblem(sys, [], (0, t_end))
+sol=solve(prob)
+plot(sol; idxs=sys.vol.x, linewidth=2)
+plot!(sol_x; idxs=x)
+
+plot(sol; idxs=sys.vol.dx, linewidth=2)
+plot!(sol_x; idxs=ẋ)
+
+
+
+du0 = [
+    0 # mass₊v(t)
+    sol_x[ẋ][1] # vol₊x(t)
+    sol_x[ẋ][1] # vol₊moving_volume₊x(t)
+    sol_x[ṙ][1] # vol₊moving_volume₊rho(t)
+    sol_x[ṙ*β/r₀][1] # vol₊moving_volume₊port₊p(t)
+    sol_x[ṙ*β/r₀][1] # vol₊damper₊port_b₊p(t)
+    0 # vol₊moving_volume₊drho(t)
+]
+prob = DAEProblem(sys, du0, [], (0, t_end))
+sol = solve(prob, DImplicitEuler(nlsolve=NLNewton(check_div=false)))
+
+prob = ODEProblem(sys, [], (0, t_end))
+sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, max_iter=100, relax=4//10)); dt, adaptive=false)
+
+using SimpleEuler
+sol = solve(prob, BackwardEuler(); dt, adaptive=false)
+
+plot(sol; idxs=sys.vol.x, linewidth=2)
+plot!(sol_x; idxs=x)
+
+plot(sol; idxs=sys.mass_flow.dm.u)
+
+plot(sol; idxs=sys.vol.moving_volume.port.p)

@@ -196,7 +196,7 @@ function get_base_equations(density_type)
         r ~ r₀*(1 + p/β)
 
         ṁ ~ ṙ*x*A + (density_type)*ẋ*A
-        m*ẍ ~ p*A - m*g
+        M*ẍ ~ p*A - M*g
     ]
 
     return eqs
