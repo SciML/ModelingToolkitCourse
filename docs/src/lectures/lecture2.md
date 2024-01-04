@@ -228,7 +228,7 @@ eqs_ṁ2 = [
 ```@example l2
 eqs_x = [
     get_base_equations(r)...
-    x ~ x_fun(t) # (4) Input - target x 
+    x ~ x_fun(t,amp,f) # (4) Input - target x 
 ]
 ```
 

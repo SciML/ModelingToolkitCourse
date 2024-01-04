@@ -64,7 +64,7 @@ eqs_ṁ2 = [
 
 eqs_x = [
     get_base_equations(r)...
-    x ~ x_fun(t)
+    x ~ x_fun(t,amp,f)
 ]
 
 @named odesys_x = ODESystem(eqs_x, t, vars, pars)
@@ -97,12 +97,16 @@ plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, ylabel="x error [mm]",
 using DataInterpolations
 mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
 
+plot(sol_x; idxs=ṁ)
+plot!(time, -263.9489641054512*cos.(2π*time*15))
 
 using ModelingToolkitStandardLibrary.Mechanical.Translational
 using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible
 using ModelingToolkitStandardLibrary.Blocks
 
 using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_density
+
+
 
 @mtkmodel Volume begin
     @parameters begin
@@ -113,8 +117,8 @@ using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_de
         x(t)
         dx(t)
         p(t)
-        r(t)
-        dr(t)
+        rho(t)
+        drho(t)
         dm(t)
         f(t)=p*area
     end
@@ -133,19 +137,19 @@ using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_de
         
         # differentials
         D(x) ~ dx
-        D(r) ~ dr
+        D(rho) ~ drho
 
         # physics
-        r ~ liquid_density(port, p)
+        rho ~ liquid_density(port, p)
         f ~ p*area
 
-        dm ~ dr*x*area + r*dx*area
+        dm ~ drho*x*area + rho*dx*area
     end
 end
 
 
 
-function MassVolume(; name,dx,r,dr,dm)
+function MassVolume(; name, dx, drho, dm)
 
     pars = @parameters begin
         A = 0.01 #m²
@@ -156,15 +160,14 @@ function MassVolume(; name,dx,r,dr,dm)
         f = 15 #Hz   
         p_int=M*g/A
         dx=dx
-        r=r
-        dr=dr
+        drho=drho
         dm=dm
     end
     vars = []
     systems = @named begin
         fluid = HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
         mass = Mass(;v=dx,m=M,g=-g)
-        vol = Volume(;area=A, x=x₀, p=p_int, dx, r, dr, dm)
+        vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm)
         mass_flow = MassFlow(;p_int)
         mass_flow_input = TimeVaryingFunction(;f = mass_flow_fun)
     end
@@ -180,11 +183,10 @@ function MassVolume(; name,dx,r,dr,dm)
 end
 
 dx = sol_x[ẋ][1]
-rho = sol_x[r][1]
-dr = sol_x[ṙ][1]
+drho = sol_x[ṙ][1]
 dm = sol_x[ṁ][1]
 
-@named odesys = MassVolume(; dx, r=rho, dr, dm)
+@named odesys = MassVolume(; dx, drho, dm)
 # using DAE2AE
 sys = structural_simplify(odesys)
 # sys = no_simplify(expand_connections(odesys)) |> complete
