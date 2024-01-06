@@ -97,57 +97,19 @@ plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, ylabel="x error [mm]",
 using DataInterpolations
 mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
 
-plot(sol_x; idxs=ṁ)
-plot!(time, -263.9489641054512*cos.(2π*time*15))
-
-using ModelingToolkitStandardLibrary.Mechanical.Translational
-using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible
-using ModelingToolkitStandardLibrary.Blocks
-
-using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_density
-
-
-
-@mtkmodel Volume begin
-    @parameters begin
-        area
-        direction = +1
-    end
-    @variables begin
-        x(t)
-        dx(t)
-        p(t)
-        rho(t)
-        drho(t)
-        dm(t)
-        f(t)=p*area
-    end
-    @components begin
-        port = HydraulicPort(; p_int=p)
-        flange = MechanicalPort(; v=dx, f)
-    end
-    @equations begin
-
-        # connectors
-        port.p ~ p
-        port.dm ~ dm
-
-        flange.v * direction ~ dx
-        flange.f * direction ~ f
-        
-        # differentials
-        D(x) ~ dx
-        D(rho) ~ drho
-
-        # physics
-        rho ~ liquid_density(port, p)
-        f ~ p*area
-
-        dm ~ drho*x*area + rho*dx*area
-    end
+open("dm.jl","w") do io
+    print(io, "u = [")
+    join(io, sol_x[ṁ], ',')
+    print(io, "]")
 end
 
 
+plot(sol_x; idxs=ṁ)
+plot!(time, -263.9489641054512*cos.(2π*time*15))
+
+import ModelingToolkitStandardLibrary.Mechanical.Translational as T
+import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
+import ModelingToolkitStandardLibrary.Blocks as B
 
 function MassVolume(; name, dx, drho, dm)
 
@@ -165,11 +127,11 @@ function MassVolume(; name, dx, drho, dm)
     end
     vars = []
     systems = @named begin
-        fluid = HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
-        mass = Mass(;v=dx,m=M,g=-g)
-        vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm)
-        mass_flow = MassFlow(;p_int)
-        mass_flow_input = TimeVaryingFunction(;f = mass_flow_fun)
+        fluid = IC.HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
+        mass = T.Mass(;v=dx,m=M,g=-g)
+        vol = IC.Volume(;area=A, x=x₀, p=p_int, dx, drho, dm)
+        mass_flow = IC.MassFlow(;p_int)
+        mass_flow_input = B.TimeVaryingFunction(;f = mass_flow_fun)
     end
 
     eqs = [
