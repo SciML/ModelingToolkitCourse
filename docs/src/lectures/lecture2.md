@@ -368,7 +368,8 @@ Now taking the sum of forces acting on the cv we have the pressure forces at eac
     \rho V \dot{u} = p_1 A_1 - p_2 A_2 - F_{viscous} + \rho V g
 ```
 
-Note: the current implementation of this component in the ModelingToolkitStandardLibrary.jl does not include gravity force for this makes initialization challenging and will take some work to implement. **Project Idea**
+!!! note "Project Idea" 
+    the current implementation of this component in the ModelingToolkitStandardLibrary.jl does not include gravity force for this makes initialization challenging and will take some work to implement.
 
 
 The density $\rho$ is an average of $\rho_1$ and $\rho_2$.  The velocity is also taken as an average of $u_1$ and $u_2$
@@ -383,8 +384,16 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
 
 ![momentum balance](../img/momentum_balance.svg)
 
-!!! note 
-   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propogation through a pipe.  A classic wave propogation example in pipes is the "water hammer" effect.  
+!!! note "Conservation of Momentum"
+   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propogation through a pipe.  A classic wave propogation example in pipes is the "water hammer" effect.  Classically this is written as 
+   ```math 
+   \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
+   ```
+   where $\text{v}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  We don't use this full form because we assume velocity to be constant thru the control volume.
+
+!!! note "Project Idea"
+    Implement a more detailed Conservation of Momentum using MethodOfLines.jl
+    
 
 ### Pipe Component
 To model a pipe for compressible flow, we can combine the mass balance and momentum balance components to give both mass storage and flow resistance.  Furthermore, to provide a more accurate model that allows for wave propogation we can discretize the volume connected by node of equal pressure and mass flow.  The diagram below shows an example of discretizing with 3 mass balance volumes and 2 momentum balance resistive elements.  Note: the Modelica Standard Library does this in a different way, by combining the mass and momentum balance in a single base class.  
