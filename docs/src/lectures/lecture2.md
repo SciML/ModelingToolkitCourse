@@ -385,14 +385,18 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
 ![momentum balance](../img/momentum_balance.svg)
 
 !!! note "Conservation of Momentum"
-   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propogation through a pipe.  A classic wave propogation example in pipes is the "water hammer" effect.  Classically this is written as 
+   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propogation through a pipe.  A classic wave propogation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimentions is 
    ```math 
    \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
    ```
-   where $\text{v}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  We don't use this full form because we assume velocity to be constant thru the control volume.
+   where $\text{v}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  In the ModelingToolkitStandardLibrary.jl this assumption is taken
+   ```math
+   \rho V \frac{D \text{V}}{Dt} \approx \frac{\partial \dot{m}}{\partial t}
+   ```  
+   
 
 !!! note "Project Idea"
-    Implement a more detailed Conservation of Momentum using MethodOfLines.jl
+    Implement a more detailed Conservation of Momentum using the standard derivation.  One idea is to implement the MethodOfLines.jl to provide the derivative in $x$.
     
 
 ### Pipe Component
@@ -401,36 +405,30 @@ To model a pipe for compressible flow, we can combine the mass balance and momen
 ![pipe](../img/pipe.svg)
 
 
-In Fig. \ref{fig:16} we can see the difference fluid inertia makes.  Note: ``\tikz{\draw[] rectangle (0.2,0.2);}'' represents the partial momentum balance is used (missing the inertial component $\rho V \dot{u}$), and ``\tikz{\draw[fill] rectangle (0.2,0.2);}'' represents the full momentum balance is used. As can be seen, without inertia included, the dynamic pressure waves are completely missed.
+### Dynamic Volume Component
+Both Modelica and SimScape model the actuator component with simply a uniform pressure volume component.  The Modelica library defines the base fluids class around the assumption of constant length (see: [Object-Oriented Modeling of Thermo-Fluid Systems](https://elib.dlr.de/11988/1/otter2003-modelica-fluid.pdf)) and therefore adapting to a component that changes length is not possible.  But in cases with long actuators with high dynamics the pressure is not at all uniform, therefore this detail cannot be ignored.  Therefore, adding in the momentum balance to provide flow resistance and fluid inertia are necessary.  The diagram below shows the design of a `DynamicVolume` component which includes both mass and momentum balance in addition to discretization by volume.  The discretization is similar to the pipe, except the scheme becomes a bit more complicated with the moving wall ($x$).  As the volume shrinks, the control volumes will also shrink, however not in unison, but one at a time.  In this way, as the moving wall closes, the flow will come from the first volume $cv1$ and travel thru the full size remaining elements ($cv2$, $cv3$, etc.).  After the first component length drops to zero, the next element will then start to shrink.  
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{img/comp1.pdf}
-    \begin{tabular}{c|ccc|ccc}
-        ~ & \multicolumn{3}{c}{\textbf{Pipe}} & \multicolumn{3}{c}{\textbf{Actuator}} \\
-        ~ & Mass & \cellcolor[HTML]{FFFE65} Momentum & N  & Mass & Momentum & N \\
-        \hline
-        \textbf{A} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \cellcolor[HTML]{FFFE65} \tikz{\draw[] rectangle (0.2,0.2);} & 1 & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[] rectangle (0.2,0.2);} & 1 \\
-        \textbf{B} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \cellcolor[HTML]{FFFE65} \tikz{\draw[fill] rectangle (0.2,0.2);} & 1 & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[] rectangle (0.2,0.2);} & 1 \\
-    \end{tabular}
-    \caption{pipe - adding inertia}
-    \label{fig:16}
-\end{figure}
+![volume](../img/volume.svg)
 
-In Fig. \ref{fig:17} we can see the difference between using 1 element vs. 5.  This helps correct the phase.
+This design has a flaw unfortunately, expanding the system for N=3 gives 
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{img/comp2.pdf}
-    \begin{tabular}{c|ccc|ccc}
-        ~ & \multicolumn{3}{c}{\textbf{Pipe}} & \multicolumn{3}{c}{\textbf{Actuator}} \\
-        ~ & Mass & Momentum & \cellcolor[HTML]{FFFE65} N  & Mass & Momentum & N \\
-        \hline
-        
-        \textbf{A} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \cellcolor[HTML]{FFFE65} 1 & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[] rectangle (0.2,0.2);} & 1 \\
+![eqs1](../img/volume_eq1.png)
 
-        \textbf{B} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[fill] rectangle (0.2,0.2);} & \cellcolor[HTML]{FFFE65} 5 & \tikz{\draw[fill] rectangle (0.2,0.2);} & \tikz{\draw[] rectangle (0.2,0.2);} & 1 \\
-    \end{tabular}
-    \caption{pipe - adding discretization}
-    \label{fig:17}
-\end{figure}
+What happens when transitioning from one cv to the next, if the moving wall velocity is significant, then an abrupt change occurs due to the $\rho_i \dot{x}$ term.  This creates an unstable condition for the solver and results in poor quality/accuracy.  To resolve this problem, the mass balance equation is split into 2 parts: mass balance 1 \& 2 
+
+```math
+\text{mass balance 1: } \dot{m}/A = \dot{\rho} x
+```
+
+```math
+\text{mass balance 2: } \dot{m}/A = \rho \dot{x}
+```
+
+The below diagram explains how this component is constructed
+
+![dynamic volume](../img/dynamic_volume.svg)
+
+Now the flows are simplified and are more numerically stable.  The acausal connections then handle the proper summing of flows.
+
+![eqs2](../img/volume_eq2.png)
+
