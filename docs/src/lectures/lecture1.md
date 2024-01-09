@@ -311,7 +311,7 @@ end
 
 Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you've properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
 
-The 2nd tricky issue is signs.  To determine this one can draw a diagram like below.  Below the port draw the across variable from left to right (positive) direciton.  Then draw the through variable *entering* the component.  If the arrows point in the same direction, the connection port through variable assignment is positive, if opposing, then the sign should be negative.  
+The 2nd tricky issue is signs.  To determine this one can draw a diagram like below.  Below the port draw the across variable from left to right (positive) direction.  Then draw the through variable *entering* the component.  If the arrows point in the same direction, the connection port through variable assignment is positive, if opposing, then the sign should be negative.  
 
 ![mass](../img/mass.svg)
 
