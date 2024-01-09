@@ -26,7 +26,7 @@
      showgrid="true"
      inkscape:zoom="2.245064"
      inkscape:cx="141.86678"
-     inkscape:cy="96.879197"
+     inkscape:cy="96.879198"
      inkscape:window-width="1920"
      inkscape:window-height="1129"
      inkscape:window-x="-8"
@@ -70,25 +70,6 @@
          d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
          style="fill:context-stroke;fill-rule:evenodd;stroke:none"
          id="path8-0-7" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="RoundedArrow-9-6"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Rounded arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.7)"
-         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
-         id="path8-9-0" />
     </marker>
     <marker
        style="overflow:visible"
@@ -137,34 +118,19 @@
     <text
        xml:space="preserve"
        style="font-size:3.175px;fill:#008000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="49.219112"
-       y="81"
+       x="7.9440875"
+       y="85.233337"
        id="text5"><tspan
          sodipodi:role="line"
          id="tspan5"
          style="fill:#008000;stroke:none;stroke-width:0.5"
-         x="49.219112"
-         y="81">f</tspan></text>
+         x="7.9440875"
+         y="85.233337">f</tspan></text>
     <path
        style="fill:#008000;stroke:#008000;stroke-width:0.499999;stroke-dasharray:none;marker-end:url(#RoundedArrow-0-2)"
-       d="m 40.000001,79.999998 h -10"
+       d="m 10.170119,84.233334 h 10"
        id="path6-8-1"
        sodipodi:nodetypes="cc" />
-    <path
-       style="opacity:0.5;fill:#0000ff;stroke:#008000;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6)"
-       d="m 10.000002,84.999998 h 10"
-       id="path10" />
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;opacity:0.5;fill:#008000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="7.5654011"
-       y="86"
-       id="text10"><tspan
-         sodipodi:role="line"
-         id="tspan10"
-         style="fill:#008000;stroke:none;stroke-width:0.5"
-         x="7.5654011"
-         y="86">v</tspan></text>
     <path
        style="fill:none;stroke:#008000;stroke-width:0.499999"
        d="M 80.000002,73.000007 V 108"
@@ -197,10 +163,6 @@
        style="fill:#0000ff;stroke:#666666;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6-3)"
        d="M 10,94.999997 H 20"
        id="path5-52" />
-    <path
-       style="fill:#0000ff;stroke:#333333;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6-3)"
-       d="M 10,100 H 20"
-       id="path6-0" />
     <text
        xml:space="preserve"
        style="font-size:3.175px;fill:#808080;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
@@ -212,16 +174,5 @@
          style="fill:#808080;stroke:none;stroke-width:0.5"
          x="7.5654001"
          y="95.999992">v</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;fill:#000000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="7.5654001"
-       y="100.99999"
-       id="text7-2"><tspan
-         sodipodi:role="line"
-         id="tspan7-2"
-         style="fill:#000000;stroke:none;stroke-width:0.5"
-         x="7.5654001"
-         y="100.99999">f</tspan></text>
   </g>
 </svg>
