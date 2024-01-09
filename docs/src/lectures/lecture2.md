@@ -362,9 +362,9 @@ plot!(sol_x; idxs=x)
 ```
 
 ## Momentum Balance
-The next challenging aspect of hydraulic modeling is modeling flow through a pipe, which for compressible flow requires resolving the momentum balance equation. To derive the momentum balance we can draw a control volume (cv) in a pipe with area $A$, as shown in the figure below, and apply Newton's second law.  Across this control volume from $x_1$ to $x_2$ the pressure will change from $p_1$ to $p_2$.  Assuming this is written for an acausal component we put nodes at $p_1$ to $p_2$ which will have equal mass flow $\dot{m}$ entering and exiting the cv[^1].
+The next challenging aspect of hydraulic modeling is modeling flow through a pipe, which for compressible flow requires resolving the momentum balance equation. To derive the momentum balance we can draw a control volume (cv) in a pipe with area $A$, as shown in the figure below, and apply Newton's second law.  Across this control volume from $x_1$ to $x_2$ the pressure will change from $p_1$ to $p_2$.  Assuming this is written for an acausal component we put nodes at $p_1$ to $p_2$ which will have equal mass flow $\dot{m}$ entering and exiting the cv[^2].
 
-[^1]: The Modelica Standard Library combines the mass and momentum balance to the same base class, therefore, mass flow in and out of the cv is not equal, which introduces an additional term to the lhs of the momentum balance:  $ \frac{\partial \left( \rho u^2 A \right) }{\partial x}  $  
+[^2]: The Modelica Standard Library combines the mass and momentum balance to the same base class, therefore, mass flow in and out of the cv is not equal, which introduces an additional term to the lhs of the momentum balance:  $ \frac{\partial \left( \rho u^2 A \right) }{\partial x}  $  
 
 
 Now taking the sum of forces acting on the cv we have the pressure forces at each end as well as the viscous drag force from the pipe wall and the body force from gravity.  The sum of forces is equal to the product of mass ($\rho V$) and flow acceleration ($\dot{u}$).   
