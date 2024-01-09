@@ -180,7 +180,7 @@ vars = @variables begin
     x(t) = x₀
     ẋ(t)
     ẍ(t)
-    p(t) = m*g/A #Pa
+    p(t) = M*g/A #Pa
     ṁ(t)
     r(t)
     ṙ(t)
@@ -308,6 +308,11 @@ import ModelingToolkitStandardLibrary.Mechanical.Translational as T
 import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
 import ModelingToolkitStandardLibrary.Blocks as B
 
+using DataInterpolations
+mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
+
+include("volume.jl") # <-- missing Volume component from MTKSL (will be released in new version) 
+
 function MassVolume(; name, dx, drho, dm)
 
     pars = @parameters begin
@@ -326,7 +331,7 @@ function MassVolume(; name, dx, drho, dm)
     systems = @named begin
         fluid = IC.HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
         mass = T.Mass(;v=dx,m=M,g=-g)
-        vol = IC.Volume(;area=A, x=x₀, p=p_int, dx, drho, dm)
+        vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm) # <-- missing Volume component from MTKSL (will be released in new version) 
         mass_flow = IC.MassFlow(;p_int)
         mass_flow_input = B.TimeVaryingFunction(;f = mass_flow_fun)
     end

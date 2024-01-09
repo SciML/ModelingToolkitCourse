@@ -157,7 +157,7 @@ prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
 sol = solve(prob)
 ```
 
-Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can do this for us: ModelingToolkit.jl
+Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can make all this easier and automatic: ModelingToolkit.jl
 
 ### ModelingToolkit.jl
 ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplification to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independent variable ``t`` and it's differential operator
@@ -168,11 +168,12 @@ using ModelingToolkit
 D = Differential(t)
 ```
 
-Note that `t` is now a symbolic term.  Writing `sin(t)` does not compute anything, it simply represents the function symbolically.  Writing `D(sin(t))` then represents the derivative of `sin(t)` with respect to `t`.  To compute the derivative, we can use the function `expand_derivatives`
+!!! note "about Symbolics"
+    Note that `t` is now a symbolic term.  Writing `sin(t)` does not compute anything, it simply represents the function symbolically.  Writing `D(sin(t))` then represents the derivative of `sin(t)` with respect to `t`.  To compute the derivative, we can use the function `expand_derivatives`
 
-```@example l1
-D(sin(t)) |> expand_derivatives
-```
+    ```@example l1
+    D(sin(t)) |> expand_derivatives
+    ```
 
 To assemble a problem symbolically for ModelingToolkit.jl, we can define our variables and equations like
 
@@ -192,8 +193,6 @@ Note the variables are defined as a function of the independent variable `t` and
 @named odesys = ODESystem(eqs, t, vars, pars)
 sys = structural_simplify(odesys)
 ```
-
-
 
 As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
 
@@ -231,26 +230,10 @@ plot!(sol; idxs=ẋ*d)
 ```
 
 
-#### Solving a system of equations (`NonlinearSystem`)
-- Use ModelingToolkit to solve the problem
-- introduce @parameters
-- show the f function
-- show the jacobian
-- introduce `equations`, `defaults`, and how to setup initial conditions and parameters
-
-
-
-#### [Practice Problem]
-- introduce remake
-- plot a solution set (do something that errors once the initial conditions are not defaulted correctly)
-
-
-
-
 ## Acausal - Component Based Modeling
-ModelingToolkit.jl enables the application of Physical Network Acausal modeling, which is a type of modeling which is component based allowing one to build models by assembling parts together from a library.  The key to how this works is thru a simple rule of how components are connected.  A connection must define at minimum 2 variables (*through* and *across*) which follows the rules:
+ModelingToolkit.jl enables the application of Physical Network Acausal modeling, which is a type of modeling which is component based allowing one to build models by assembling parts together from a library.  The key to how this works is thru a simple rule of how components are connected.  A connection must define at minimum 2 variables (*through* and *across* see [about connectors](https://docs.sciml.ai/ModelingToolkitStandardLibrary/stable/connectors/connections/) for a deeper explanation) which follows the rules:
 
-- connections can only be made by like connectors (i.e. same pairs of *through* and *across* variables from the same physical domain)
+- connections can only be made by *like* connectors (i.e. same pairs of *through* and *across* variables from the same physical domain)
 - *through* variables sum to zero at connection points
 - *across* variables are equal at connection points
 
@@ -290,12 +273,6 @@ Let's try this again by defining this system in ModelingToolkit.jl
 
 
 ### Connections
-- demonstrate the theory of connections
-- TODO: reference to where nodal network modeling originated?
-- thru variables sum
-- across variables are equal
-- Question: does the across variable have to be velocity?  Could it be any other derivative?
-
 To define a connection in ModelingToolkit.jl we use the `@connector` macro and specify the *through* variable with `connect = Flow`
 
 ```@example l1 
@@ -307,9 +284,6 @@ end
 
 
 ### Components
-- demonstrate how components are defined
-- best practices
-
 To define a component, we use the `@mtkmodel` macro and define it's parameters, variables, connection ports, and equations.  The mass component can be defined as
 
 ```@example l1 
@@ -327,7 +301,7 @@ To define a component, we use the `@mtkmodel` macro and define it's parameters, 
     @equations begin
         # connectors
         port.v ~ v
-        port.f ~ -f
+        port.f ~ f
         
         # physics
         f ~ m*D(v)
@@ -337,7 +311,7 @@ end
 
 Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you've properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
 
-The 2nd tricky issue is signs.  Note that the force assigned to the port is negative `port.f ~ -f`.  To determine this I like to draw a diagram like below.  Below the port in black I draw the connection variables, here there is 1 port and I draw them to the right (i.e. positive direction).  Then in green above the port I draw the corresponding variables of the component.  In this case we know from Newton that mass times acceleration equals force, therefore the direction of movement is in the opposite direction of the force.  In other words, if we push the mass from left to right (i.e. in the positive direction), then the mass will generate a force in the negative direction.  Now the diagram shows how the port and component variables are aligned.  
+The 2nd tricky issue is signs.  To determine this one can draw a diagram like below.  Below the port draw the across variable from left to right (positive) direciton.  Then draw the through variable *entering* the component.  If the arrows point in the same direction, the connection port through variable assignment is positive, if opposing, then the sign should be negative.  
 
 ![mass](../img/mass.svg)
 
@@ -358,7 +332,7 @@ Similarly the damper component is defined as below.
     @equations begin
         # connectors
         port.v ~ v
-        port.f ~ -f
+        port.f ~ f
         
         # physics
         f ~ d*v
@@ -393,10 +367,6 @@ full_equations(sys)
 As can be seen we arrive at the same equation as derived previously.  Now it would be easy to define a system that adds a spring, or has a series of connected masses, springs, dampers, etc.  
 
 
-### [Practice Problem]
-- add a spring component to the above system
-- how to define a spring or damper with 2 ports?
-
 The `Damper` component created previously was a little incomplete because it only had one port.  In reality a damper or spring will be connected between 2 objects, for example the car frame and the wheel.  Therefore a proper component will define 2 ports so that the component can be as analogous with real life as possible.  In the example below the component is defined properly with 2 ports.  Note the velocity of the component `v` is defined as a relative velocity between the 2 ports.  It's easy to understand how this works if it's assumed that `port_b` is connected to a stationary reference frame.
 
 ```@example l1 
@@ -415,8 +385,8 @@ The `Damper` component created previously was a little incomplete because it onl
     @equations begin
         # connectors
         (port_a.v - port_b.v) ~ v
-        port_a.f ~ -f
-        port_b.f ~ +f
+        port_a.f ~ +f
+        port_b.f ~ -f
         
         # physics
         f ~ d*v
@@ -424,7 +394,7 @@ The `Damper` component created previously was a little incomplete because it onl
 end
 ```
 
-Note the force from the damper is in opposing directions, it's easy to see when drawing a free body diagram.  Note that if the positive direction is to the right, then the force of the damper is pushing left (i.e. in the negative direction) on `port_a` and right (positive direction) on `port_b`.
+Note the force is drawn now as entering the component on both sides.  For port `a` the directions align, but for port `b` the directions are opposing, requiring a sign change: `port_b.f ~ -f`
 
 ![damper](../img/damper.svg)
 
@@ -434,7 +404,6 @@ Now we can do the same for the spring component.  Note that the spring is of cou
 x = \int v \space \partial t
 ```
 
-
 But we know that this is also true
 
 ```math
@@ -442,7 +411,7 @@ But we know that this is also true
 ```
 
 
-So in ModelingToolkit we can "integrate" by moving the differential to the appropriate side of the equation.
+In ModelingToolkit therefore we can "integrate" by moving the differential to the appropriate side of the equation.
 
 ```@example l1 
 @mtkmodel Spring begin
@@ -464,8 +433,8 @@ So in ModelingToolkit we can "integrate" by moving the differential to the appro
 
         # connectors
         (port_a.v - port_b.v) ~ v
-        port_a.f ~ -f
-        port_b.f ~ +f
+        port_a.f ~ +f
+        port_b.f ~ -f
         
         # physics
         f ~ k*x
@@ -494,7 +463,7 @@ Now, if we want to create a full *mass-spring-damper* system with our new `Dampe
     @equations begin
         # connectors
         port.v ~ 0
-        port.f ~ -f
+        port.f ~ f
     end
 end
 ```
@@ -517,10 +486,14 @@ Finally, considering an input force, we can imagine this to be an invisible hand
     @equations begin
         # connectors
         port.v ~ v
-        port.f ~ f  
+        port.f ~ -f  
     end
 end
 ```
+
+Note the sign convention `port.f ~ -f`.  This is maybe not expected.  To understand why a negative is needed here is because this component is different from the others, there is no physics involved.  The component is instead only a boundary condition, therefore force should be *leaving* the component rather than entering.
+
+![force input](../img/force_input.svg)
 
 Now let's assemble a *mass-spring-damper* system with the full collection of components.
 
@@ -637,7 +610,4 @@ sol = solve(prob)
 plot(sol; idxs=[sys.msd1.spring.x, sys.msd2.spring.x, sys.msd3.spring.x])
 ```
 
-
-
-- how to expose ports and create hierarchy
 

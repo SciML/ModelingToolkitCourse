@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="74.707413mm"
-   height="32.965244mm"
-   viewBox="0 0 74.707412 32.965244"
+   width="64.367363mm"
+   height="25.848564mm"
+   viewBox="0 0 64.367362 25.848564"
    version="1.1"
    id="svg1"
    inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
@@ -25,7 +25,7 @@
      inkscape:document-units="mm"
      showgrid="true"
      inkscape:zoom="3.0664905"
-     inkscape:cx="138.43187"
+     inkscape:cx="99.299183"
      inkscape:cy="118.21331"
      inkscape:window-width="1920"
      inkscape:window-height="1129"
@@ -36,8 +36,8 @@
     <inkscape:grid
        id="grid1"
        units="mm"
-       originx="-386.6452"
-       originy="-486.58015"
+       originx="-425.72572"
+       originy="-486.58014"
        spacingx="0.99999998"
        spacingy="1"
        empcolor="#0099e5"
@@ -133,7 +133,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-102.29987,-128.741)">
+     transform="translate(-112.63992,-128.741)">
     <ellipse
        style="fill:#008000;stroke:none;stroke-width:0.499999"
        id="ellipse7"
@@ -183,104 +183,44 @@
          y="131.22362">f</tspan></text>
     <path
        style="fill:#008000;stroke:#008000;stroke-width:0.499999;stroke-dasharray:none;marker-end:url(#RoundedArrow-9)"
-       d="m 154.63992,130.22362 h 10"
+       d="m 176.53235,130.22362 h -10"
        id="path6-4"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:#008000;stroke:#008000;stroke-width:0.499999;stroke-dasharray:none;marker-end:url(#RoundedArrow-0-2)"
-       d="m 134.63991,130.22362 h -9.99999"
+       d="m 115.39334,130.22362 h 9.99999"
        id="path6-8-1"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:#0000ff;stroke:#666666;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6)"
-       d="m 104.63992,155.22362 h 10"
+       d="m 115.22332,153.10694 h 10"
        id="path8" />
     <path
-       style="fill:#0000ff;stroke:#333333;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6)"
-       d="m 104.63992,160.22362 h 10"
-       id="path9" />
-    <path
        style="fill:#0000ff;stroke:#666666;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6-1)"
-       d="m 164.63992,155.22362 h 9.99999"
+       d="m 164.63992,153.10694 h 9.99999"
        id="path5-5" />
-    <path
-       style="fill:#0000ff;stroke:#333333;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6-1)"
-       d="m 164.63992,160.22362 h 9.99999"
-       id="path6-2" />
     <text
        xml:space="preserve"
        style="font-size:3.175px;fill:#808080;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="102.20531"
-       y="156.22362"
+       x="112.78864"
+       y="154.10698"
        id="text6"><tspan
          sodipodi:role="line"
          id="tspan6"
          style="fill:#808080;stroke:none;stroke-width:0.5"
-         x="102.20531"
-         y="156.22362">v</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;fill:#000000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="102.20531"
-       y="161.22362"
-       id="text7"><tspan
-         sodipodi:role="line"
-         id="tspan7"
-         style="fill:#000000;stroke:none;stroke-width:0.5"
-         x="102.20531"
-         y="161.22362">f</tspan></text>
+         x="112.78864"
+         y="154.10698">v</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.175px;fill:#808080;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
        x="162.00121"
-       y="156.22362"
+       y="154.10698"
        id="text8"><tspan
          sodipodi:role="line"
          id="tspan8"
          style="fill:#808080;stroke:none;stroke-width:0.5"
          x="162.00121"
-         y="156.22362">v</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;fill:#000000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="162.00121"
-       y="161.22362"
-       id="text9"><tspan
-         sodipodi:role="line"
-         id="tspan9"
-         style="fill:#000000;stroke:none;stroke-width:0.5"
-         x="162.00121"
-         y="161.22362">f</tspan></text>
-    <path
-       style="opacity:0.5;fill:#0000ff;stroke:#008000;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6)"
-       d="m 104.63992,135.22362 h 10"
-       id="path10" />
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;opacity:0.5;fill:#008000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="102.20531"
-       y="136.22362"
-       id="text10"><tspan
-         sodipodi:role="line"
-         id="tspan10"
-         style="fill:#008000;stroke:none;stroke-width:0.5"
-         x="102.20531"
-         y="136.22362">v</tspan></text>
-    <path
-       style="opacity:0.5;fill:#0000ff;stroke:#008000;stroke-width:0.5;stroke-dasharray:none;marker-end:url(#RoundedArrow-9-6)"
-       d="m 164.63991,135.22362 h 10"
-       id="path11" />
-    <text
-       xml:space="preserve"
-       style="font-size:3.175px;opacity:0.5;fill:#008000;stroke:none;stroke-width:0.499999;stroke-dasharray:none"
-       x="162.20532"
-       y="136.22362"
-       id="text11"><tspan
-         sodipodi:role="line"
-         id="tspan11"
-         style="fill:#008000;stroke:none;stroke-width:0.5"
-         x="162.20532"
-         y="136.22362">v</tspan></text>
+         y="154.10698">v</tspan></text>
     <path
        style="fill:none;stroke:#008000;stroke-width:0.499999"
        d="m 114.18384,140.16086 h 10 l 5,-5 10,10 10,-10 10,10 5,-5 h 10"
