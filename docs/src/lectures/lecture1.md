@@ -2,7 +2,7 @@
 
 ## Background
 ### Julia
-This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package writen in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the mass-spring-damper.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
+This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package written in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the mass-spring-damper.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
 
 ![](../img/spring_damper.svg)
 
@@ -70,7 +70,7 @@ For this simple problem it's easy enough to implement the Newton method and solv
 - ``u`` is the variable (scalar or vector)
 - ``p`` is the parameters (scalar or vector)
 
-In this case ``u`` and ``p`` corespond to `xᵢ` and `xᵢ₋₁`, respectfully.  This is refered to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define ``f(du,u,p)`` as "in-place" form that gives ``du`` as a pre-allocated memory space to mutate.  
+In this case ``u`` and ``p`` correspond to `xᵢ` and `xᵢ₋₁`, respectfully.  This is referred to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define ``f(du,u,p)`` as "in-place" form that gives ``du`` as a pre-allocated memory space to mutate.  
 
 Then we can solve by specifying the method, in this case we specify `NewtonRaphson` to implement Newton's method.
 
@@ -157,10 +157,10 @@ prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
 sol = solve(prob)
 ```
 
-Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic contraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segway to the tool that can do this for us: ModelingToolkit.jl
+Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can do this for us: ModelingToolkit.jl
 
 ### ModelingToolkit.jl
-ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplificaiton to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independant variable ``t`` and it's differential operator
+ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplification to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independent variable ``t`` and it's differential operator
 
 ```@example l1
 using ModelingToolkit
@@ -168,7 +168,7 @@ using ModelingToolkit
 D = Differential(t)
 ```
 
-Note that `t` is now a symbolic term.  Writing `sin(t)` does not compute anything, it simply represents the funciton symbolically.  Writing `D(sin(t))` then represents the derivative of `sin(t)` with respect to `t`.  To compute the derivative, we can use the function `expand_derivatives`
+Note that `t` is now a symbolic term.  Writing `sin(t)` does not compute anything, it simply represents the function symbolically.  Writing `D(sin(t))` then represents the derivative of `sin(t)` with respect to `t`.  To compute the derivative, we can use the function `expand_derivatives`
 
 ```@example l1
 D(sin(t)) |> expand_derivatives
@@ -195,7 +195,7 @@ sys = structural_simplify(odesys)
 
 
 
-As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respecive functions
+As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
 
 ```@example l1
 states(sys)
@@ -215,7 +215,7 @@ observed(sys)
 
 Notice how the 2nd derivative term `ẍ(t)` has been automatically determined from the symbolic derivative of `ẋ(t)`.
 
-We can now assembly a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardles if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
+We can now assembly a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardless if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
 
 ```@example l1
 prob = ODEProblem(sys, [], (0.0, 0.01))
@@ -248,7 +248,7 @@ plot!(sol; idxs=ẋ*d)
 
 
 ## Acausal - Component Based Modeling
-ModelingToolkit.jl enables the appliction of Physical Network Acausal modeling, which is a type of modeling which is component based allowing one to build models by assembling parts together from a library.  The key to how this works is thru a simple rule of how components are connected.  A connection must define at minimum 2 variables (*through* and *across*) which follows the rules:
+ModelingToolkit.jl enables the application of Physical Network Acausal modeling, which is a type of modeling which is component based allowing one to build models by assembling parts together from a library.  The key to how this works is thru a simple rule of how components are connected.  A connection must define at minimum 2 variables (*through* and *across*) which follows the rules:
 
 - connections can only be made by like connectors (i.e. same pairs of *through* and *across* variables from the same physical domain)
 - *through* variables sum to zero at connection points
@@ -293,7 +293,7 @@ Let's try this again by defining this system in ModelingToolkit.jl
 - demonstrate the theory of connections
 - TODO: reference to where nodal network modeling originated?
 - thru variables sum
-- accross variables are equal
+- across variables are equal
 - Question: does the across variable have to be velocity?  Could it be any other derivative?
 
 To define a connection in ModelingToolkit.jl we use the `@connector` macro and specify the *through* variable with `connect = Flow`
@@ -337,7 +337,7 @@ end
 
 Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you've properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
 
-The 2nd tricky issue is signs.  Note that the force assigned to the port is negative `port.f ~ -f`.  To determine this I like to draw a diagram like below.  Below the port in black I draw the connection variables, here there is 1 port and I draw them to the right (i.e. positive direction).  Then in green above the port I draw the coresponding variables of the component.  In this case we know from Newton that mass times acceleration equals force, therefore the direction of movement is in the opposite direction of the force.  In other words, if we push the mass from left to right (i.e. in the positive direction), then the mass will generate a force in the negative direction.  Now the diagram shows how the port and component variables are aligned.  
+The 2nd tricky issue is signs.  Note that the force assigned to the port is negative `port.f ~ -f`.  To determine this I like to draw a diagram like below.  Below the port in black I draw the connection variables, here there is 1 port and I draw them to the right (i.e. positive direction).  Then in green above the port I draw the corresponding variables of the component.  In this case we know from Newton that mass times acceleration equals force, therefore the direction of movement is in the opposite direction of the force.  In other words, if we push the mass from left to right (i.e. in the positive direction), then the mass will generate a force in the negative direction.  Now the diagram shows how the port and component variables are aligned.  
 
 ![mass](../img/mass.svg)
 
@@ -477,7 +477,7 @@ end
 
 One thing to consider now in the `Spring` component is the meaning of the spring stretch/compression variable `x`.  What does it mean if this variable is positive or negative?  It's important to note when reviewing the model output that a positive `x` means the spring is compressed and vise versa for a negative `x`.
 
-Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Createing a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution. 
+Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Creating a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution. 
 
 
 ```@example l1 

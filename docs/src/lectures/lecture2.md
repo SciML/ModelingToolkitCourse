@@ -1,5 +1,5 @@
 # Lecture 2: Developing high-fidelity models of hydraulic systems
-Why focus on hydraulics?  The answer is essentially hydraulic modelling is really hard (in numerical computing terms, hydraulic models are often refered to as "stiff" ODE's, which require more rigorous solvers from standard ODE's).  Solving the challenges of modeling hydraulics is applicable to the numerical modeling challenges of all other domains.  Let's first start with the concept of *compressibility*.  Often we think of a liquid as incompressible, imagine attempting to "squeeze" water, it can be done but takes some very high forces.  Therefore, if the model in question won't be solving a problem with high forces, it can be assumed incompressible.  However, most hydrulic industrial models will involve high forces, this is precisly the area where most hydraulic machines are used.  
+Why focus on hydraulics?  The answer is essentially hydraulic modelling is really hard (in numerical computing terms, hydraulic models are often referred to as "stiff" ODE's, which require more rigorous solvers from standard ODE's).  Solving the challenges of modeling hydraulics is applicable to the numerical modeling challenges of all other domains.  Let's first start with the concept of *compressibility*.  Often we think of a liquid as incompressible, imagine attempting to "squeeze" water, it can be done but takes some very high forces.  Therefore, if the model in question won't be solving a problem with high forces, it can be assumed incompressible.  However, most hydrulic industrial models will involve high forces, this is precisely the area where most hydraulic machines are used.  
 
 ## Compressibility
 
@@ -87,7 +87,7 @@ Given ``\dot{\rho} = \rho_0 (\dot{p} / \beta)``, and ``q = \dot{m}/\rho_0`` the 
 \color{red} q_{in} - q_{out} = (\dot{p} / \beta) V + \dot{V} 
 ```
 
-[^1]: See [simscape hydraulic chamber](https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html).  Note the deprication warning moving to isothermal liquid library which uses the correct derivation.
+[^1]: See [simscape hydraulic chamber](https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html).  Note the deprecation warning moving to isothermal liquid library which uses the correct derivation.
 
 ### Example
 Problem Definition - Given:
@@ -385,7 +385,7 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
 ![momentum balance](../img/momentum_balance.svg)
 
 !!! note "Conservation of Momentum"
-   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propogation through a pipe.  A classic wave propogation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimentions is 
+   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
    ```math 
    \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
    ```
@@ -400,7 +400,7 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
     
 
 ### Pipe Component
-To model a pipe for compressible flow, we can combine the mass balance and momentum balance components to give both mass storage and flow resistance.  Furthermore, to provide a more accurate model that allows for wave propogation we can discretize the volume connected by node of equal pressure and mass flow.  The diagram below shows an example of discretizing with 3 mass balance volumes and 2 momentum balance resistive elements.  Note: the Modelica Standard Library does this in a different way, by combining the mass and momentum balance in a single base class.  
+To model a pipe for compressible flow, we can combine the mass balance and momentum balance components to give both mass storage and flow resistance.  Furthermore, to provide a more accurate model that allows for wave propagation we can discretize the volume connected by node of equal pressure and mass flow.  The diagram below shows an example of discretizing with 3 mass balance volumes and 2 momentum balance resistive elements.  Note: the Modelica Standard Library does this in a different way, by combining the mass and momentum balance in a single base class.  
 
 ![pipe](../img/pipe.svg)
 
