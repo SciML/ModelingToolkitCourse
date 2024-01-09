@@ -1,5 +1,5 @@
 # Lecture 2: Developing high-fidelity models of hydraulic systems
-Why focus on hydraulics?  The answer is essentially hydraulic modelling is really hard (in numerical computing terms, hydraulic models are often refered to as "stiff" ODE's, which require more rigorous solvers from standard ODE's).  Solving the challenges of modeling hydraulics is applicable to the numerical modeling challenges of all other domains.  Let's first start with the concept of *compressibility*.  Often we think of a liquid as incompressible, imagine attempting to "squeeze" water, it can be done but takes some very high forces.  Therefore, if the model in question won't be solving a problem with high forces, it can be assumed incompressible.  However, most hydrulic industrial models will involve high forces, this is precisly the area where most hydraulic machines are used.  
+Why focus on hydraulics?  The answer is essentially hydraulic modelling is really hard (in numerical computing terms, hydraulic models are often referred to as "stiff" ODE's, which require more rigorous solvers from standard ODE's).  Solving the challenges of modeling hydraulics is applicable to the numerical modeling challenges of all other domains.  Let's first start with the concept of *compressibility*.  Often we think of a liquid as incompressible, imagine attempting to "squeeze" water, it can be done but takes some very high forces.  Therefore, if the model in question won't be solving a problem with high forces, it can be assumed incompressible.  However, most hydrulic industrial models will involve high forces, this is precisely the area where most hydraulic machines are used.  
 
 ## Compressibility
 
@@ -87,7 +87,7 @@ Given ``\dot{\rho} = \rho_0 (\dot{p} / \beta)``, and ``q = \dot{m}/\rho_0`` the 
 \color{red} q_{in} - q_{out} = (\dot{p} / \beta) V + \dot{V} 
 ```
 
-[^1]: See [simscape hydraulic chamber](https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html).  Note the deprication warning moving to isothermal liquid library which uses the correct derivation.
+[^1]: See [simscape hydraulic chamber](https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html).  Note the deprecation warning moving to isothermal liquid library which uses the correct derivation.
 
 ### Example
 Problem Definition - Given:
@@ -180,7 +180,7 @@ vars = @variables begin
     x(t) = x₀
     ẋ(t)
     ẍ(t)
-    p(t) = m*g/A #Pa
+    p(t) = M*g/A #Pa
     ṁ(t)
     r(t)
     ṙ(t)
@@ -196,7 +196,7 @@ function get_base_equations(density_type)
         r ~ r₀*(1 + p/β)
 
         ṁ ~ ṙ*x*A + (density_type)*ẋ*A
-        m*ẍ ~ p*A - m*g
+        M*ẍ ~ p*A - M*g
     ]
 
     return eqs
@@ -228,7 +228,7 @@ eqs_ṁ2 = [
 ```@example l2
 eqs_x = [
     get_base_equations(r)...
-    x ~ x_fun(t) # (4) Input - target x 
+    x ~ x_fun(t,amp,f) # (4) Input - target x 
 ]
 ```
 
@@ -298,3 +298,142 @@ plot!(sol_ṁ2; idxs=x, label="case 2: r")
 ```@example l2
 plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, label="x", ylabel="error (case 1 - case 2) [mm]", xlabel="t [s]")
 ```
+
+
+### Practice Problem
+Now let's re-create this example using components from the ModelingToolkitStandardLibrary.jl.  It can be shown that by connecting `Mass` and `Volume` components that the same exact result is achieved.  The important thing is to pay very close attention to the initial conditions.  
+
+```@example l2
+import ModelingToolkitStandardLibrary.Mechanical.Translational as T
+import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
+import ModelingToolkitStandardLibrary.Blocks as B
+
+using DataInterpolations
+mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
+
+include("volume.jl") # <-- missing Volume component from MTKSL (will be released in new version) 
+
+function MassVolume(; name, dx, drho, dm)
+
+    pars = @parameters begin
+        A = 0.01 #m²
+        x₀ = 1.0 #m
+        M = 10_000 #kg
+        g = 9.807 #m/s²
+        amp = 5e-2 #m
+        f = 15 #Hz   
+        p_int=M*g/A
+        dx=dx
+        drho=drho
+        dm=dm
+    end
+    vars = []
+    systems = @named begin
+        fluid = IC.HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
+        mass = T.Mass(;v=dx,m=M,g=-g)
+        vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm) # <-- missing Volume component from MTKSL (will be released in new version) 
+        mass_flow = IC.MassFlow(;p_int)
+        mass_flow_input = B.TimeVaryingFunction(;f = mass_flow_fun)
+    end
+
+    eqs = [
+        connect(mass.flange, vol.flange)
+        connect(vol.port, mass_flow.port)
+        connect(mass_flow.dm, mass_flow_input.output)
+        connect(mass_flow.port, fluid)
+    ]
+
+    return ODESystem(eqs, t, vars, pars; systems, name)
+end
+
+dx = sol_x[ẋ][1]
+drho = sol_x[ṙ][1]
+dm = sol_x[ṁ][1]
+
+@named odesys = MassVolume(; dx, drho, dm)
+
+sys = structural_simplify(odesys)
+
+prob = ODEProblem(sys, [], (0, t_end))
+sol=solve(prob)
+
+plot(sol; idxs=sys.vol.x, linewidth=2)
+plot!(sol_x; idxs=x)
+```
+
+## Momentum Balance
+The next challenging aspect of hydraulic modeling is modeling flow through a pipe, which for compressible flow requires resolving the momentum balance equation. To derive the momentum balance we can draw a control volume (cv) in a pipe with area $A$, as shown in the figure below, and apply Newton's second law.  Across this control volume from $x_1$ to $x_2$ the pressure will change from $p_1$ to $p_2$.  Assuming this is written for an acausal component we put nodes at $p_1$ to $p_2$ which will have equal mass flow $\dot{m}$ entering and exiting the cv[^2].
+
+[^2]: The Modelica Standard Library combines the mass and momentum balance to the same base class, therefore, mass flow in and out of the cv is not equal, which introduces an additional term to the lhs of the momentum balance:  $ \frac{\partial \left( \rho u^2 A \right) }{\partial x}  $  
+
+
+Now taking the sum of forces acting on the cv we have the pressure forces at each end as well as the viscous drag force from the pipe wall and the body force from gravity.  The sum of forces is equal to the product of mass ($\rho V$) and flow acceleration ($\dot{u}$).   
+
+```math
+    \rho V \dot{u} = p_1 A_1 - p_2 A_2 - F_{viscous} + \rho V g
+```
+
+!!! note "Project Idea" 
+    the current implementation of this component in the ModelingToolkitStandardLibrary.jl does not include gravity force for this makes initialization challenging and will take some work to implement.
+
+
+The density $\rho$ is an average of $\rho_1$ and $\rho_2$.  The velocity is also taken as an average of $u_1$ and $u_2$
+
+```math
+u_1 = \frac{\dot{m}}{\rho_1 A}
+```
+
+```math
+u_2 = \frac{\dot{m}}{\rho_2 A}
+```
+
+![momentum balance](../img/momentum_balance.svg)
+
+!!! note "Conservation of Momentum"
+   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
+   ```math 
+   \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
+   ```
+   where $\text{v}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  In the ModelingToolkitStandardLibrary.jl this assumption is taken
+   ```math
+   \rho V \frac{D \text{V}}{Dt} \approx \frac{\partial \dot{m}}{\partial t}
+   ```  
+   
+
+!!! note "Project Idea"
+    Implement a more detailed Conservation of Momentum using the standard derivation.  One idea is to implement the MethodOfLines.jl to provide the derivative in $x$.
+    
+
+### Pipe Component
+To model a pipe for compressible flow, we can combine the mass balance and momentum balance components to give both mass storage and flow resistance.  Furthermore, to provide a more accurate model that allows for wave propagation we can discretize the volume connected by node of equal pressure and mass flow.  The diagram below shows an example of discretizing with 3 mass balance volumes and 2 momentum balance resistive elements.  Note: the Modelica Standard Library does this in a different way, by combining the mass and momentum balance in a single base class.  
+
+![pipe](../img/pipe.svg)
+
+
+### Dynamic Volume Component
+Both Modelica and SimScape model the actuator component with simply a uniform pressure volume component.  The Modelica library defines the base fluids class around the assumption of constant length (see: [Object-Oriented Modeling of Thermo-Fluid Systems](https://elib.dlr.de/11988/1/otter2003-modelica-fluid.pdf)) and therefore adapting to a component that changes length is not possible.  But in cases with long actuators with high dynamics the pressure is not at all uniform, therefore this detail cannot be ignored.  Therefore, adding in the momentum balance to provide flow resistance and fluid inertia are necessary.  The diagram below shows the design of a `DynamicVolume` component which includes both mass and momentum balance in addition to discretization by volume.  The discretization is similar to the pipe, except the scheme becomes a bit more complicated with the moving wall ($x$).  As the volume shrinks, the control volumes will also shrink, however not in unison, but one at a time.  In this way, as the moving wall closes, the flow will come from the first volume $cv1$ and travel thru the full size remaining elements ($cv2$, $cv3$, etc.).  After the first component length drops to zero, the next element will then start to shrink.  
+
+![volume](../img/volume.svg)
+
+This design has a flaw unfortunately, expanding the system for N=3 gives 
+
+![eqs1](../img/volume_eq1.png)
+
+What happens when transitioning from one cv to the next, if the moving wall velocity is significant, then an abrupt change occurs due to the $\rho_i \dot{x}$ term.  This creates an unstable condition for the solver and results in poor quality/accuracy.  To resolve this problem, the mass balance equation is split into 2 parts: mass balance 1 \& 2 
+
+```math
+\text{mass balance 1: } \dot{m}/A = \dot{\rho} x
+```
+
+```math
+\text{mass balance 2: } \dot{m}/A = \rho \dot{x}
+```
+
+The below diagram explains how this component is constructed
+
+![dynamic volume](../img/dynamic_volume.svg)
+
+Now the flows are simplified and are more numerically stable.  The acausal connections then handle the proper summing of flows.
+
+![eqs2](../img/volume_eq2.png)
+

@@ -72,7 +72,7 @@ The following sources can be used as inspiration:
 * New time stepping schema for Rosenbrock methods for DAE interpolation performance
 * Investigation of nonlinear solver globalization schemes for difficult DAE initialization problems
 
-## Tenative Schedule
+## Tentative Schedule
 
 * January 10th: Introduction to the course, Guest lecture: Brad Carman, introduction to acausal modeling for physical systems with ModelingToolkit
 * January 12th: Guest lecture: Brad Carman, developing high-fidelity models of hydraulic systems 
