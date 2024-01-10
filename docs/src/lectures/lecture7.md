@@ -1,4 +1,4 @@
-# Lecture 7: Pantelides Algorithm, Dummy Derivatives, and Demonstrations
+# Lecture 7: Numerical and Structural Characterizations for DAEs
 
 ## Numerical Integrability Criterion for DAEs
 
@@ -345,3 +345,9 @@ For the above system, the differentiated system has
 ```
 which is structurally non-singular. Thus, the differentiated system satisfies
 the structural consistency solvability criterion.
+
+Note that the sparsity pattern of ``\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F,
+\{u_i\})`` is always a subset of ``\mathfrak{I}(F, z)`` for arbitrary systems.
+The structural consistency solvability criterion is stronger than the
+structural integrability criterion, so we just check the structural consistency
+solvability criterion.
