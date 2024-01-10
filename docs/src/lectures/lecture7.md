@@ -2,8 +2,8 @@
 
 ## Numerical Integrability Criterion for DAEs
 
-There are both differential equations and algebraic equations in acasual models.
-Thus, a generic acasual model is a system of differential-algebraic equations
+There are both differential equations and algebraic equations in acausal models.
+Thus, a generic acausal model is a system of differential-algebraic equations
 (DAEs). In general, additional processing steps are required to simulate DAEs.
 To see this more clearly, we will analyze the implicit Euler algorithm which is
 the most basic form of both Runge-Kutta and linear multistep methods for DAEs.
@@ -24,9 +24,9 @@ where ``F: (\mathbb{R}^n, \mathbb{R}^n, \mathbb{R}^m, \mathbb{R}) \rightarrow
 with fixed ``t, h, p``, and ``u(t)``.
 
 Numerically, we use Newton's method to solve potentially nonlinear equations by
-solving the best approximating linear equations (i.e. the Jacobian of the
-nonlinear function with respect to the unknowns) iteratively to refine an
-initial guess. By the chain rule, we have
+iteratively solving the best approximating linear equations (i.e., the Jacobian
+of the nonlinear function with respect to the unknowns) to refine an initial
+guess. By the chain rule, we have
 ```math
 \begin{equation}
 \frac{\partial F}{\partial u} = \frac{1}{h}F_{u'} + F_{u}.
@@ -93,8 +93,8 @@ easier to check, we introduce the following definitions.
 
 !!! note "Structural Zeros"
 
-    For convince, we will simply use ``0`` and ``\mathbb{R}`` when structural
-    zeros are obvious in context.
+    For convenience, we will simply use 0 and \mathbb{R} when structural zeros are
+    obvious in context.
 
 !!! definition "Structurally Non-singular"
 
@@ -160,8 +160,8 @@ cardinality matching.
 !!! definition "Induced Bipartite Graph"
 
     Given an incidence matrix ``A\in\mathbb{R}^{m\times n}`` the induced
-    bipartite graph ``(U, V, E)`` is a tuple of a set of source verties ``U =
-    \{1, 2, ..., m\}``, a set of destination verties ``V\in \{1, 2, ..., n\}``,
+    bipartite graph ``(U, V, E)`` is a tuple of a set of source vertices ``U =
+    \{1, 2, ..., m\}``, a set of destination vertices ``V\in \{1, 2, ..., n\}``,
     and edges between them ``E \subseteq U\times V`` defined by
     ```math
     \begin{equation}
@@ -173,11 +173,11 @@ cardinality matching.
 
 !!! definition "Bipartite Matching"
 
-    A matching of bipartite graph ``(U, V, E)`` is a set ``M \subseteq E`` where
-    every vertex in ``U`` and ``V`` can appear at most once in ``M``. A matching
-    ``M`` is perfect if ``|M| = |U| = |V|``. We call an edge in a matching
-    matched, otherwise, free. It is often more convient to interprate matching
-    as the function ``m: U \to (V \cup \emptyset)`` defined by
+    A matching of a bipartite graph ``(U, V, E)`` is a set ``M \subseteq E``
+    where every vertex in ``U`` and ``V`` can appear at most once in ``M``. A
+    matching ``M`` is perfect if ``|M| = |U| = |V|``. We call an edge in a
+    matching matched, otherwise, free. It is often more convenient to interpret
+    matching as the function ``m: U \to (V \cup \emptyset)`` defined by
     ```math
     \begin{equation}
     x \mapsto \cup \{y | (x, y) \in M\}.
@@ -222,7 +222,7 @@ cardinality matching.
     paper [^Pantelides1988].
 
     Note that a perfect matching for ``G`` exists if and only if a maximum
-    cardinality matching ``M`` satisifies ``|M| = |U| = |V|``.
+    cardinality matching ``M`` satisfies ``|M| = |U| = |V|``.
 
 
 
