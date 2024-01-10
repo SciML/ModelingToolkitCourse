@@ -19,28 +19,29 @@ To solve this in Julia we can apply finite differencing ``\dot{x}_i = \frac{x_i 
 using ForwardDiff
 using Plots
 
-d=1
-k=1000
-Δt=1e-3
-F = 100
+d=1      # damping coefficient [N/(m/s)]
+k=1000   # spring stiffness [N/m]
+Δt=1e-3  # time step [s]
+F = 100  # input force [N]
 
 function f(xᵢ, xᵢ₋₁)
 
-    ẋᵢ = (xᵢ - xᵢ₋₁)/Δt
-    lhs = d*ẋᵢ + k*xᵢ^1.5
-    rhs = F
+    ẋᵢ = (xᵢ - xᵢ₋₁)/Δt     # finite difference derivative
+    lhs = d*ẋᵢ + k*xᵢ^1.5   # lhs --> left hand side
+    rhs = F                 # rhs --> right hand side
 
-    return lhs - rhs
+    return lhs - rhs     # equation --> lhs = rhs, residual --> 0 = lhs - rhs
 end
 
 # Newton's Method
 # first time step (i=2)
 xᵢ₋₁ = 0.0
 xᵢ = xᵢ₋₁ #<-- guess
-g(xᵢ) = f(xᵢ, xᵢ₋₁)
-xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
-xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
-xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ)
+g(xᵢ) = f(xᵢ, xᵢ₋₁)  # g(xᵢ) turns f(xᵢ, xᵢ₋₁) into a function of only xᵢ
+# Run Newton Iterations
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 1
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 2
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 3
 ```
 
 !!! note "about derivatives"
@@ -67,23 +68,26 @@ plot(x; ylabel="x [m]", xlabel="time step")
 ### DifferentialEquations.jl
 For this simple problem it's easy enough to implement the Newton method and solve directly, however it's possible to instead use the solvers from DifferentialEquations.jl.  To do this, we simply need to defined a `NonlinearProblem` by supplying the function `f` of the form ``f(u,p)`` where:
 
-- ``u`` is the variable (scalar or vector)
+- ``u`` is the variables (scalar or vector)
 - ``p`` is the parameters (scalar or vector)
 
-In this case ``u`` and ``p`` correspond to `xᵢ` and `xᵢ₋₁`, respectfully.  This is referred to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define ``f(du,u,p)`` as "in-place" form that gives ``du`` as a pre-allocated memory space to mutate.  
+In this case ``u`` and ``p`` correspond to `xᵢ` and `xᵢ₋₁`, respectively.  This is referred to as the "out-of-place" form, where each call to `f` allocates, it is also possible to define ``f(du,u,p)`` as "in-place" form that gives ``du`` as a pre-allocated memory space to mutate.  
 
 Then we can solve by specifying the method, in this case we specify `NewtonRaphson` to implement Newton's method.
 
 ```@example l1
 using DifferentialEquations
 
-prob = NonlinearProblem(f, 0.0, 0.0)
+p  = xᵢ₋₁ = 0.0 # initial condition if i=2, x[1]=0 
+u0 = xᵢ = xᵢ₋₁  # guess value for x[i]
+
+prob = NonlinearProblem(f, u0, p)
 sol=solve(prob, NewtonRaphson(); abstol=tol)
 ```
 
 Note:  we get exactly the same result for the first time step.
 
-To solve for a series of time steps, we can now use the `remake` function to update the initial guess `u0` and parameter `p` and generate and updated `NonlinearProblem` efficiently.
+To solve for a series of time steps, we can now use the `remake` function to update the initial guess `u0` and parameter `p` and generate an updated `NonlinearProblem` efficiently (i.e. with minimal allocations).
 
 ```@example l1
 x = zeros(10)
@@ -95,7 +99,7 @@ end
 plot(x; ylabel="x [m]", xlabel="time step")
 ```
 
-This approach requires the use of finite differencing and building a solution vector of solves for each time step, which was done only for demonstration purposes.  Since this problem is an ODE, it can and should be solved directly with an ODE solver.  To do this with DifferentialEquations.jl, we simply re-arrange the equation in the form ``\frac{\partial u}{\partial t} = f(u,p,t)``.  In this case we have
+This approach requires the use of finite differencing and building a solution vector of solves for each time step, which was done only for demonstration purposes.  Since this problem is an ODE, it can and should be solved directly with an ODE solver.  To do this with DifferentialEquations.jl, we simply re-arrange the equation to solve explicitly for the derivative of ``x``, giving the form ``\frac{\partial u}{\partial t} = f(u,p,t)``.  In this case we have
 
 ```math
 \dot{x}= \frac{F - k \cdot x^{1.5}}{d}
@@ -108,13 +112,18 @@ function du_dt(u,p,t)
     x = u
     return (F - k*x^1.5)/d
 end
-
-prob = ODEProblem(du_dt, 0.0, (0.0, 0.01), [F, k, d])
+u0 = 0.0            # initial value for x
+p = [F, k, d]       # parameters
+tspan = (0.0, 0.01) # solution time span
+prob = ODEProblem(du_dt, u0, tspan, p) 
 sol = solve(prob)
 plot(sol; xlabel="time [s]", ylabel="x [m]")
 ```
 
 In some cases, it may not be so easy to rearrange the equations in such a way to provide an ODE form.  We can also solve the problem in another way: Differential Algebraic Equations (DAE) form.  Here we have a mix of differential and algebraic equations.  A mass matrix is used to specify which equations are differential vs. algebraic.  Note that we are now solving for both ``x`` and ``\dot{x}`` and therefore need to supply initial conditions for each.  To satisfy the system at time 0 with ``x=0``, we can see that ``\dot{x} = \frac{F}{d}``.  
+
+!!! note "about initial conditions"
+    Technically the initial condition `u0` can be either a guess or explicit.  By default it is treated as a guess value and an algorithm is used to solve for a `u0` that satisfies the system at the initial time.  See the documentation for the [`initializealg` keyword](https://docs.sciml.ai/DiffEqDocs/stable/solvers/dae_solve/#Initialization-Schemes) for more information.
 
 
 ```@example l1
@@ -131,7 +140,8 @@ function du_dt(u,p,t)
 end
 
 fmm = ODEFunction(du_dt; mass_matrix=[1 0; 0 0])
-prob = ODEProblem(fmm, [0.0, F/d], (0.0, 0.01), [F, k, d])
+u0 = [0.0, F/d] # initial value for x,ẋ
+prob = ODEProblem(fmm, u0, tspan, p)
 sol = solve(prob)
 plot(sol; idxs=1, xlabel="time [s]", ylabel="x [m]")
 ```
@@ -153,8 +163,10 @@ function du_dt(u,p,t)
 end
 
 fmm = ODEFunction(du_dt; mass_matrix=[1 0 0;0 1 0;0 0 0])
-prob = ODEProblem(fmm, [0.0, F/d, 0.0], (0.0, 0.01), [F, k, d])
-sol = solve(prob)
+u0 = [0.0, F/d, 0.0] # initial value for x, ẋ, ẍ
+prob = ODEProblem(fmm, u0, tspan, p)
+sol = solve(prob);
+sol.retcode
 ```
 
 Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can make all this easier and automatic: ModelingToolkit.jl
@@ -166,6 +178,7 @@ ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic ind
 using ModelingToolkit
 @variables t
 D = Differential(t)
+nothing # hide
 ```
 
 !!! note "about Symbolics"
@@ -185,9 +198,10 @@ eqs = [
     D(ẋ) ~ ẍ
     d*ẋ + k*x^1.5 ~ F
 ]
+nothing # hide
 ```
 
-Note the variables are defined as a function of the independent variable `t` and given initial conditions which is captured in the variable `vars`.  The equations are then defined using the tilde `~` operator, which represents the equation equality.  This information is then fed to an `ODESystem` constructor and simplified using the `structural_simplify` function.  
+Note the variables are defined as a function of the independent variable `t` and given initial conditions which are captured in the variable `vars`.  The equations are then defined using the tilde `~` operator, which represents the equation equality.  This information is then fed to an `ODESystem` constructor and simplified using the `structural_simplify` function.  
 
 ```@example l1
 @named odesys = ODESystem(eqs, t, vars, pars)
@@ -217,12 +231,14 @@ Notice how the 2nd derivative term `ẍ(t)` has been automatically determined fr
 We can now assembly a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardless if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
 
 ```@example l1
-prob = ODEProblem(sys, [], (0.0, 0.01))
+u0 = [] # <-- used to override defaults of ODESystem variables
+p = [] # <-- used to override defaults of ODESystem parameters
+prob = ODEProblem(sys, u0, tspan, p)
 sol = solve(prob; abstol=tol)
 plot(sol; idxs=ẍ, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 ```
 
-The solution can also be indexed by expression, for example plotting the damping and spring force components can be done as so
+Using ModelingToolkit.jl, the solution can also be indexed by expression, for example plotting the damping and spring force components can be done as so
 
 ```@example l1
 plot(sol; idxs=x^1.5*k, xlabel="time [s]", ylabel="force [N]")
@@ -243,13 +259,11 @@ Consider a simple mechanical translational system of a mass and damper.  In this
 f_{mass} = m_{mass} \cdot \dot{v}_{mass}
 ```
 
-
 And the damper component as
 
 ```math
 f_{damper} = d_{damper} \cdot v_{damper}
 ```
-
 
 Based on the rules above, connecting these 2 components together would give the following additional equations
 
@@ -259,7 +273,6 @@ Based on the rules above, connecting these 2 components together would give the 
     v_{mass} &= v_{damper} 
 \end{aligned}  
 ```
-
 
 With simple substitution it can be seen that this gives the expected mass-damper system
 
@@ -280,6 +293,7 @@ To define a connection in ModelingToolkit.jl we use the `@connector` macro and s
     v(t)
     f(t), [connect = Flow]
 end
+nothing # hide
 ```
 
 
@@ -307,6 +321,7 @@ To define a component, we use the `@mtkmodel` macro and define it's parameters, 
         f ~ m*D(v)
     end
 end
+nothing # hide
 ```
 
 Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you've properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The `Mass` component has 2 variables and 1 connector and therefore 3 equations.
@@ -338,11 +353,12 @@ Similarly the damper component is defined as below.
         f ~ d*v
     end
 end
+nothing # hide
 ```
 
 ![single port damper](../img/damper1.svg)
 
-Now the `Mass` and `Damper` components can be assembled in a system and connected together (note: the `connect` equation).  Also note the parameters `v`, `m`, and `d` are defined to expose the properties which can be set at keyword arguments of the same name.  
+Now the `Mass` and `Damper` components can be assembled in a system and connected together (note: the `connect` equation).  Also note the parameters `v`, `m`, and `d` are defined to expose the properties which can be set as keyword arguments of the same name.  
 
 ```@example l1 
 @mtkmodel System begin
@@ -392,6 +408,7 @@ The `Damper` component created previously was a little incomplete because it onl
         f ~ d*v
     end
 end
+nothing # hide
 ```
 
 Note the force is drawn now as entering the component on both sides.  For port `a` the directions align, but for port `b` the directions are opposing, requiring a sign change: `port_b.f ~ -f`
@@ -440,6 +457,7 @@ In ModelingToolkit therefore we can "integrate" by moving the differential to th
         f ~ k*x
     end
 end
+nothing # hide
 ```
 
 ![spring](../img/spring.svg)
@@ -466,6 +484,7 @@ Now, if we want to create a full *mass-spring-damper* system with our new `Dampe
         port.f ~ f
     end
 end
+nothing # hide
 ```
 
 ![reference](../img/reference.svg)
@@ -489,6 +508,7 @@ Finally, considering an input force, we can imagine this to be an invisible hand
         port.f ~ -f  
     end
 end
+nothing # hide
 ```
 
 Note the sign convention `port.f ~ -f`.  This is maybe not expected.  To understand why a negative is needed here is because this component is different from the others, there is no physics involved.  The component is instead only a boundary condition, therefore force should be *leaving* the component rather than entering.
@@ -535,9 +555,8 @@ full_equations(sys)
 The first equation (after re-aranging) it can be seen is the classic *mass-spring-damper* equation.
 
 ```math
-m*\ddot{x} + d*\dot{x} + k*x = f
+m \cdot \ddot{x} + d \cdot \dot{x} + k \cdot x = f
 ```
-
 
 So we know all the signs and equations are set correctly.  Additionally it's easy enough in this case to re-construct the problem directly and solve to check the result.
 
@@ -560,7 +579,7 @@ plot(sol)
 
 
 ### Systems and Sub-Systems
-
+Acausal modeling allows for an "object-oriented" like system that can organize models with hierarchy.  Let's say for example we want to make a part that is a collection of the mass, spring, damper into a single system.  The `MassSpringDamper` component below shows how this is possible.  As can be seen, this is nearly the same system we generated previously, except no boundary conditions are given, instead 2 `MechanicalPort`'s are added and connected to the component parts.  These connection points are now exposed and can be connected to other components.
 
 ```@example l1
 @mtkmodel MassSpringDamper begin
@@ -583,7 +602,12 @@ plot(sol)
         connect(damper.port_b, spring.port_b, port_b)
     end
 end
+nothing # hide
+```
 
+As an example, the `MassSpringDamper` component can be connected in series to make a complex system.  One can imagine then how this enables easy construction of complex models that can be quickly modified, extremely useful for the application of model based design.  
+
+```@example l1
 @mtkmodel System begin
     @parameters begin
         v = 0
@@ -610,4 +634,6 @@ sol = solve(prob)
 plot(sol; idxs=[sys.msd1.spring.x, sys.msd2.spring.x, sys.msd3.spring.x])
 ```
 
+### Practice Exercise
+The current solution shows how the springs are compressed.  How can the model be updated to show the absolute positions of the springs?  For example, if each spring starts at an unstreched length of 10mm, connected together they will form a collection of 30mm with masses inbetween.  Update the model to show the absolute position of each mass in time.
 
