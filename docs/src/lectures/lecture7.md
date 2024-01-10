@@ -71,7 +71,7 @@ easier to check, we introduce the following definitions.
 
     A sparse matrix is a matrix that could contain structural zeros. Structural
     zeros are entries that are zero by construction denoted by ``\hat{0}``. We
-    call a entry structural nonzero if it is not a structural zero. We also
+    call an entry structural nonzero if it is not a structural zero. We also
     define ``\mathbb{F}:=\mathbb{R}\cup\hat{0}``.
 
 !!! definition "Incidence Matrix"
@@ -93,8 +93,8 @@ easier to check, we introduce the following definitions.
 
 !!! note "Structural Zeros"
 
-    For convenience, we will simply use 0 and \mathbb{R} when structural zeros are
-    obvious in context.
+    For convenience, we will simply use ``0`` and ``\mathbb{R}`` when structural
+    zeros are obvious in context.
 
 !!! definition "Structurally Non-singular"
 
@@ -125,7 +125,7 @@ checking if a sparse matrix is structurally non-singular.
 !!! info "Structurally Non-singularity Theorem"
 
     A square sparse matrix ``A`` is structurally non-singular if and only if
-    there exists permutation matrices ``P`` and ``Q`` such that all the diagonal
+    there exist permutation matrices ``P`` and ``Q`` such that all the diagonal
     entries of ``PA`` and ``AQ`` are structural nonzeros.
 
     ##### Proof:
@@ -240,8 +240,8 @@ criterion further from
 to the *structural integrability criterion*
 ```math
 \begin{equation}
-\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F, \{u_i\}) \text{ is structurally
-non-singular.}
+\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F, \{u_i\})) \text{ is
+structurally non-singular.}
 \end{equation}
 ```
 
@@ -273,7 +273,8 @@ where ``f_1`` and ``f_2`` are some arbitrary smooth functions. We have
 Thus,
 ```math
 \begin{equation}
-\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F, \{u_i\}) = \begin{pmatrix}
+\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F, \{u_i\})) =
+\begin{pmatrix}
 1 & 0 \\
 1 & 1
 \end{pmatrix}
@@ -346,8 +347,8 @@ For the above system, the differentiated system has
 which is structurally non-singular. Thus, the differentiated system satisfies
 the structural consistency solvability criterion.
 
-Note that the sparsity pattern of ``\mathfrak{I}(F, \{u_i'\}) + \mathfrak{I}(F,
-\{u_i\})`` is always a subset of ``\mathfrak{I}(F, z)`` for arbitrary systems.
-The structural consistency solvability criterion is stronger than the
-structural integrability criterion, so we just check the structural consistency
-solvability criterion.
+Note that the sparsity pattern of ``\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) +
+\mathfrak{I}(F, \{u_i\}))`` is always a subset of ``\mathfrak{I}(F, z)`` for
+arbitrary systems. The structural consistency solvability criterion is stronger
+than the structural integrability criterion, so we just check the structural
+consistency solvability criterion.
