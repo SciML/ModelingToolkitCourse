@@ -47,6 +47,7 @@ The following sources can be used as inspiration:
 * Modelica "other" libraries (https://modelica.org/libraries/) 
 * Modelica Standard Library (https://github.com/modelica/ModelicaStandardLibrary)
 
+
 ### Project Type 2 Ideas: Implementation and analysis of a new acausal modeling compiler feature
 
 * Automated Laplace and Fourier transforms
@@ -72,7 +73,7 @@ The following sources can be used as inspiration:
 * New time stepping schema for Rosenbrock methods for DAE interpolation performance
 * Investigation of nonlinear solver globalization schemes for difficult DAE initialization problems
 
-## Tenative Schedule
+## Tentative Schedule
 
 * January 10th: Introduction to the course, Guest lecture: Brad Carman, introduction to acausal modeling for physical systems with ModelingToolkit
 * January 12th: Guest lecture: Brad Carman, developing high-fidelity models of hydraulic systems 
