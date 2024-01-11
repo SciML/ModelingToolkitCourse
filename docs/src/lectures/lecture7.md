@@ -1,5 +1,99 @@
 # Lecture 7: Numerical and Structural Characterizations for DAEs
 
+Numerical solvers cannot solve all DAEs. Consider the DAE system
+```math
+F(\{x', y', z'\}, \{x, y, z\}, t) = \begin{pmatrix}
+    x + y - \sin(t) \\
+    z - \sin(t) \\
+    z' - \cos(t)
+\end{pmatrix} = 0.
+```
+Note that the second equation and the third equation are equivalent, and there
+are not enough constraints to unique solve for ``x`` and ``y``. Let's how
+numerical solvers and ModelingToolkit behave.
+```@example l7
+using OrdinaryDiffEq, Sundials, ModelingToolkit, Plots
+
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    # u[3]: z, du[2]: z'
+    out[1] = u[1] + u[2] - sin(t)
+    out[2] = u[3] - sin(t)
+    out[3] = du[3] - cos(t)
+end
+prob = DAEProblem(f!, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0], (0, 100.0), differential_vars=[false, false, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println(sol1.retcode, "\t", sol2.retcode)
+```
+
+```@example l7
+@variables t x(t) y(t) z(t)
+D = Differential(t)
+eqs = [
+    x + y ~ sin(t)
+    z ~ sin(t)
+    D(z) ~ cos(t)
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys);
+try structural_simplify(sys) catch e println(e) end
+```
+
+Then, consider the DAE system
+```math
+F(\{x', y'\}, \{x, y\}, t) = \begin{pmatrix}
+    x - \sin(t) \\
+    x' + y' - \cos(t)
+\end{pmatrix} = 0.
+```
+If we plug the first equation into the second equation, we have
+```math
+(\sin(t))' + y' - \cos(t) = y' = 0.
+```
+Thus, the solution for ``y`` is just a constant function. Let's try to solve
+this simple DAE using a numerical solver.
+```@example l7
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = u[1] - sin(t)
+    out[2] = du[1] + du[2] - cos(t)
+end
+prob = DAEProblem(f!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println("[sol1: ", sol1.retcode, ": y(100)=", sol1[2, end], " steps: ", length(sol1.t), "]",
+"\t", "[sol2 ", sol2.retcode, ": y(100)=", sol2[2, end], " steps: ", length(sol2.t), "]")
+```
+Note that we set ``y(0) = 0``, so the analytic solution is ``y(t) = 0``.
+
+```@example l7
+prob = DAEProblem(f!, [1, 10.0], [1.0, 10.0], (0, 100.0), differential_vars=[true, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println(sol1.retcode, "\t", sol2.retcode)
+```
+
+```@example l7
+@variables t x(t) y(t)
+D = Differential(t)
+eqs = [
+    x ~ sin(t)
+    D(x) + D(y) ~ cos(t)
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys)
+model = structural_simplify(sys)
+prob = ODEProblem(model, [x=>0.0, y=>0.0, D(x)=>1.0, D(y)=>0.0], (0, 100.0))
+sol = solve(prob, Rodas5P())
+println("[sol: ", sol.retcode, ": y(100)=", sol[y, end], " steps: ", length(sol.t), "]")
+```
+```@example l7
+plot(sol, ylims = [-1, 1])
+```
+
 ## Numerical Integrability Criterion for DAEs
 
 There are both differential equations and algebraic equations in acausal models.
@@ -349,6 +443,8 @@ the structural consistency solvability criterion.
 
 Note that the sparsity pattern of ``\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) +
 \mathfrak{I}(F, \{u_i\}))`` is always a subset of ``\mathfrak{I}(F, z)`` for
-arbitrary systems. The structural consistency solvability criterion is stronger
-than the structural integrability criterion, so we just check the structural
-consistency solvability criterion.
+arbitrary systems.
+
+!!! info "Structural Consistency Solvability Theorem"
+
+    Structural consistency solvability implies structural integrability.
