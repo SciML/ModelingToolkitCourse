@@ -106,7 +106,9 @@ Find the mass flow rate (``\dot{m}``) that provides a sinusodial output of ``x``
 x(t) = amp \cdot sin(2πtf) + x_0
 ```
 
-There are 3 fundamental equations needed to solve this problem, **(1) Mass balance**: 
+There are 3 fundamental equations needed to solve this problem.
+
+**(1) Mass balance**: 
 
 ```math
 \dot{m} = \dot{\rho} \cdot V + \rho \cdot \dot{V}
@@ -117,25 +119,36 @@ where ``V`` is the cylinder volume ``=x \cdot A``
 **(2) Newton's law**:
 
 ```math
-m \cdot \ddot{x} = p*A - m*g
+M \cdot \ddot{x} = p*A - m*g
 ```
 
-And the **(3) Density equation**.  
-
-
-The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By including 1 input condition that gives 4 equations and 4 variables to be solved.  Now, the problem to be solved is, "what is the mass flow rate, ``\dot{m}``, that gives the desired sinusodial ``x``?  There are 2 ways to go about finding the correct ``\dot{m}``.  The first is to guess.  We know that mass flow rate thru a pipe is equal to 
+**(3) Density equation**:
 
 ```math
-\dot{m} = \rho \bar{u} A
+\rho = \rho_0 (1 + p/\beta) 
 ```
 
-where ``\bar{u}`` is the average flow velocity thru cross section ``A``.  We can assume that ``\bar{u} \approx \dot{x}``.  Therefore we have
+The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By including 1 input condition that gives 4 equations and 4 variables to be solved.  We will solve the problem 3 different ways
 
-```math
-\dot{m} = \rho \cdot \dot{x} \cdot A
-```
+![cases](../img/cases.svg)
 
-The second way to find the correct ``\dot{m}`` is to solve for it directly.  We can do this by simply supplying the target ``x`` function as the input to the system.  In this example we will do both and compare the results.
+- case 1: guess $\dot{m}$, partial mass balance
+- case 2: guess $\dot{m}$, complete mass balance
+- case 3: solution, solve $\dot{m}$ directly
+
+!!! note "mass flow guess"
+
+    We know that mass flow rate thru a pipe is equal to 
+
+    ```math
+    \dot{m} = \rho \bar{u} A
+    ```
+
+    where ``\bar{u}`` is the average flow velocity thru cross section ``A``.  We can assume that ``\bar{u} \approx \dot{x}``.  Therefore we have
+
+    ```math
+    \dot{m} = \rho \cdot \dot{x} \cdot A
+    ```
 
 To solve this in ModelingToolkit.jl, let's start by defining our parameters and `x` function
 
@@ -165,6 +178,7 @@ t_end = 0.2 #s
 time = 0:dt:t_end
 
 x_fun(t,amp,f) = amp*sin(2π*t*f) + x₀
+nothing # hide
 ```
 
 Now, to supply ``\dot{m}`` we need an ``\dot{x}`` function.  This can be automatically generated for us with Symbolics.jl
@@ -201,47 +215,56 @@ function get_base_equations(density_type)
 
     return eqs
 end
+nothing # hide
 ```
 
 Note: we've only specified the initial values for the known states of `x` and `p`.  We will find the additional unknown initial conditions before solving.  Now we have 7 variables defined and only 6 equations, missing the final driving input equation.  Let's build 3 different cases:
 
-- case 1: mass flow guess using standard practice mass flow balance
+**case 1**:
 
 ```@example l2
 eqs_ṁ1 = [
     get_base_equations(r₀)...
     ṁ ~ ẋ_fun(t,amp,f)*A*r # (4) Input - mass flow guess
 ]
+nothing # hide
 ```
 
-- case 2: mass flow guess using correct compressibility equation
+**case 2**:
 
 ```@example l2
 eqs_ṁ2 = [
     get_base_equations(r)...
     ṁ ~ ẋ_fun(t,amp,f)*A*r # (4) Input - mass flow guess
 ]
+nothing # hide
 ```
 
-- case 3: solution
+**case 3**:
 
 ```@example l2
 eqs_x = [
     get_base_equations(r)...
     x ~ x_fun(t,amp,f) # (4) Input - target x 
 ]
+nothing # hide
 ```
 
-Now we have 3 sets of equations, let's construct the systems and solve.  If we start with the 3rd system with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
+Now we have 3 sets of equations, let's construct the systems and solve.  If we start with case 3 with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
 
 ```@example l2
 @named odesys_x = ODESystem(eqs_x, t, vars, pars)
 sys_x = structural_simplify(odesys_x)
+nothing # hide
+```
+
+```@repl l2
+sys_x
 ```
 
 What this means is ModelingToolkit.jl has found that this model can be solved entirely analytically.  The full system of equations has been moved to what is called "observables", which can be obtained using the `observed()` function
 
-```@example l2
+```@repl l2
 observed(sys_x)
 ```
 
@@ -261,6 +284,11 @@ Now let's solve the other system and compare the results.
 ```@example l2
 @named odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
 sys_ṁ1 = structural_simplify(odesys_ṁ1)
+nothing # hide
+```
+
+```@repl l2
+sys_ṁ1
 ```
 
 Notice that now, with a simple change of the system input variable, `structural_simplify()` outputs a system with 4 states to be solved.  We can find the initial conditions needed for these states from `sol_x` and solve.
@@ -269,6 +297,7 @@ Notice that now, with a simple change of the system input variable, `structural_
 u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
 sol_ṁ1 = solve(prob_ṁ1)
+nothing # hide
 ```
 
 The resulting mass flow rate required to hit the target ``x`` position can be seen to be completely wrong.  This is the large impact that compressibility can have when high forces are involved.
@@ -285,9 +314,10 @@ If we now solve for case 2, we can study the impact the compressibility derivati
 sys_ṁ2 = structural_simplify(odesys_ṁ2)
 prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
 sol_ṁ2 = solve(prob_ṁ2)
+nothing # hide
 ```
 
-As can be seen, a significant error forms between the 2 cases. 
+As can be seen, a significant error forms between the 2 cases. Plotting first the absolute position.
 
 ```@example l2
 plot(sol_x; idxs=x, label="solution", ylabel="x")
@@ -295,12 +325,18 @@ plot!(sol_ṁ1; idxs=x, label="case 1: r₀")
 plot!(sol_ṁ2; idxs=x, label="case 2: r")
 ```
 
+And now plotting the difference between case 1 and 2.
+
 ```@example l2
-plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, label="x", ylabel="error (case 1 - case 2) [mm]", xlabel="t [s]")
+plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3, 
+            label="x", 
+            ylabel="error (case 1 - case 2) [mm]", 
+            xlabel="t [s]"
+        )
 ```
 
 
-### Practice Problem
+### ModelingToolkitStandardLibrary.jl
 Now let's re-create this example using components from the ModelingToolkitStandardLibrary.jl.  It can be shown that by connecting `Mass` and `Volume` components that the same exact result is achieved.  The important thing is to pay very close attention to the initial conditions.  
 
 ```@example l2
@@ -362,16 +398,27 @@ plot!(sol_x; idxs=x)
 ```
 
 ## Momentum Balance
-The next challenging aspect of hydraulic modeling is modeling flow through a pipe, which for compressible flow requires resolving the momentum balance equation. To derive the momentum balance we can draw a control volume (cv) in a pipe with area $A$, as shown in the figure below, and apply Newton's second law.  Across this control volume from $x_1$ to $x_2$ the pressure will change from $p_1$ to $p_2$.  Assuming this is written for an acausal component we put nodes at $p_1$ to $p_2$ which will have equal mass flow $\dot{m}$ entering and exiting the cv[^2].
+The next challenging aspect of hydraulic modeling is modeling flow through a pipe, which for compressible flow requires resolving the momentum balance equation. To derive the momentum balance we can draw a control volume (`cv`) in a pipe with area $A$, as shown in the figure below, and apply Newton's second law.  Across this control volume from $x_1$ to $x_2$ the pressure will change from $p_1$ to $p_2$.  Assuming this is written for an acausal component we put nodes at $p_1$ to $p_2$ which will have equal mass flow $\dot{m}$ entering and exiting the `cv`[^2].
 
-[^2]: The Modelica Standard Library combines the mass and momentum balance to the same base class, therefore, mass flow in and out of the cv is not equal, which introduces an additional term to the lhs of the momentum balance:  $ \frac{\partial \left( \rho u^2 A \right) }{\partial x}  $  
+[^2]: The Modelica Standard Library combines the mass and momentum balance to the same base class, therefore, mass flow in and out of the `cv` is not equal, which introduces an additional term to the lhs of the momentum balance:  $ \frac{\partial \left( \rho u^2 A \right) }{\partial x}  $  
 
 
-Now taking the sum of forces acting on the cv we have the pressure forces at each end as well as the viscous drag force from the pipe wall and the body force from gravity.  The sum of forces is equal to the product of mass ($\rho V$) and flow acceleration ($\dot{u}$).   
+Now taking the sum of forces acting on the `cv` we have the pressure forces at each end as well as the viscous drag force from the pipe wall and the body force from gravity.  The sum of forces is equal to the product of mass ($\rho V$) and flow acceleration ($\dot{u}$).   
 
 ```math
-    \rho V \dot{u} = p_1 A_1 - p_2 A_2 - F_{viscous} + \rho V g
+    \rho V \dot{u} = (p_1 - p_2) A - F_{viscous} + \rho V g
 ```
+
+where
+
+```math
+\begin{align}
+F_{viscous} = \frac{1}{2} \rho u^2 f \frac{L}{d_h}
+\end{align}
+```
+
+given $f$ is the fully developed flow pipe friction factor for a given shape, $L$ is the pipe length, and $d_h$ is the pipe hydraulic diamter.
+
 
 !!! note "Project Idea" 
     the current implementation of this component in the ModelingToolkitStandardLibrary.jl does not include gravity force for this makes initialization challenging and will take some work to implement.
@@ -389,15 +436,19 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
 
 ![momentum balance](../img/momentum_balance.svg)
 
+
+
+
+
 !!! note "Conservation of Momentum"
-   the term `\rho V \dot{u}` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
-   ```math 
-   \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
-   ```
-   where $\text{v}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  In the ModelingToolkitStandardLibrary.jl this assumption is taken
-   ```math
-   \rho V \frac{D \text{V}}{Dt} \approx \frac{\partial \dot{m}}{\partial t}
-   ```  
+    the term ``\rho V \dot{u}`` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
+    ```math 
+    \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
+    ```
+    where $\text{V}$ is the velocity vector, $u$ and $w$ are the flow components in $x$ and $y$ directions.  In the ModelingToolkitStandardLibrary.jl this assumption is taken
+    ```math
+    \rho V \frac{D \text{V}}{Dt} \approx \frac{\partial \dot{m}}{\partial t}
+    ```  
    
 
 !!! note "Project Idea"

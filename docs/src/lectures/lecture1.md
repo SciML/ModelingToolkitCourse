@@ -1,6 +1,14 @@
 # Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl
 
 ## Background
+### Modeling Tools
+This course will cover the following tools to develop advanced models in Julia:
+- [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
+- [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl)
+- [ModelingToolkit.jl](https://github.com/SciML/ModelingToolkit.jl)
+- [ModelingToolkitStandardLibrary.jl](https://github.com/SciML/ModelingToolkitStandardLibrary.jl)
+
+
 ### Julia
 This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package written in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the mass-spring-damper.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
 
