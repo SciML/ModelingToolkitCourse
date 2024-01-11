@@ -296,7 +296,7 @@ Notice that now, with a simple change of the system input variable, `structural_
 ```@example l2
 u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
-sol_ṁ1 = solve(prob_ṁ1)
+@time sol_ṁ1 = solve(prob_ṁ1);
 nothing # hide
 ```
 
@@ -313,7 +313,7 @@ If we now solve for case 2, we can study the impact the compressibility derivati
 @named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
 sys_ṁ2 = structural_simplify(odesys_ṁ2)
 prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
-sol_ṁ2 = solve(prob_ṁ2)
+@time sol_ṁ2 = solve(prob_ṁ2);
 nothing # hide
 ```
 
