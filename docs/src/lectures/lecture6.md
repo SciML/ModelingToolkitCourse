@@ -13,19 +13,19 @@ In the world of programming, debugging a model has got to be the most challengin
 ### 2. My model is correct!  Now what?
 Next step is to force a model solution.  It's still possible that something with the model is wrong, but the best way to know that is to see what the equations are outputing.  For example if the model is simulating negative pressure, but negative pressure is impossible, then this is a good clue of what is wrong with the model!
 
---- initial conditions
----- check that the equations give 0 residuals at time zero
----- use a small low order time step to get an improved initial condition
----- implement a small offset
+- initial conditions
+    - check that the equations give 0 residuals at time zero
+    - use a small low order time step to get an improved initial condition
+    - implement a small offset
 
---- use non-adaptive solver 
---- use a lower order solver
---- check_div=false
---- always_new=true
---- relaxation (increase, decrease)
---- tolerances (increase, decrease)
---- timestep (increase, decrease)
---- autodiff (true, false, analytical jacobian)
+- use non-adaptive solver 
+- use a lower order solver
+- check_div=false
+- always_new=true
+- relaxation (increase, decrease)
+- tolerances (increase, decrease)
+- timestep (increase, decrease)
+- autodiff (true, false, analytical jacobian)
 
 ### 3. Experimental Strategies
 - explore equation formulation: `no_simplify`, `structural_simplify(dae_index_reduction())`, `structural_simplify(; allow_parameter=false))`. Discuss the pendulum problem: https://github.com/SciML/ModelingToolkit.jl/issues/2417
