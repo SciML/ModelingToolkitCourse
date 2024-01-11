@@ -417,7 +417,7 @@ F_{viscous} = \frac{1}{2} \rho u^2 f \frac{L}{d_h}
 \end{align}
 ```
 
-given $f$ is the fully developed flow pipe friction factor for a given shape, $L$ is the pipe length, and $d_h$ is the pipe hydraulic diamter.
+given $f$ is the fully developed flow pipe friction factor for a given shape, $L$ is the pipe length, and $d_h$ is the pipe hydraulic diameter.
 
 
 !!! note "Project Idea" 
