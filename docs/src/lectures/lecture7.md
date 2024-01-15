@@ -70,7 +70,7 @@ prob = DAEProblem(f!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true,
 sol1 = solve(prob, IDA())
 sol2 = solve(prob, DFBDF())
 println("[sol1: ", sol1.retcode, ": y(100)=", sol1[2, end], " steps: ", length(sol1.t), "]",
-"\t", "[sol2 ", sol2.retcode, ": y(100)=", sol2[2, end], " steps: ", length(sol2.t), "]")
+"\n", "[sol2 ", sol2.retcode, ": y(100)=", sol2[2, end], " steps: ", length(sol2.t), "]")
 ```
 Note that we set ``y(0) = 0``, so the analytic solution is ``y(t) = 0``. Also,
 superficially, we can have the initial condition
@@ -80,7 +80,7 @@ x'(0) = x(0) = y(0) = 0, y'(0) = 1.
 However, if we differentiate the first equation once, we get the hidden
 constraint
 ```math
-x'(t) - cos(t) = 0.
+x'(t) - \cos(t) = 0.
 ```
 Thus, the true consistent initial condition is
 ```math
@@ -99,7 +99,7 @@ prob = DAEProblem(g!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true,
 sol1_diff = solve(prob, IDA())
 sol2_diff = solve(prob, DFBDF())
 println("[sol1_diff: ", sol1_diff.retcode, ": y(100)=", sol1_diff[2, end], " steps: ", length(sol1_diff.t), "]",
-"\t", "[sol2_diff ", sol2_diff.retcode, ": y(100)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
+"\n", "[sol2_diff ", sol2_diff.retcode, ": y(100)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
 ```
 We can see that it takes far fewer iterations to solve the system, and the
 numerical solution is much closer to the analytical solution ``y(t) = 0``.
