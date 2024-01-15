@@ -1,5 +1,138 @@
 # Lecture 7: Numerical and Structural Characterizations for DAEs
 
+Numerical solvers cannot solve all DAEs. Consider the DAE system
+```math
+F(\{x', y', z'\}, \{x, y, z\}, t) = \begin{pmatrix}
+    x + y - \sin(t) \\
+    z - \sin(t) \\
+    z' - \cos(t)
+\end{pmatrix} = 0.
+```
+Note that the second equation and the third equation are equivalent, and there
+are not enough constraints to uniquely determine ``x`` and ``y``. Let's see how
+numerical solvers and ModelingToolkit behave.
+```@example l7
+using OrdinaryDiffEq, Sundials, ModelingToolkit, Plots, LinearAlgebra
+
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    # u[3]: z, du[3]: z'
+    out[1] = u[1] + u[2] - sin(t)
+    out[2] = u[3] - sin(t)
+    out[3] = du[3] - cos(t)
+end
+prob = DAEProblem(f!, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0], (0, 100.0), differential_vars=[false, false, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println(sol1.retcode, "\t", sol2.retcode)
+```
+As expected, numerical solvers exit early and they cannot take more than one
+step. We call such systems non-integrable or singular. Let's try to use
+ModelingToolkit to analyze this problem.
+
+```@example l7
+@variables t x(t) y(t) z(t)
+D = Differential(t)
+eqs = [
+    x + y ~ sin(t)
+    z ~ sin(t)
+    D(z) ~ cos(t)
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys);
+try structural_simplify(sys) catch e println(e) end
+```
+We can see that ModelingToolkit also errors, correctly identifying that the
+system is singular.
+
+Let's consider another DAE system
+```math
+F(\{x', y'\}, \{x, y\}, t) = \begin{pmatrix}
+    x - \sin(t) \\
+    x' + y' - \cos(t)
+\end{pmatrix} = 0.
+```
+If we plug the first equation into the second equation, we have
+```math
+(\sin(t))' + y' - \cos(t) = y' = 0.
+```
+Thus, the solution for ``y`` is just a constant function. Let's try to solve
+this simple DAE using a numerical solver.
+```@example l7
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = u[1] - sin(t)
+    out[2] = du[1] + du[2] - cos(t)
+end
+prob = DAEProblem(f!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println("[sol1: ", sol1.retcode, ": y(100)=", sol1[2, end], " steps: ", length(sol1.t), "]",
+"\n", "[sol2 ", sol2.retcode, ": y(100)=", sol2[2, end], " steps: ", length(sol2.t), "]")
+```
+Note that we set ``y(0) = 0``, so the analytic solution is ``y(t) = 0``. Also,
+superficially, we can have the initial condition
+```math
+x'(0) = x(0) = y(0) = 0, y'(0) = 1.
+```
+However, if we differentiate the first equation once, we get the hidden
+constraint
+```math
+x'(t) - \cos(t) = 0.
+```
+Thus, the true consistent initial condition is
+```math
+x'(0) = 1, x(0) = y(0) = y'(0) = 0.
+```
+Let's replace the first equation with the differentiated equation and solve it
+numerically,
+```@example l7
+function g!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = du[1] - cos(t)
+    out[2] = du[1] + du[2] - cos(t)
+end
+prob = DAEProblem(g!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true, true])
+sol1_diff = solve(prob, IDA())
+sol2_diff = solve(prob, DFBDF())
+println("[sol1_diff: ", sol1_diff.retcode, ": y(100)=", sol1_diff[2, end], " steps: ", length(sol1_diff.t), "]",
+"\n", "[sol2_diff ", sol2_diff.retcode, ": y(100)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
+```
+We can see that it takes far fewer iterations to solve the system, and the
+numerical solution is much closer to the analytical solution ``y(t) = 0``.
+If we check the residual of the original constraint, we get
+```@example l7
+plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = "IDA")
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = "DFBDF")
+```
+We see a significant numerical drift from the original constraint for both DAE
+solvers. Again, let's see how ModelingToolkit does.
+
+```@example l7
+@variables t x(t) y(t)
+D = Differential(t)
+eqs = [
+    x ~ sin(t)
+    D(x) + D(y) ~ cos(t)
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys)
+model = structural_simplify(sys)
+prob = ODEProblem(model, [x=>0.0, y=>0.0, D(x)=>1.0, D(y)=>0.0], (0, 100.0))
+sol = solve(prob, Rodas5P())
+println("[sol: ", sol.retcode, ": y(100)=", sol[y, end], " steps: ", length(sol.t), "]")
+```
+```@example l7
+norm(sol[x, :] - sin.(sol.t))
+```
+We can see that ModelingToolkit handles this DAE system perfectly. ``y(t)`` is
+completely accurate, the original constraints are satisfied without drift, and
+the numerical solver needs to take minimal steps. In my following lectures, we
+will study how ModelingToolkit handles this example system.
+
 ## Numerical Integrability Criterion for DAEs
 
 There are both differential equations and algebraic equations in acausal models.
@@ -349,6 +482,15 @@ the structural consistency solvability criterion.
 
 Note that the sparsity pattern of ``\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) +
 \mathfrak{I}(F, \{u_i\}))`` is always a subset of ``\mathfrak{I}(F, z)`` for
-arbitrary systems. The structural consistency solvability criterion is stronger
-than the structural integrability criterion, so we just check the structural
-consistency solvability criterion.
+arbitrary systems.
+
+!!! info "Structural Consistency Solvability Theorem"
+
+    Structural consistency solvability implies structural integrability.
+    Moreover, if a DAE system is not integrable, then structural consistency
+    solvability cannot be achieved by differentiating any equation any number of
+    times. [^2]
+
+
+[^2]: Curious readers can read the original Pantelides paper for ideas to prove
+    this.
