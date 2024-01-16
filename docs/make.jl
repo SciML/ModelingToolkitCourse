@@ -8,6 +8,9 @@ pages = [
     "lectures/lecture7.md",
 ]
 
+ENV["GKSwstype"] = "100"
+using Plots
+
 makedocs(sitename = "ModelingToolkit Course",
     authors = "Chris Rackauckas",
     modules = [ModelingToolkitCourse],
