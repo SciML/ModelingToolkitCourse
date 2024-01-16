@@ -7,6 +7,7 @@ In the world of programming, debugging a model has got to be the most challengin
 - use acausal modeling
 - start small and verify components
 - design components so that complexity can be adjusted (for example, turn off fluid inertia).  Note the solve difference between `sol_ṁ1` and `sol_ṁ2`
+- check if parameters are realistic, start at 10% energy rather than 100%
 
 - be very careful about boundary conditions: explain `Position(solves_force = true; name)` when to use `solves_force = false`
 
