@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="115.3618mm"
+   height="49.067581mm"
+   viewBox="0 0 115.3618 49.067581"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="spring_damper.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="1.0841681"
+     inkscape:cx="341.2755"
+     inkscape:cy="204.30412"
+     inkscape:window-width="2560"
+     inkscape:window-height="1494"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       id="grid1"
+       units="mm"
+       originx="-55.748033"
+       originy="-357.30498"
+       spacingx="0.99999998"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="Triangle"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-14.750001,-94.536943)">
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 50,110 h 10.000001 l 5,-5 L 75,115 85.000001,105 95.000002,115 100,110 h 10"
+       id="path1" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 50,130 h 20.000002 v -5.00001 h 19.999999"
+       id="path2" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 70.000002,130 v 5 h 19.999999"
+       id="path3" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 80,130 h 30"
+       id="path4" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 50,110 v 9.99999 h -9.999998"
+       id="path5" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="M 50,130 V 119.99999"
+       id="path6" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 110,130 v -10.00001 h 10"
+       id="path7" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 110,110 v 9.99999"
+       id="path8" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="M 30,130 40.000002,119.99999 30,110 v 5 H 15 v 9.99999 h 15 z"
+       id="path9" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,105 v 34.99999"
+       id="path10" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,135 10,-5"
+       id="path11" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,130 10,-5.00001"
+       id="path12" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,124.99999 10,-5"
+       id="path13" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="M 120,119.99999 130,115"
+       id="path14" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,115 10,-5"
+       id="path15" />
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.499999"
+       d="m 120,110 10,-5"
+       id="path16" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;fill:#000000;stroke:none;stroke-width:0.499998"
+       x="22.656948"
+       y="122.34195"
+       id="text16"><tspan
+         sodipodi:role="line"
+         id="tspan16"
+         style="fill:#000000;stroke:none;stroke-width:0.5"
+         x="22.656948"
+         y="122.34195">F</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;fill:#000000;stroke:none;stroke-width:0.499998"
+       x="76.631996"
+       y="101.1753"
+       id="text17"><tspan
+         sodipodi:role="line"
+         id="tspan17"
+         style="fill:#000000;stroke:none;stroke-width:0.5"
+         x="76.631996"
+         y="101.1753">k</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;fill:#000000;stroke:none;stroke-width:0.499998"
+       x="76.631996"
+       y="143.50841"
+       id="text18"><tspan
+         sodipodi:role="line"
+         id="tspan18"
+         style="fill:#000000;stroke:none;stroke-width:0.5"
+         x="76.631996"
+         y="143.50841">d</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.499999;marker-end:url(#Triangle)"
+       d="M 40.000002,115 V 99.999997 H 50"
+       id="path18" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;fill:#000000;stroke:none;stroke-width:0.499998"
+       x="42.765297"
+       y="98.000298"
+       id="text19"><tspan
+         sodipodi:role="line"
+         id="tspan19"
+         style="fill:#000000;stroke:none;stroke-width:0.5"
+         x="42.765297"
+         y="98.000298">x</tspan></text>
+  </g>
+</svg>
