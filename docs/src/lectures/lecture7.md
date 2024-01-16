@@ -12,7 +12,7 @@ Note that the second equation and the third equation are equivalent, and there
 are not enough constraints to uniquely determine ``x`` and ``y``. Let's see how
 numerical solvers and ModelingToolkit behave.
 ```@example l7
-using OrdinaryDiffEq, Sundials, ModelingToolkit, Plots, LinearAlgebra
+using DifferentialEquations, Sundials, ModelingToolkit, Plots, LinearAlgebra
 
 function f!(out, du, u, p, t)
     # u[1]: x, du[1]: x'
