@@ -12,7 +12,7 @@ In the world of programming, debugging a model has got to be the most challengin
 - be very careful about boundary conditions: explain `Position(solves_force = true; name)` when to use `solves_force = false`
 
 ### 2. My model is correct!  Now what?
-Next step is to force a model solution.  It's still possible that something with the model is wrong, but the best way to know that is to see what the equations are outputing.  For example if the model is simulating negative pressure, but negative pressure is impossible, then this is a good clue of what is wrong with the model!
+Next step is to force a model solution.  It's still possible that something with the model is wrong, but the best way to know that is to see what the equations are outputting.  For example if the model is simulating negative pressure, but negative pressure is impossible, then this is a good clue of what is wrong with the model!
 
 - initial conditions
     - check that the equations give 0 residuals at time zero
