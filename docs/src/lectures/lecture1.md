@@ -485,16 +485,18 @@ Now, if we want to create a full *mass-spring-damper* system with our new `Dampe
         f(t)
     end
     @components begin
-        port = MechanicalPort()
+        port = MechanicalPort(;f,v=0)
     end
     @equations begin
         # connectors
         port.v ~ 0
-        port.f ~ f
+        port.f ~ -f
     end
 end
 nothing # hide
 ```
+
+Note the sign convention `port.f ~ -f`.  This is maybe not expected.  To understand why a negative is needed here is because this component is different from the others, there is no physics involved.  The component is instead only a boundary condition, therefore force should be *leaving* the component rather than entering.
 
 ![reference](../img/reference.svg)
 
@@ -520,7 +522,7 @@ end
 nothing # hide
 ```
 
-Note the sign convention `port.f ~ -f`.  This is maybe not expected.  To understand why a negative is needed here is because this component is different from the others, there is no physics involved.  The component is instead only a boundary condition, therefore force should be *leaving* the component rather than entering.
+As with the `Reference` component, the force is a boundary condition and is leaving the component rather than entering, giving the sign convention `port.f ~ -f`.
 
 ![force input](../img/force_input.svg)
 
@@ -567,7 +569,14 @@ The first equation (after re-aranging) it can be seen is the classic *mass-sprin
 m \cdot \ddot{x} + d \cdot \dot{x} + k \cdot x = f
 ```
 
-So we know all the signs and equations are set correctly.  Additionally it's easy enough in this case to re-construct the problem directly and solve to check the result.
+This way we know all the signs and equations are set correctly.  Let's also check the `Reference` component sign, which should give an equal but opposite force to the system connected to it.
+
+```@example l1
+plot(sol; idxs=sys.ref.f)
+plot!(sol; idxs=sys.spring.f + sys.damper.f)
+```
+
+Additionally it's easy enough in this case to re-construct the problem directly and solve to check the result.
 
 ```@example l1 
 vars = @variables x(t)=0 dx(t)=0 ddx(t)=0

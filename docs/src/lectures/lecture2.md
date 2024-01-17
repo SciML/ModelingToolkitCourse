@@ -93,9 +93,9 @@ Given ``\dot{\rho} = \rho_0 (\dot{p} / \beta)``, and ``q = \dot{m}/\rho_0`` the 
 Problem Definition - Given:
 
 - ``M = 10,000 kg``
-- ``A = 900 cm^2`` 
+- ``A = 0.01 m^2`` 
 - ``\rho_0 = 876 kg/m^3``
-- ``\beta = 1.2e9 Pa/m^3``
+- ``\beta = 1.2e9 Pa``
 - ``g = 9.807 m/s^2``
 
 ![example](../img/Example.svg)
@@ -163,7 +163,7 @@ D = Differential(t)
 
 # parameters -------
 pars = @parameters begin
-    r₀ = 876 #kg/s
+    r₀ = 876 #kg/m^3
     β = 1.2e9 #Pa
     A = 0.01 #m²
     x₀ = 1.0 #m
@@ -296,7 +296,7 @@ Notice that now, with a simple change of the system input variable, `structural_
 ```@example l2
 u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
-sol_ṁ1 = solve(prob_ṁ1)
+@time sol_ṁ1 = solve(prob_ṁ1);
 nothing # hide
 ```
 
@@ -313,7 +313,7 @@ If we now solve for case 2, we can study the impact the compressibility derivati
 @named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
 sys_ṁ2 = structural_simplify(odesys_ṁ2)
 prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
-sol_ṁ2 = solve(prob_ṁ2)
+@time sol_ṁ2 = solve(prob_ṁ2);
 nothing # hide
 ```
 
@@ -335,6 +335,17 @@ plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3,
         )
 ```
 
+Also note the difference in computation.  
+
+```@repl l2
+sol_ṁ1.destats
+```
+
+As can be seen, including the detail of full compressibility resulted in more computation: more function evaluations, Jacobians, solves, and steps.
+
+```@repl l2
+sol_ṁ2.destats
+```
 
 ### ModelingToolkitStandardLibrary.jl
 Now let's re-create this example using components from the ModelingToolkitStandardLibrary.jl.  It can be shown that by connecting `Mass` and `Volume` components that the same exact result is achieved.  The important thing is to pay very close attention to the initial conditions.  
