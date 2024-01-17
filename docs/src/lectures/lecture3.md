@@ -256,7 +256,7 @@ be satisfied:
 
 ### Note about Order Conditions
 
-Since the number of terms in the Taylor series grows exponentially with each increase in the order, this is fairly difficult to write down and thus most people use tricks in order to represet the order conditions. We refer to Hairer I for more information on this process.
+Since the number of terms in the Taylor series grows exponentially with each increase in the order, this is fairly difficult to write down and thus most people use tricks in order to represent the order conditions. We refer to Hairer I for more information on this process.
 
 ![](https://private-user-images.githubusercontent.com/1814174/297351111-6d4043b0-61e2-48b3-af48-868b358d6e7a.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg0MDEsIm5iZiI6MTcwNTQ4ODEwMSwicGF0aCI6Ii8xODE0MTc0LzI5NzM1MTExMS02ZDQwNDNiMC02MWUyLTQ4YjMtYWY0OC04NjhiMzU4ZDZlN2EucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA0MTQxWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZmEwMjY2NzJiZDRlNmQ0MWQ2YzBlNzA5ZmNiZWYzODAzMDUxYmZhNjMyOGFiZjg5ZWU2NTdmZTdiZTZlNmI0MiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.Ir_HG4R2SMc_gAj6O6DQMfUTv4_nvT_xjJCuMKSEA68)
 
@@ -282,7 +282,7 @@ It may seem wise to thus extrapolate that one can gain an order per `f` evaluati
 
 ![](https://private-user-images.githubusercontent.com/1814174/297353310-0eb50c18-19af-4786-add7-f6fa3554ac10.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzMxMC0wZWI1MGMxOC0xOWFmLTQ3ODYtYWRkNy1mNmZhMzU1NGFjMTAucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZDMxNzk5YzYwMThjNzJiZDU0ZjQzN2EyYzcxZjg1M2RkNThiODcwODUxMWE5OTFlYzQyZDc0YmY1YTI0NmNkNyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.FgMvAuinmYDCaiMcZszFljq5HEcc_GqBh6SoJZNlBBo)
 
-Given the number of terms in the Taylor series expansion grows exponentially after the first order, this calculation is hard to do but is guarenteed to be larger than linear. However, as we will see later, the effect of better order is exponential, so this does not mean that fourth order is optimal!
+Given the number of terms in the Taylor series expansion grows exponentially after the first order, this calculation is hard to do but is guaranteed to be larger than linear. However, as we will see later, the effect of better order is exponential, so this does not mean that fourth order is optimal!
 
 ## The Fundamental Tension in ODE Solvers
 
@@ -300,7 +300,7 @@ In order to achieve "efficient", we thus wish to choose as large of an ``h`` as 
 2. How can we find ``h`` such that ``LTE \leq TOL``?
 
 !!! note
-    There are ways to build ODE solvers that control the global trunctation error, but there is no open source software (nor widely used closed source software) which does this with Runge-Kutta methods for IVPs. This is a potential final project.
+    There are ways to build ODE solvers that control the global truncation error, but there is no open source software (nor widely used closed source software) which does this with Runge-Kutta methods for IVPs. This is a potential final project.
 
 ### A Bit of Mental Math Around Solver Work Calculations And Optimal Order
 
@@ -308,7 +308,7 @@ Note that for efficiency of (non-stiff) ODE solvers, we simplify the calculation
 
 To understand this balance a bit better, we note that order has an exponential effect on the error with respect to ``h``. For example, if a method is 4th order, then the LTE is ``\mathcal{O}(h^5)``, and thus if we change ``h`` to ``\frac{h}{2}``, we end up decreasing the error by a factor of ``\frac{1}{2^5} = \frac{1}{32}``. Thus, if going to a higher order does not require an exponential increase in the number of stages required (which it does not), in terms of efficiency then it may seem best to always use the highest order method that we can.
 
-However, this fact must be balanced around two facts. The first is that this error estimate only holds as ``h \rightarrow 0``. As ``h`` grows, the other terms in the LTE approximation become non-negligable, and thus it becomes no longer guarenteed that a higher order method has a lower error than a lower order method! Secondly, the methods themselves have a maximum step size which is allowed due to the stability requirement on the ODE solver. Thus the ODE solver should have a high enough order in order to make use of the efficiency gains, but if the order is too high then the ``h`` will need to be artificially decreased in order to ensure stability and accurate error approximations, and therefore there is a "sweet spot" where the order is high but not too high.
+However, this fact must be balanced around two facts. The first is that this error estimate only holds as ``h \rightarrow 0``. As ``h`` grows, the other terms in the LTE approximation become non-negligible, and thus it becomes no longer guaranteed that a higher order method has a lower error than a lower order method! Secondly, the methods themselves have a maximum step size which is allowed due to the stability requirement on the ODE solver. Thus the ODE solver should have a high enough order in order to make use of the efficiency gains, but if the order is too high then the ``h`` will need to be artificially decreased in order to ensure stability and accurate error approximations, and therefore there is a "sweet spot" where the order is high but not too high.
 
 In practice, this has empirically been found to be between 3-9, though this can be very dependent on two things. For one, it's dependent on the type of problem being solved since the larger the eigenvalues of the Jacobian, i.e. the approximation of the linear stability ``\lambda``, the smaller ``h`` which is allowed. Therefore, equations with larger eigenvalues in the Jacobain tend to be optimal with lower order methods. And the second point, the optimality is dependent on the choice of TOL, since the smaller the error tolerance the smaller ``h`` will be, and thus the higher order that will be efficient.
 
@@ -354,10 +354,10 @@ It is a 5th order method with 7 stages. Its optimization process looks like:
 
 ![](https://private-user-images.githubusercontent.com/1814174/297353386-7658657d-dc1e-4a5c-9025-6977135aa3cc.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzM4Ni03NjU4NjU3ZC1kYzFlLTRhNWMtOTAyNS02OTc3MTM1YWEzY2MucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZWM1YzIxZWE0YTM3ODE0NjFjYWY3YzMxNzc1NTgwMmRjOTM1OGU3NjI1ZTk4YTBjN2Y3OTMwNDNmNjkzYzgxMiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.D5O7ZrOBz7iTRzThZ58CrCdP7vaDe7C8FGAXPCc67Qw)
 
-There are a few pecularities to address with this method. 
+There are a few peculiarities to address with this method. 
 
 1. The method being 5th order with 7 stages is not "stage optimal" since there exist methods with 6 stages which are 5th order. In theory, a method with 6 stages evaluates ``f`` only 6 times instead of 7, and so therefore wouldn't that be more optimal? It turns out that while the order conditions can be achieved, the leading terms of the next order LTE are so large that in fact it's more optimal to take another ``f`` evaluation per stage.
-2. This method was derived by hand in 1980 and made the assumption that some of the terms were zero in order to simplify the optimation process. This means it's not necessarily optimal.
+2. This method was derived by hand in 1980 and made the assumption that some of the terms were zero in order to simplify the optimization process. This means it's not necessarily optimal.
 3. The last stage of the step exactly matches the update equation. This is a property known as "first same as last" (FSAL), and thus while the method technically requires 7 evaluations per stage, after the first step we can cache the value of the ``k_7`` and reuse it as ``k_1`` in the next evaluation, and therefore this method effectively takes 6 steps per stage!
 
 ### Note: Further Optimizations Beyond Dormand-Prince
@@ -526,7 +526,7 @@ with respect to ``\theta`` such that ``u_{n+\theta}`` is an ``o``-th order appro
 
 Now why is dense output important? When we were using a non-adaptive scheme, we could know where our step points would be. For example, if we wanted values of the solution output at {1/2, 1, 3/2, ...}, we could simply set ``h=1/2`` and receive these values. If the error was too high, we could simply re-compute the solution with ``h=1/4``, or any other integer divisor of our desired outputs.
 
-However, once we move to an adaptive scheme, we cannot guarentee to the user that the method will step to specific points. We can either do two things:
+However, once we move to an adaptive scheme, we cannot guarantee to the user that the method will step to specific points. We can either do two things:
 
 1. Always take the minimum of the desired ``h`` and the distance to the next saving point. Since decreasing ``h`` decreases the error, this thus enforces that the TOL is satisfied, though it may be overly conservative in many situations.
 2. We take steps using the desired ``h`` and at the end of each step, use the embedded dense output scheme in order to compute the values at save points desired by the user.
