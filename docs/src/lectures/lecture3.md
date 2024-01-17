@@ -101,7 +101,7 @@ u''(t) \leq A
 
 over the domain of interest, then by the Taylor Series Remainder Theorem:
 
-![](https://private-user-images.githubusercontent.com/1814174/297359070-d99666f2-2f5e-4049-9fb2-abbcd78cd566.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0OTAxNTcsIm5iZiI6MTcwNTQ4OTg1NywicGF0aCI6Ii8xODE0MTc0LzI5NzM1OTA3MC1kOTk2NjZmMi0yZjVlLTQwNDktOWZiMi1hYmJjZDc4Y2Q1NjYucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTExMDU3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ODQ5MjNiNGQ2MWIzZTFiYTI2NDIyYWNkNjIxNDZlY2Q2NGI1NGY3MzAzZThjZDRkZTk2ZjVkZWZjYzM0NzU5YiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.end_BK_2OSuNNUJzrnbNwsXyN4e0H5innGVD6vA4GuM)
+![](../img/taylor_remainder.png)
 
 We can bound the error in the rest of the LTE terms using the maximum of the second derivative, and thus:
 
@@ -139,7 +139,7 @@ Substituting all of this together we get:
 
 Some manipulations later...
 
-![](https://private-user-images.githubusercontent.com/1814174/297361799-191ac12c-6094-4005-a181-804ce7ce90f8.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0OTA3OTksIm5iZiI6MTcwNTQ5MDQ5OSwicGF0aCI6Ii8xODE0MTc0LzI5NzM2MTc5OS0xOTFhYzEyYy02MDk0LTQwMDUtYTE4MS04MDRjZTdjZTkwZjgucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTEyMTM5WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ODkxOWJiMTAzMDg4Mjg2NGE2MDAyMDk1ZTAwM2YyNjMzMGJlZGVhOWNkOTRhMmNhMDRhNDQ1NGJmMjIyZDIyOCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.hxxKilApaDbZoWbDepQpQTu_l-ZLFoyxQd2eAloqXSI)
+![](../img/geometric_series.png)
 
 You get that ``E_n`` is bounded by a geometric series and use the analytical solution to a geometric series to get:
 
@@ -245,7 +245,7 @@ where ``s`` is the number of stages. In this schema, the Euler method is simply 
 
 This class of methods is known as the Runge-Kutta methods and the set of coefficients ``(a_{ij}, b_i, c_i)`` is known as the tableau. Normally these tableaus are represented in a table:
 
-![](https://private-user-images.githubusercontent.com/1814174/297352571-3294883f-13a2-480c-95ab-0c8dcb0318f4.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg3MTIsIm5iZiI6MTcwNTQ4ODQxMiwicGF0aCI6Ii8xODE0MTc0LzI5NzM1MjU3MS0zMjk0ODgzZi0xM2EyLTQ4MGMtOTVhYi0wYzhkY2IwMzE4ZjQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA0NjUyWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NzFjNTI3N2U0ODEyZDBjNThiMTQxMjVkZDY1MWNmOTliMjBlODg5MDVlNGZlOWZlYWY4NjJjYWY3MWU4ODA3MiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.Zscqysz42_-QjaTOFzR4VwsZoxLQ87CSo4AvuiG2SCU)
+![](../img/rk_tableau.png)
 
 The order of the Runge-Kutta method is simply the number of terms in the Taylor
 series that ends up being matched by the resulting expansion. For example, for
@@ -258,11 +258,11 @@ be satisfied:
 
 Since the number of terms in the Taylor series grows exponentially with each increase in the order, this is fairly difficult to write down and thus most people use tricks in order to represent the order conditions. We refer to Hairer I for more information on this process.
 
-![](https://private-user-images.githubusercontent.com/1814174/297351111-6d4043b0-61e2-48b3-af48-868b358d6e7a.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg0MDEsIm5iZiI6MTcwNTQ4ODEwMSwicGF0aCI6Ii8xODE0MTc0LzI5NzM1MTExMS02ZDQwNDNiMC02MWUyLTQ4YjMtYWY0OC04NjhiMzU4ZDZlN2EucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA0MTQxWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZmEwMjY2NzJiZDRlNmQ0MWQ2YzBlNzA5ZmNiZWYzODAzMDUxYmZhNjMyOGFiZjg5ZWU2NTdmZTdiZTZlNmI0MiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.Ir_HG4R2SMc_gAj6O6DQMfUTv4_nvT_xjJCuMKSEA68)
+![](../img/num_order_conditions.png)
 
 You basically make rooted trees and then they represent conditions.
 
-![](https://private-user-images.githubusercontent.com/1814174/297351101-26399788-9f07-4bd1-8a49-03490a75829c.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg0MDEsIm5iZiI6MTcwNTQ4ODEwMSwicGF0aCI6Ii8xODE0MTc0LzI5NzM1MTEwMS0yNjM5OTc4OC05ZjA3LTRiZDEtOGE0OS0wMzQ5MGE3NTgyOWMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA0MTQxWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MTA3ZTFjMzAxMjM1NDk1MmU1YmNkMmFkMzEyYTlhYjM2NzQ4MzY0NjE5ZDExM2ZkYjk5MTQyZDk2MzEzNmI4MCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.E1mGvBbGpHP5mTawCktzTcxxVEaZsnIsw4rp13wWzUw)
+![](../img/rooted_tree.png)
 
 It's complicated and not necessarily for understanding how the resulting methods are used.
 
@@ -280,7 +280,7 @@ u_{n+1} = u_n + \frac{h}{6}(k_1 + 2 k_2 + 2 k_3 + k_4)\\
 ```
 It may seem wise to thus extrapolate that one can gain an order per `f` evaluation, but that is not the case. It turns out that the number of stages required starts to grow more than linearly after 4! With $p$ being the order, here's a table of known minimum orders:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353310-0eb50c18-19af-4786-add7-f6fa3554ac10.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzMxMC0wZWI1MGMxOC0xOWFmLTQ3ODYtYWRkNy1mNmZhMzU1NGFjMTAucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZDMxNzk5YzYwMThjNzJiZDU0ZjQzN2EyYzcxZjg1M2RkNThiODcwODUxMWE5OTFlYzQyZDc0YmY1YTI0NmNkNyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.FgMvAuinmYDCaiMcZszFljq5HEcc_GqBh6SoJZNlBBo)
+![](../img/minstages.png)
 
 Given the number of terms in the Taylor series expansion grows exponentially after the first order, this calculation is hard to do but is guaranteed to be larger than linear. However, as we will see later, the effect of better order is exponential, so this does not mean that fourth order is optimal!
 
@@ -348,11 +348,11 @@ This is equivalent because "the order conditions for order ``o-1`` are satisfied
 
 However, similar to how the order conditions can quickly become intractible concisely state or compute by hand, and thus many of the methods used in practice used a mixture of hand-optimization mixed with a numerical optimization process. The most famous method is the Dormand-Prince method, which is the tableau behind popular software such as `dopri5`, `ode45`, `DP5`, and other implementations. It is thus given by the tabeleau:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353341-cfaf091b-ca86-4a26-8279-6c960576d705.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzM0MS1jZmFmMDkxYi1jYTg2LTRhMjYtODI3OS02Yzk2MDU3NmQ3MDUucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YzRlNGE5MjVkMTY2MGRmZmE0ODU5ZDViOTMzZDA4ZWY2ZjAyODVlZTllOTNiYmJlNjc0MGY5ODRkNDg5ZThhMCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.zitQtfE7ZVFeZxl5IzYBwbiSqTB25LzwPujZ4q6gXJs)
+![](../img/dp5.png)
 
 It is a 5th order method with 7 stages. Its optimization process looks like:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353386-7658657d-dc1e-4a5c-9025-6977135aa3cc.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzM4Ni03NjU4NjU3ZC1kYzFlLTRhNWMtOTAyNS02OTc3MTM1YWEzY2MucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZWM1YzIxZWE0YTM3ODE0NjFjYWY3YzMxNzc1NTgwMmRjOTM1OGU3NjI1ZTk4YTBjN2Y3OTMwNDNmNjkzYzgxMiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.D5O7ZrOBz7iTRzThZ58CrCdP7vaDe7C8FGAXPCc67Qw)
+![](../img/dp5_opt.png)
 
 There are a few peculiarities to address with this method. 
 
@@ -366,11 +366,11 @@ You may then ask the question of whether anyone has fixed (2) to derive a 5th or
 
 Its optimization process was mostly numerical:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353430-c6201506-d85c-4142-800f-35db25c5b1bc.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzQzMC1jNjIwMTUwNi1kODVjLTQxNDItODAwZi0zNWRiMjVjNWIxYmMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NzQ3YThmYWE0NWY4Zjk1MjRiYzgzZjIyNjQ3MmY5M2MwNDUxYjcyN2FmNjQxYjZhM2JiZWFjOGUwYzkwMDc4YiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.sH_ZMz37NatWcz1MabgH172hDfmq5Y5Ibkw4diueAqo)
+![](../img/tsit5_opt.png)
 
 Giving the following tableau:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353524-795afa7e-1110-4fe0-8605-d169cfbeaa77.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzUyNC03OTVhZmE3ZS0xMTEwLTRmZTAtODYwNS1kMTY5Y2ZiZWFhNzcucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YWNlNWQ1NGM5MmM1Zjc2ZjdiM2FiYmU4ODk0ODMxZjYyNGZmOTQ2OTk3Mjc1YWYzZDMwZGVkZjQ2M2NlYmFiYSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.gtfLKiSv5ZVqNxdkiTvo7pLOXx81Z8pymTfKMupZzLM)
+![](../img/tsit5_coeffs.png)
 
 ## Choosing the Optimal h: Adaptivity
 
@@ -462,7 +462,7 @@ and thus the difference between two ODE solvers with different orders serves as 
 
 Let's look back at the canonical tableau for the Dormand-Prince method:
 
-![](https://private-user-images.githubusercontent.com/1814174/297353341-cfaf091b-ca86-4a26-8279-6c960576d705.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDU0ODg5MTcsIm5iZiI6MTcwNTQ4ODYxNywicGF0aCI6Ii8xODE0MTc0LzI5NzM1MzM0MS1jZmFmMDkxYi1jYTg2LTRhMjYtODI3OS02Yzk2MDU3NmQ3MDUucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDExNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMTdUMTA1MDE3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YzRlNGE5MjVkMTY2MGRmZmE0ODU5ZDViOTMzZDA4ZWY2ZjAyODVlZTllOTNiYmJlNjc0MGY5ODRkNDg5ZThhMCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.zitQtfE7ZVFeZxl5IzYBwbiSqTB25LzwPujZ4q6gXJs)
+![](../img/dp5_opt.png)
 
 Notice that there are two lines for the ``b_i`` coefficients. It turns out that this method is designed so that with the same set of ``k_i``, there are two methods that are calculated. The first method is a 7-stage 5th order method, and the second method is a 7-stage 4th order method. Their difference is thus an approximation to the LTE, notably with 0 extra ``f`` evaluations. This is known as an embedded error estimate.
 
@@ -533,19 +533,21 @@ However, once we move to an adaptive scheme, we cannot guarantee to the user tha
 
 The scheme 2 uses our developed machinery to be as fast as possible, while achieving the goals of the user (TOL goals and save point goals). However given this saving behavior is generally of a lower order than the true steps of the solver, the saved points tend to be approximated to a lower order than the solver itself. 
 
-!!!note 
+!!! note 
+
     Because the Dormand-Prince method has a 4th order dense output, it's commonly misstated the `ode45`/`dopri5` method is 4th order, since empirical studies which do not carefully control the stepping to match the saving will see 4th order convergence!
 
-!!!note
+!!! note
+
     `ode45` has a default where when no save points are given, it will return values given by the adaptivity scheme. However, it's not only the values the method steps to, but also 4 evenly spaced points in the interval, computed using the dense output!
 
 ## Diving into the Simplest Tsit5
 
 Using this background, we can dive into the simplest implementation of the Tsit5 explicit Runge-Kutta method and understand all of the details:
 
-![Link to SimpleDiffEq.jl GPUATsit5 Code](https://github.com/SciML/SimpleDiffEq.jl/blob/v1.11.1/src/tsit5/gpuatsit5.jl#L99-L223)
+[Link to SimpleDiffEq.jl GPUATsit5 Code](https://github.com/SciML/SimpleDiffEq.jl/blob/v1.11.1/src/tsit5/gpuatsit5.jl#L99-L223)
 
-![Link to Tsit5 Tableau](https://github.com/SciML/SimpleDiffEq.jl/blob/v1.11.1/src/tsit5/tsit5.jl#L68-L117)
+[Link to Tsit5 Tableau](https://github.com/SciML/SimpleDiffEq.jl/blob/v1.11.1/src/tsit5/tsit5.jl#L68-L117)
 
 ## Conclusion
 
