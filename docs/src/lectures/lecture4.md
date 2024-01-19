@@ -190,7 +190,7 @@ due to this property. One of the standard models is the Robertson model, which
 can be described as:
 
 ```@example stiff
-using OrdinaryDiffEq, Plots
+using DifferentialEquations, Plots
 function rober(du,u,p,t)
   y₁,y₂,y₃ = u
   k₁,k₂,k₃ = p
