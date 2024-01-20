@@ -274,7 +274,7 @@ checking if a sparse matrix is structurally non-singular.
       ```math
       \begin{equation}
       \det(A)=\sum_{\sigma \in S_{n}}\operatorname{sgn}(\sigma)\prod_{i = 1}^n
-      a_{i,\sigma (i)} \ne 0,
+      a_{i,\sigma(i)} \ne 0,
       \end{equation}
       ```
       where ``S_n`` denotes the set of all permutations of the set ``\{1, 2, ...,
@@ -298,7 +298,7 @@ cardinality matching.
     and edges between them ``E \subseteq U\times V`` defined by
     ```math
     \begin{equation}
-    \forall (i, j) \in U\times V, (i, j) \in E \iff A_{i, j} = 1.
+    E = \{(i, j): A_{i,j} \ne 0\}.
     \end{equation}
     ```
     Similarly, the induced bipartite graph of a sparse matrix is the induced
@@ -310,10 +310,13 @@ cardinality matching.
     where every vertex in ``U`` and ``V`` can appear at most once in ``M``. A
     matching ``M`` is perfect if ``|M| = |U| = |V|``. We call an edge in a
     matching matched, otherwise, free. It is often more convenient to interpret
-    matching as the function ``m: U \to (V \cup \emptyset)`` defined by
+    matching as the function ``M: U \to (V \cup \emptyset)`` defined as
     ```math
     \begin{equation}
-    x \mapsto \cup \{y | (x, y) \in M\}.
+    m(i) = \begin{cases}
+        j, & \text{if } (i, j) \in E \\
+        \emptyset, & \text{else}
+    \end{cases}.
     \end{equation}
     ```
 
@@ -322,16 +325,61 @@ cardinality matching.
     A sparse matrix ``A\in\mathbb{R}^{m\times n}`` is structurally non-singular
     if and only if its induced bipartite graph has a perfect matching.
 
+    ##### Proof:
+    - ``\Leftarrow``: Suppose ``A\in\mathbb{R}^{m\times n}`` is a structurally
+      non-singular sparse matrix, then ``m=n`` and there exists a row
+      permutation ``\sigma\in\S_n`` such that ``\forall i\in\{1, ..., n\},
+      A_{\sigma(i), i} \ne 0``. Note that ``\sigma`` is a perfect matching.
+    - ``\Rightarrow``: Suppose the induced bipartite graph ``(U, V, E)`` of
+      ``A\in\mathbb{R}^{m\times n}`` has a perfect bipartite matching ``\sigma``,
+      then ``|U| = |V| = |\sigma| = m = n`` and ``\sigma\in\S_n``. In particular,
+      ``\forall i\in\{1, ..., n\}, A_{\sigma(i), i} \ne 0``. Hence, ``A`` is
+      structurally non-singular. ``\blacksquare``
+
 !!! definition "Augmenting Path"
 
     Given a particular matching, an alternating path is a sequence of adjacent
     edges that alternate between being matched and free. In particular, an
     augmenting path is a alternating path that starts and ends with free edges.
 
+!!! info "Bipartite Graph Maximum Cardinality Matching Theorem"
+
+    A matching ``M`` of a bipartite graph has maximum cardinality matching if
+    and only if there is no augmenting path with respect to ``M``.
+
+    ##### Proof:
+    - ``\Rightarrow``: We will should this using proof by contrapositive. Suppose
+      a bipartite graph has a matching ``M`` and an augmenting path ``A``. Let
+      ``\hat{M} = M \bigtriangleup A := (M \setminus A)\union (A\setminus M)``,
+      then ``\hat{M}`` is a matching and ``|\hat{M}| = |M| + 1``. Thus, ``M`` is
+      not a maximum cardinality matching.
+    - ``\Leftarrow``: We will should this using proof by contrapositive, again.
+      Suppose a bipartite graph ``(U, V, E)`` has a non-maximum cardinality
+      matching ``B``, we want to seek an argumenting path. Let ``A`` be a
+      maximum cardinality matching. We claim ``P = A\bigtriangleup B`` contains
+      at least one augmenting path by the following arguments
+        - Since all edges of ``P`` come from two matchings, by the defintion of
+          a matching, each vertex can have at most two edges. Therefore, ``P``
+          contains either paths or cycles, and such segements are alternating
+          between ``A`` and ``B``.
+        - ``|P\cap A| > |P\cap B|``. Note that
+          ``P\cap A = ((A\setminus B) \cup (B\setminus A)) \cap A = ((A\setminus B)\cap A)\cup ((B\setminus A) \cap A) = (A\setminus B)``,
+          and similarly ``|P\cap B| = |B\setminus A|``. Thus,
+          ``|P\cap A| = |A| - |A \cap B|`` and ``|P\cap B| = |B| - |A \cap B|``.
+          By the maximality of ``A``, we know ``|A|>|B|``. Therefore, ``|P\cap
+          A| > |P\cap B|``.
+        - By the previous arguement, there must be at least one connected
+          component such that it contains more edges in ``A`` than ``B``. Since
+          all cycles in ``P`` must be even length and alternating, such
+          segement can only be a path, and in particular, an augmenting path
+          with respect to ``B``.
+      ``\blacksquare``
+
 !!! info "Augmenting Path Algorithm for Finding a Maximum Cardinality Matching"
 
     Input: bipartite graph ``G = (U, V, E)``.
 
+    #TODO: make this better
     Output: matching ``M``.
     ```julia
     M = []
@@ -494,3 +542,9 @@ arbitrary systems.
 
 [^2]: Curious readers can read the original Pantelides paper for ideas to prove
     this.
+
+## Pantelides Algorithm
+
+We can use the Pantelides algorithm to efficiently convert a DAE system that has
+structural integrability but not structural consistency solvability to a system
+that has structural consistency solvability.
