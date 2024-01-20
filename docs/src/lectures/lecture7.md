@@ -348,19 +348,19 @@ cardinality matching.
     and only if there is no augmenting path with respect to ``M``.
 
     ##### Proof:
-    - ``\Rightarrow``: We will should this using proof by contrapositive. Suppose
+    - ``\Rightarrow``: We will show this using proof by contrapositive. Suppose
       a bipartite graph has a matching ``M`` and an augmenting path ``A``. Let
       ``\hat{M} = M \bigtriangleup A := (M \setminus A)\union (A\setminus M)``,
       then ``\hat{M}`` is a matching and ``|\hat{M}| = |M| + 1``. Thus, ``M`` is
       not a maximum cardinality matching.
     - ``\Leftarrow``: We will should this using proof by contrapositive, again.
       Suppose a bipartite graph ``(U, V, E)`` has a non-maximum cardinality
-      matching ``B``, we want to seek an argumenting path. Let ``A`` be a
+      matching ``B``, we want to seek an augmenting path. Let ``A`` be a
       maximum cardinality matching. We claim ``P = A\bigtriangleup B`` contains
       at least one augmenting path by the following arguments
-        - Since all edges of ``P`` come from two matchings, by the defintion of
+        - Since all edges of ``P`` come from two matchings, by the definition of
           a matching, each vertex can have at most two edges. Therefore, ``P``
-          contains either paths or cycles, and such segements are alternating
+          contains either paths or cycles, and such segments are alternating
           between ``A`` and ``B``.
         - ``|P\cap A| > |P\cap B|``. Note that
           ``P\cap A = ((A\setminus B) \cup (B\setminus A)) \cap A = ((A\setminus B)\cap A)\cup ((B\setminus A) \cap A) = (A\setminus B)``,
@@ -368,10 +368,10 @@ cardinality matching.
           ``|P\cap A| = |A| - |A \cap B|`` and ``|P\cap B| = |B| - |A \cap B|``.
           By the maximality of ``A``, we know ``|A|>|B|``. Therefore, ``|P\cap
           A| > |P\cap B|``.
-        - By the previous arguement, there must be at least one connected
+        - By the previous argument, there must be at least one connected
           component such that it contains more edges in ``A`` than ``B``. Since
           all cycles in ``P`` must be even length and alternating, such
-          segement can only be a path, and in particular, an augmenting path
+          segment can only be a path, and in particular, an augmenting path
           with respect to ``B``.
       ``\blacksquare``
 
@@ -546,5 +546,5 @@ arbitrary systems.
 ## Pantelides Algorithm
 
 We can use the Pantelides algorithm to efficiently convert a DAE system that has
-structural integrability but not structural consistency solvability to a system
-that has structural consistency solvability.
+structural integrability to a system with structural consistency solvability,
+even if it initially lacks this property..
