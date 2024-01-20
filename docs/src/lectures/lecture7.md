@@ -375,39 +375,74 @@ cardinality matching.
           with respect to ``B``.
       ``\blacksquare``
 
-!!! info "Augmenting Path Algorithm for Finding a Maximum Cardinality Matching"
+!!! info "Augmenting Path Algorithm"
 
-    Input: bipartite graph ``G = (U, V, E)``.
+    Input: bipartite graph ``g = (U, V, E)``, a vertex ``\text{vsrc } \in U``,
+    and a partial matching.
 
-    #TODO: make this better
-    Output: matching ``M``.
+    Output: return a boolean indicating the existence of an augmenting path,
+    and if one is present, use the augmenting path to increase the cardinality
+    of the partial matching by exactly one.
+
+    In ModelingToolkit, there are the `𝑠neighbors(g, i)` function that returns a
+    sorted list containing ``\{j: (i, j) \in E\}``, and the `𝑑neighbors(g, j)`
+    function that returns a sorted list containing ``\{i: (i, j) \in E\}``.
+    ModelingToolkit also encodes matching `M` using the `m::Matching` structure,
+    let `j = m[i]`, it holds that `j::Int` if and only if `(i, j) \in M` and
+    `j::Unassigned` if and only if `(i, j) \not\in M`. It following code comes
+    directly from ModelingToolkit.
     ```julia
-    M = []
-    for each u in U
-        p ← find an augmenting path w.r.t. M that starts with u
-        if p === nothing
-            continue
-        else
-            add all free edges of p to M
-            remove all matched edges of p from M
+    function construct_augmenting_path!(matching::Matching, g::BipartiteGraph, vsrc, dstfilter,
+            dcolor = falses(ndsts(g)), scolor = nothing)
+        scolor === nothing || (scolor[vsrc] = true)
+
+        # if a `vdst` is unassigned and the edge `vsrc <=> vdst` exists
+        for vdst in 𝑠neighbors(g, vsrc)
+            if dstfilter(vdst) && matching[vdst] === unassigned
+                matching[vdst] = vsrc
+                return true
+            end
         end
+
+        # for every `vsrc` such that edge `vsrc <=> vdst` exists and `vdst` is uncolored
+        for vdst in 𝑠neighbors(g, vsrc)
+            (dstfilter(vdst) && !dcolor[vdst]) || continue
+            dcolor[vdst] = true
+            if construct_augmenting_path!(matching, g, matching[vdst], dstfilter, dcolor,
+                scolor)
+                matching[vdst] = vsrc
+                return true
+            end
+        end
+        return false
     end
     ```
-    Note that by the definition of augmenting paths, whenever ``p`` is not
-    `nothing` in the above algorithm, we increase the cardinality of ``M`` by
-    ``1``. We will assert without a proof that the above algorithm outputs a
-    maximum cardinality matching, and in particular, if ``p`` is `nothing` for a
-    source vertex ``u``, then no maximum cardinality matching contains an edge
-    that starts with ``u``. More details of this algorithm including the search
-    algorithm of an augmenting path are available in the original Pantelides
-    paper [^Pantelides1988].
+    Note that the augmenting path algorithm never removes any matched vertices
+    in ``U``.
 
-    Note that a perfect matching for ``G`` exists if and only if a maximum
-    cardinality matching ``M`` satisfies ``|M| = |U| = |V|``.
+!!! info "Augmenting Path Algorithm for Finding a Maximum Cardinality Matching"
 
+    Input: bipartite graph ``g = (U, V, E)``.
 
+    Output: matching ``M``.
 
-[^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of differential-algebraic systems." SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.
+    The following code comes directly from ModelingToolkit. Note that `𝑠
+    vertices(g)` returns `1:n` where ``n=|U|``.
+    ```julia
+    function maximal_matching(g::BipartiteGraph, srcfilter = vsrc -> true,
+            dstfilter = vdst -> true, ::Type{U} = Unassigned) where {U}
+        matching = Matching{U}(ndsts(g))
+        foreach(Iterators.filter(srcfilter, 𝑠vertices(g))) do vsrc
+            construct_augmenting_path!(matching, g, vsrc, dstfilter)
+        end
+        return matching
+    end
+    ```
+    Given that the augmenting path algorithm never removes any matched vertices
+    in ``U``, and if no augmenting path starts in vertex ``i\in U``, then ``i``
+    will never be matched using the augmenting path algorithm. It is sufficient
+    to run the augmenting path algorithm for all vertices in ``U`` by the
+    Bipartite Graph Maximum Cardinality Matching Theorem.
 
 ## Structural Integrability Criterion for DAEs
 
@@ -545,6 +580,10 @@ arbitrary systems.
 
 ## Pantelides Algorithm
 
-We can use the Pantelides algorithm to efficiently convert a DAE system that has
-structural integrability to a system with structural consistency solvability,
-even if it initially lacks this property..
+We can use the Pantelides algorithm [^Pantelides1988] to efficiently convert a
+DAE system that has structural integrability to a system with structural
+consistency solvability, even if it initially lacks this property..
+
+[^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of
+    differential-algebraic systems." SIAM Journal on scientific and statistical
+    computing 9.2 (1988): 213-231.
