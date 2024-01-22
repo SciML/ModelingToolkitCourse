@@ -388,8 +388,8 @@ cardinality matching.
     sorted list containing ``\{j: (i, j) \in E\}``, and the `𝑑neighbors(g, j)`
     function that returns a sorted list containing ``\{i: (i, j) \in E\}``.
     ModelingToolkit also encodes matching `M` using the `m::Matching` structure,
-    let `j = m[i]`, it holds that `j::Int` if and only if `(i, j) \in M` and
-    `j::Unassigned` if and only if `(i, j) \not\in M`. It following code comes
+    let `j = m[i]`, it holds that `j::Int` if and only if ``(i, j) \in M`` and
+    `j::Unassigned` if and only if ``(i, j) \not\in M``. It following code comes
     directly from ModelingToolkit.
     ```julia
     function construct_augmenting_path!(matching::Matching, g::BipartiteGraph, vsrc, dstfilter,
@@ -582,7 +582,7 @@ arbitrary systems.
 
 We can use the Pantelides algorithm [^Pantelides1988] to efficiently convert a
 DAE system that has structural integrability to a system with structural
-consistency solvability, even if it initially lacks this property..
+consistency solvability, even if it initially lacks this property.
 
 [^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of
     differential-algebraic systems." SIAM Journal on scientific and statistical
