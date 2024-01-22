@@ -339,11 +339,11 @@ cardinality matching.
     ##### Proof:
     - ``\Leftarrow``: Suppose ``A\in\mathbb{R}^{m\times n}`` is a structurally
       non-singular sparse matrix, then ``m=n`` and there exists a row
-      permutation ``\sigma\in\S_n`` such that ``\forall i\in\{1, ..., n\},
+      permutation ``\sigma\in S_n`` such that ``\forall i\in\{1, ..., n\},
       A_{\sigma(i), i} \ne 0``. Note that ``\sigma`` is a perfect matching.
     - ``\Rightarrow``: Suppose the induced bipartite graph ``(U, V, E)`` of
       ``A\in\mathbb{R}^{m\times n}`` has a perfect bipartite matching ``\sigma``,
-      then ``|U| = |V| = |\sigma| = m = n`` and ``\sigma\in\S_n``. In particular,
+      then ``|U| = |V| = |\sigma| = m = n`` and ``\sigma\in S_n``. In particular,
       ``\forall i\in\{1, ..., n\}, A_{\sigma(i), i} \ne 0``. Hence, ``A`` is
       structurally non-singular. ``\blacksquare``
 
@@ -361,7 +361,7 @@ cardinality matching.
     ##### Proof:
     - ``\Rightarrow``: We will show this using proof by contrapositive. Suppose
       a bipartite graph has a matching ``M`` and an augmenting path ``A``. Let
-      ``\hat{M} = M \bigtriangleup A := (M \setminus A)\union (A\setminus M)``,
+      ``\hat{M} = M \bigtriangleup A := (M \setminus A)\cup (A\setminus M)``,
       then ``\hat{M}`` is a matching and ``|\hat{M}| = |M| + 1``. Thus, ``M`` is
       not a maximum cardinality matching.
     - ``\Leftarrow``: We will should this using proof by contrapositive, again.
@@ -388,7 +388,7 @@ cardinality matching.
 
 !!! info "Augmenting Path Algorithm"
 
-    Input: bipartite graph ``g = (U, V, E)``, a vertex ``\text{vsrc } \in U``,
+    Input: bipartite graph ``g = (U, V, E)``, a vertex ``\text{vsrc} \in U``,
     and a partial matching.
 
     Output: return a boolean indicating the existence of an augmenting path,
