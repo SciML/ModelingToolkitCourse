@@ -50,32 +50,16 @@ Let's consider another DAE system
 ```math
 F(\{x', y'\}, \{x, y\}, t) = \begin{pmatrix}
     x - \sin(t) \\
-    x' + y' - \cos(t)
+    x' - y
 \end{pmatrix} = 0.
 ```
 If we plug the first equation into the second equation, we have
 ```math
-(\sin(t))' + y' - \cos(t) = y' = 0.
+y(t) = (\sin(t))' = \cos(t).
 ```
-Thus, the solution for ``y`` is just a constant function. Let's try to solve
-this simple DAE using a numerical solver.
-```@example l7
-function f!(out, du, u, p, t)
-    # u[1]: x, du[1]: x'
-    # u[2]: y, du[2]: y'
-    out[1] = u[1] - sin(t)
-    out[2] = du[1] + du[2] - cos(t)
-end
-prob = DAEProblem(f!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true, true])
-sol1 = solve(prob, IDA())
-sol2 = solve(prob, DFBDF())
-println("[sol1: ", sol1.retcode, ": y(100)=", sol1[2, end], " steps: ", length(sol1.t), "]",
-"\n", "[sol2 ", sol2.retcode, ": y(100)=", sol2[2, end], " steps: ", length(sol2.t), "]")
-```
-Note that we set ``y(0) = 0``, so the analytic solution is ``y(t) = 0``. Also,
-superficially, we can have the initial condition
+Superficially, we can have the initial condition
 ```math
-x'(0) = x(0) = y(0) = 0, y'(0) = 1.
+x'(0) = x(0) = y(0) = y'(0) = 0.
 ```
 However, if we differentiate the first equation once, we get the hidden
 constraint
@@ -84,8 +68,35 @@ x'(t) - \cos(t) = 0.
 ```
 Thus, the true consistent initial condition is
 ```math
-x'(0) = 1, x(0) = y(0) = y'(0) = 0.
+x'(0) = y(0) = 1, x(0) = y'(0) = 0.
 ```
+
+Let's try to solve this simple DAE using a numerical solver.
+```@example l7
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = u[1] - sin(t)
+    out[2] = du[1] - u[2]
+end
+prob = DAEProblem(f!, [1, 0.0], [0.0, 1.0], (0, 100pi), differential_vars=[true, false])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println("[sol1: ", sol1.retcode, "]",
+"\n", "[sol2 ", sol2.retcode, ": y(100pi)=", sol2[2, end], " steps: ", length(sol2.t), "]")
+```
+
+To better understand the numerical behavior, let's analyze the variable step
+size behavior of the implicit Euler method of the original system. The local
+truncation error is
+```math
+\frac{\frac{\sin(t_n) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}
+{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n = \sin(t_{n}) - \sin(t_{n-1}) - h_n
+\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}.
+```
+Note that when ``h_{n} \to 0``, the local truncation error does not go to zero.
+Thus, numerical solvers could have difficulties in solving this system.
+
 Let's replace the first equation with the differentiated equation and solve it
 numerically,
 ```@example l7
@@ -93,16 +104,16 @@ function g!(out, du, u, p, t)
     # u[1]: x, du[1]: x'
     # u[2]: y, du[2]: y'
     out[1] = du[1] - cos(t)
-    out[2] = du[1] + du[2] - cos(t)
+    out[2] = du[1] - u[2]
 end
-prob = DAEProblem(g!, [1, 0.0], [0.0, 0.0], (0, 100.0), differential_vars=[true, true])
+prob = DAEProblem(g!, [1, 0.0], [0.0, 1.0], (0, 100pi), differential_vars=[true, false])
 sol1_diff = solve(prob, IDA())
 sol2_diff = solve(prob, DFBDF())
-println("[sol1_diff: ", sol1_diff.retcode, ": y(100)=", sol1_diff[2, end], " steps: ", length(sol1_diff.t), "]",
-"\n", "[sol2_diff ", sol2_diff.retcode, ": y(100)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
+println("[sol1_diff: ", sol1_diff.retcode, ": y(100pi)=", sol1_diff[2, end], " steps: ", length(sol1_diff.t), "]",
+"\n", "[sol2_diff ", sol2_diff.retcode, ": y(100pi)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
 ```
 We can see that it takes far fewer iterations to solve the system, and the
-numerical solution is much closer to the analytical solution ``y(t) = 0``.
+numerical solution is much closer to the analytical solution ``y(100\pi) = 1``.
 If we check the residual of the original constraint, we get
 ```@example l7
 plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = "IDA")
@@ -116,14 +127,14 @@ solvers. Again, let's see how ModelingToolkit does.
 D = Differential(t)
 eqs = [
     x ~ sin(t)
-    D(x) + D(y) ~ cos(t)
+    D(x) ~ y
 ]
 @named sys = ODESystem(eqs, t)
 sys = complete(sys)
 model = structural_simplify(sys)
-prob = ODEProblem(model, [x=>0.0, y=>0.0, D(x)=>1.0, D(y)=>0.0], (0, 100.0))
+prob = ODEProblem(model, [x=>0.0, y=>1.0, D(x)=>0.0, D(y)=>1.0], (0, 100pi))
 sol = solve(prob, Rodas5P())
-println("[sol: ", sol.retcode, ": y(100)=", sol[y, end], " steps: ", length(sol.t), "]")
+println("[sol: ", sol.retcode, ": y(100pi)=", sol[y, end], " steps: ", length(sol.t), "]")
 ```
 ```@example l7
 norm(sol[x, :] - sin.(sol.t))
