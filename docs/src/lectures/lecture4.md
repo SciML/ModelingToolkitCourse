@@ -339,21 +339,21 @@ plot(sol, ylim=[-4;4])
 A singular perturbation problem is an ODE given by the form:
 
 ```math
-x' = f(x,y,t)
+x' = f(x,y,t)\\
 \epsilon y' = g(x,y,t)
 ```
 
 where $\epsilon$ is sufficiently small. Notice that the Van Der Pol equations,
 
 ```math
-x' = y
+x' = y\\
 y' = \mu ((1-x^2)y -x)
 ```
 
 can be rewritten as:
 
 ```math
-x' = y
+x' = y\\
 \epsilon y' = (1-x^2)y -x
 ```
 
@@ -392,7 +392,7 @@ However... what happens in the limit as $\mu \rightarrow \infty$? In some sense,
 therefore we arrive at the equation:
 
 ```math
-x' = y
+x' = y\\
 0 = (1-x^2)y - x
 ```
 
@@ -417,7 +417,7 @@ the "more stiff" an equation is, the more one requires using implicit methods
 Take Van Der Pol's Equation
 
 ```math
-x' = y
+x' = y\\
 0 = (1-x^2)y - x
 ```
 
@@ -440,7 +440,7 @@ This shows the three canonical ways that DAEs can be represented. The first is t
 semi-explicit ODE in the split function form:
 
 ```math
-x' = f(x,y,t)
+x' = f(x,y,t)\\
 0 = g(x,y,t)
 ```
 
