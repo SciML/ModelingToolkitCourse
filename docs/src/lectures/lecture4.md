@@ -326,7 +326,7 @@ function van(du,u,p,t)
 end
 
 prob = ODEProblem(van,[1.0;1.0],(0.0,6.3),1e6)
-sol = solve(prob, FBDF())
+sol = solve(prob, Rodas5P())
 plot(sol)
 ```
 
