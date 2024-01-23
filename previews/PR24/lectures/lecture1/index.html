@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl · ModelingToolkit Course</title><meta name="title" content="Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl · ModelingToolkit Course"/><meta property="og:title" content="Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl · ModelingToolkit Course"/><meta property="twitter:title" content="Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl · ModelingToolkit Course"/><meta name="description" content="Documentation for ModelingToolkit Course."/><meta property="og:description" content="Documentation for ModelingToolkit Course."/><meta property="twitter:description" content="Documentation for ModelingToolkit Course."/><meta property="og:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture1/"/><meta property="twitter:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture1/"/><link rel="canonical" href="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture1/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ModelingToolkit Course</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../syllabus/">Syllabus</a></li><li class="is-active"><a class="tocitem" href>Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a><ul class="internal"><li><a class="tocitem" href="#Background"><span>Background</span></a></li><li><a class="tocitem" href="#Acausal-Component-Based-Modeling"><span>Acausal - Component Based Modeling</span></a></li></ul></li><li><a class="tocitem" href="../lecture2/">Lecture 2: Developing high-fidelity models of hydraulic systems</a></li><li><a class="tocitem" href="../lecture3/">Solvers for Non-Stiff Ordinary Differential Equations</a></li><li><a class="tocitem" href="../lecture4/">Numerical Methods for Stiff ODEs and Differential-Algebraic Equations</a></li><li><a class="tocitem" href="../lecture6/">Debugging difficult stiff ODE/DAE models</a></li><li><a class="tocitem" href="../lecture7/">Lecture 7: Numerical and Structural Characterizations for DAEs</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse/blob/main/docs/src/lectures/lecture1.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Lecture-1:-Introduction-to-acausal-modeling-for-physical-systems-with-ModelingToolkit.jl"><a class="docs-heading-anchor" href="#Lecture-1:-Introduction-to-acausal-modeling-for-physical-systems-with-ModelingToolkit.jl">Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a><a id="Lecture-1:-Introduction-to-acausal-modeling-for-physical-systems-with-ModelingToolkit.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Lecture-1:-Introduction-to-acausal-modeling-for-physical-systems-with-ModelingToolkit.jl" title="Permalink"></a></h1><h2 id="Background"><a class="docs-heading-anchor" href="#Background">Background</a><a id="Background-1"></a><a class="docs-heading-anchor-permalink" href="#Background" title="Permalink"></a></h2><h3 id="Modeling-Tools-Reference"><a class="docs-heading-anchor" href="#Modeling-Tools-Reference">Modeling Tools Reference</a><a id="Modeling-Tools-Reference-1"></a><a class="docs-heading-anchor-permalink" href="#Modeling-Tools-Reference" title="Permalink"></a></h3><p>The following list is a reference of the tools used for building advanced models in Julia:</p><ul><li><a href="https://github.com/JuliaDiff/ForwardDiff.jl">ForwardDiff.jl</a></li><li><a href="https://github.com/SciML/DifferentialEquations.jl">DifferentialEquations.jl</a></li><li><a href="https://github.com/JuliaSymbolics/Symbolics.jl">Symbolics.jl</a></li><li><a href="https://github.com/SciML/ModelingToolkit.jl">ModelingToolkit.jl</a></li><li><a href="https://github.com/SciML/ModelingToolkitStandardLibrary.jl">ModelingToolkitStandardLibrary.jl</a></li></ul><h3 id="Julia"><a class="docs-heading-anchor" href="#Julia">Julia</a><a id="Julia-1"></a><a class="docs-heading-anchor-permalink" href="#Julia" title="Permalink"></a></h3><p>This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package written in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the <em>mass-spring-damper</em>.  For now, let&#39;s leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (<span>$k \cdot x^{1.5}$</span>)</p><p><img src="../../img/spring_damper.svg" alt/></p><p>This system can be represented by the ordinary differential equation (ODE):</p><p class="math-container">\[d \cdot \dot{x} + k \cdot x^{1.5} = F\]</p><p>To solve this in Julia we can apply finite differencing <span>$\dot{x}_i = \frac{x_i - x_{i-1}}{\Delta t}$</span> and <a href="https://en.wikipedia.org/wiki/Newton%27s_method">Newton&#39;s method</a>.  Here we solve for the first time step...</p><pre><code class="language-julia hljs">using ForwardDiff
+using Plots
+
+d=1      # damping coefficient [N/(m/s)]
+k=1000   # spring stiffness [N/m]
+Δt=1e-3  # time step [s]
+F = 100  # input force [N]
+
+function f(xᵢ, xᵢ₋₁)
+
+    ẋᵢ = (xᵢ - xᵢ₋₁)/Δt     # finite difference derivative
+    lhs = d*ẋᵢ + k*xᵢ^1.5   # lhs --&gt; left hand side
+    rhs = F                 # rhs --&gt; right hand side
+
+    return lhs - rhs     # equation --&gt; lhs = rhs, residual --&gt; 0 = lhs - rhs
+end
+
+# Newton&#39;s Method
+# first time step (i=2)
+xᵢ₋₁ = 0.0
+xᵢ = xᵢ₋₁ #&lt;-- guess
+g(xᵢ) = f(xᵢ, xᵢ₋₁)  # g(xᵢ) turns f(xᵢ, xᵢ₋₁) into a function of only xᵢ
+# Run Newton Iterations
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 1
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 2
+xᵢ -= g(xᵢ)/ForwardDiff.derivative(g, xᵢ) # iteration 3</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.07815220490620071</code></pre><div class="admonition is-info"><header class="admonition-header">about derivatives</header><div class="admonition-body"><p>We can get the derivative for <code>f</code> from automatic differentiation using <code>ForwardDiff.derivative</code> (or using <code>ForwardDiff.jacobian</code> for a system of equations).</p></div></div><p>To solve for a series of time steps, we can simply update <code>x</code> and run again for each time step <code>Δt</code>.  This is a simple form of the Implicit/Backwards Euler method.</p><pre><code class="language-julia hljs">tol = 1e-3
+x = zeros(10)
+for i=2:10
+    g(xᵢ) = f(xᵢ, x[i-1])
+    Δx = Inf
+    while abs(Δx) &gt; tol
+        Δx = g(x[i])/ForwardDiff.derivative(g, x[i])
+        x[i] -= Δx
+    end
+end
+
+plot(x; ylabel=&quot;x [m]&quot;, xlabel=&quot;time step&quot;)</code></pre><img src="03dd0c1e.svg" alt="Example block output"/><h3 id="DifferentialEquations.jl"><a class="docs-heading-anchor" href="#DifferentialEquations.jl">DifferentialEquations.jl</a><a id="DifferentialEquations.jl-1"></a><a class="docs-heading-anchor-permalink" href="#DifferentialEquations.jl" title="Permalink"></a></h3><p>For this simple problem it&#39;s easy enough to implement the Newton method and solve directly, however it&#39;s possible to instead use the solvers from DifferentialEquations.jl.  To do this, we simply need to defined a <code>NonlinearProblem</code> by supplying the function <code>f</code> of the form <span>$f(u,p)$</span> where:</p><ul><li><span>$u$</span> is the variables (scalar or vector)</li><li><span>$p$</span> is the parameters (scalar or vector)</li></ul><p>In this case <span>$u$</span> and <span>$p$</span> correspond to <code>xᵢ</code> and <code>xᵢ₋₁</code>, respectively.  This is referred to as the &quot;out-of-place&quot; form, where each call to <code>f</code> allocates, it is also possible to define <span>$f(du,u,p)$</span> as &quot;in-place&quot; form that gives <span>$du$</span> as a pre-allocated memory space to mutate.  </p><p>Then we can solve by specifying the method, in this case we specify <code>NewtonRaphson</code> to implement Newton&#39;s method.</p><pre><code class="language-julia hljs">using DifferentialEquations
+
+p  = xᵢ₋₁ = 0.0 # initial condition if i=2, x[1]=0
+u0 = xᵢ = xᵢ₋₁  # guess value for x[i]
+
+prob = NonlinearProblem(f, u0, p)
+sol=solve(prob, NewtonRaphson(); abstol=tol)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: Success
+u: 0.07815220490620071</code></pre><p>Note:  we get exactly the same result for the first time step.</p><p>To solve for a series of time steps, we can now use the <code>remake</code> function to update the initial guess <code>u0</code> and parameter <code>p</code> and generate an updated <code>NonlinearProblem</code> efficiently (i.e. with minimal allocations).</p><pre><code class="language-julia hljs">x = zeros(10)
+for i=2:10
+    prob′ = remake(prob; u0=x[i], p=x[i-1])
+    sol = solve(prob′, NewtonRaphson(); abstol=tol)
+    x[i] = sol[]
+end
+plot(x; ylabel=&quot;x [m]&quot;, xlabel=&quot;time step&quot;)</code></pre><img src="b8c27a6b.svg" alt="Example block output"/><p>This approach requires the use of finite differencing and building a solution vector of solves for each time step, which was done only for demonstration purposes.  Since this problem is an ODE, it can and should be solved directly with an ODE solver.  To do this with DifferentialEquations.jl, we simply re-arrange the equation to solve explicitly for the derivative of <span>$x$</span>, giving the form <span>$\frac{\partial u}{\partial t} = f(u,p,t)$</span>.  In this case we have</p><p class="math-container">\[\dot{x}= \frac{F - k \cdot x^{1.5}}{d}\]</p><pre><code class="language-julia hljs">function du_dt(u,p,t)
+    F, k, d = p
+    x = u
+    return (F - k*x^1.5)/d
+end
+u0 = 0.0            # initial value for x
+p = [F, k, d]       # parameters
+tspan = (0.0, 0.01) # solution time span
+prob = ODEProblem(du_dt, u0, tspan, p)
+sol = solve(prob)
+plot(sol; xlabel=&quot;time [s]&quot;, ylabel=&quot;x [m]&quot;)</code></pre><img src="e6eb46f7.svg" alt="Example block output"/><p>In some cases, it may not be so easy to rearrange the equations in such a way to provide an ODE form.  We can also solve the problem in another way: Differential Algebraic Equations (DAE) form.  Here we have a mix of differential and algebraic equations.  A mass matrix is used to specify which equations are differential vs. algebraic.  Note that we are now solving for both <span>$x$</span> and <span>$\dot{x}$</span> and therefore need to supply initial conditions for each.  To satisfy the system at time 0 with <span>$x=0$</span>, we can see that <span>$\dot{x} = \frac{F}{d}$</span>.  </p><div class="admonition is-info"><header class="admonition-header">about initial conditions</header><div class="admonition-body"><p>Technically the initial condition <code>u0</code> can be either a guess or explicit.  By default it is treated as a guess value and an algorithm is used to solve for a <code>u0</code> that satisfies the system at the initial time.  See the documentation for the <a href="https://docs.sciml.ai/DiffEqDocs/stable/solvers/dae_solve/#Initialization-Schemes"><code>initializealg</code> keyword</a> for more information.</p></div></div><pre><code class="language-julia hljs">function du_dt(u,p,t)
+    F, k, d = p
+    x, ẋ = u
+
+    eqs = [
+        ẋ                       # D(x) = ẋ
+        (d*ẋ + k*x^1.5) - (F)   #    0 = ( lhs ) - ( rhs )
+    ]
+
+    return eqs
+end
+
+fmm = ODEFunction(du_dt; mass_matrix=[1 0; 0 0])
+u0 = [0.0, F/d] # initial value for x,ẋ
+prob = ODEProblem(fmm, u0, tspan, p)
+sol = solve(prob)
+plot(sol; idxs=1, xlabel=&quot;time [s]&quot;, ylabel=&quot;x [m]&quot;)</code></pre><img src="2367eac8.svg" alt="Example block output"/><p>Now, maybe we would like to know the 2nd derivative of <span>$x$</span>.  It should be easy enough to simply provide this in our function and solve.</p><pre><code class="language-julia hljs">function du_dt(u,p,t)
+    F, k, d = p
+    x, ẋ, ẍ = u
+
+    eqs = [
+        ẋ                       # D(x) = ẋ
+        ẍ                       # D(ẋ) = ẍ
+        (d*ẋ + k*(x^1.5)) - (F)   #    0 = ( lhs ) - ( rhs )
+    ]
+
+    return eqs
+end
+
+fmm = ODEFunction(du_dt; mass_matrix=[1 0 0;0 1 0;0 0 0])
+u0 = [0.0, F/d, 0.0] # initial value for x, ẋ, ẍ
+prob = ODEProblem(fmm, u0, tspan, p)
+sol = solve(prob);
+sol.retcode</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ReturnCode.MaxIters = 4</code></pre><p>Now we get a <code>DtLessThanMin</code> code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term <span>$\ddot{x}$</span>.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can make all this easier and automatic: ModelingToolkit.jl</p><h3 id="ModelingToolkit.jl"><a class="docs-heading-anchor" href="#ModelingToolkit.jl">ModelingToolkit.jl</a><a id="ModelingToolkit.jl-1"></a><a class="docs-heading-anchor-permalink" href="#ModelingToolkit.jl" title="Permalink"></a></h3><p>ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplification to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independent variable <span>$t$</span> and it&#39;s differential operator</p><pre><code class="language-julia hljs">using ModelingToolkit
+@variables t
+D = Differential(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Warning: Module SymbolicsPreallocationToolsExt with build ID ffffffff-ffff-ffff-0000-01697740ba5c is missing from the cache.
+│ This may mean SymbolicsPreallocationToolsExt [d479e226-fb54-5ebe-a75e-a7af7f39127f] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:1942
+┌ Error: Error during loading of extension SymbolicsPreallocationToolsExt of Symbolics, use `Base.retry_load_extensions()` to retry.
+│   exception =
+│    1-element ExceptionStack:
+│    Declaring __precompile__(false) is not allowed in files that are being precompiled.
+│    Stacktrace:
+│      [1] _require(pkg::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1946
+│      [2] __require_prelocked(uuidkey::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1806
+│      [3] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│      [4] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│      [5] _require_prelocked
+│        @ Base ./loading.jl:1797 [inlined]
+│      [6] _require_prelocked
+│        @ Base ./loading.jl:1796 [inlined]
+│      [7] run_extension_callbacks(extid::Base.ExtensionId)
+│        @ Base ./loading.jl:1289
+│      [8] run_extension_callbacks(pkgid::Base.PkgId)
+│        @ Base ./loading.jl:1324
+│      [9] run_package_callbacks(modkey::Base.PkgId)
+│        @ Base ./loading.jl:1158
+│     [10] __require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1813
+│     [11] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [12] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [13] _require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1797
+│     [14] macro expansion
+│        @ Base ./loading.jl:1784 [inlined]
+│     [15] macro expansion
+│        @ Base ./lock.jl:267 [inlined]
+│     [16] __require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1747
+│     [17] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [18] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [19] require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1740
+│     [20] include
+│        @ Base ./Base.jl:495 [inlined]
+│     [21] include_package_for_output(pkg::Base.PkgId, input::String, depot_path::Vector{String}, dl_load_path::Vector{String}, load_path::Vector{String}, concrete_deps::Vector{Pair{Base.PkgId, UInt128}}, source::String)
+│        @ Base ./loading.jl:2216
+│     [22] top-level scope
+│        @ stdin:3
+│     [23] eval
+│        @ Core ./boot.jl:385 [inlined]
+│     [24] include_string(mapexpr::typeof(identity), mod::Module, code::String, filename::String)
+│        @ Base ./loading.jl:2070
+│     [25] include_string
+│        @ Base ./loading.jl:2080 [inlined]
+│     [26] exec_options(opts::Base.JLOptions)
+│        @ Base ./client.jl:316
+│     [27] _start()
+│        @ Base ./client.jl:552
+└ @ Base loading.jl:1295</code></pre><div class="admonition is-info"><header class="admonition-header">about Symbolics</header><div class="admonition-body"><p>Note that <code>t</code> is now a symbolic term.  Writing <code>sin(t)</code> does not compute anything, it simply represents the function symbolically.  Writing <code>D(sin(t))</code> then represents the derivative of <code>sin(t)</code> with respect to <code>t</code>.  To compute the derivative, we can use the function <code>expand_derivatives</code></p><pre><code class="language-julia hljs">D(sin(t)) |&gt; expand_derivatives</code></pre><p class="math-container">\[ \begin{equation}
+\cos\left( t \right)
+\end{equation}
+ \]</p></div></div><p>To assemble a problem symbolically for ModelingToolkit.jl, we can define our variables and equations like</p><pre><code class="language-julia hljs">pars = @parameters F=100 d=1 k=1000
+vars = @variables x(t)=0.0 ẋ(t)=F/d ẍ(t)=0.0
+eqs = [
+    D(x) ~ ẋ
+    D(ẋ) ~ ẍ
+    d*ẋ + k*x^1.5 ~ F
+]</code></pre><p>Note the variables are defined as a function of the independent variable <code>t</code> and given initial conditions which are captured in the variable <code>vars</code>.  The equations are then defined using the tilde <code>~</code> operator, which represents the equation equality.  This information is then fed to an <code>ODESystem</code> constructor and simplified using the <code>structural_simplify</code> function.  </p><pre><code class="language-julia hljs">@named odesys = ODESystem(eqs, t, vars, pars)
+sys = structural_simplify(odesys)</code></pre><p class="math-container">\[ \begin{align}
+\frac{\mathrm{d} x\left( t \right)}{\mathrm{d}t} =&amp; \textnormal{\.{x}}\left( t \right)
+\end{align}
+ \]</p><p>As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions</p><pre><code class="language-julia hljs">states(sys)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1-element Vector{SymbolicUtils.BasicSymbolic{Real}}:
+ x(t)</code></pre><p>Now we are solving for only <code>x(t)</code> with the equation:</p><pre><code class="language-julia hljs">equations(sys)</code></pre><p class="math-container">\[ \begin{align}
+\frac{\mathrm{d} x\left( t \right)}{\mathrm{d}t} =&amp; \textnormal{\.{x}}\left( t \right)
+\end{align}
+ \]</p><p>This seems correct, but what is <code>ẋ(t)</code>?  This variable has been moved to the observables of the system, which are terms which can be computed algebraicly.</p><pre><code class="language-julia hljs">observed(sys)</code></pre><p class="math-container">\[ \begin{align}
+\textnormal{\.{x}}\left( t \right) =&amp; \frac{F - \left( x\left( t \right) \right)^{1.5} k}{d} \\
+{\textnormal{\.{x}}}ˍt\left( t \right) =&amp; \frac{ - 1.5 \left( x\left( t \right) \right)^{0.5} k \textnormal{\.{x}}\left( t \right)}{d} \\
+\textnormal{\&quot;{x}}\left( t \right) =&amp; {\textnormal{\.{x}}}ˍt\left( t \right)
+\end{align}
+ \]</p><p>Notice how the 2nd derivative term <code>ẍ(t)</code> has been automatically determined from the symbolic derivative of <code>ẋ(t)</code>.</p><p>We can now assembly a problem and solve it.  The initial conditions do not need to be supplied here because the <code>sys</code> contains the variable defaults from <code>vars</code>.  The solution object <code>sol</code> can now be indexed symbolically from any symbol of the system regardless if it&#39;s a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.</p><pre><code class="language-julia hljs">u0 = [] # &lt;-- used to override defaults of ODESystem variables
+p = [] # &lt;-- used to override defaults of ODESystem parameters
+prob = ODEProblem(sys, u0, tspan, p)
+sol = solve(prob; abstol=tol)
+plot(sol; idxs=ẍ, xlabel=&quot;time [s]&quot;, ylabel=&quot;ẍ [m/s^2]&quot;)</code></pre><img src="49c1721d.svg" alt="Example block output"/><p>Using ModelingToolkit.jl, the solution can also be indexed by expression, for example plotting the damping and spring force components can be done as so</p><pre><code class="language-julia hljs">plot(sol; idxs=x^1.5*k, xlabel=&quot;time [s]&quot;, ylabel=&quot;force [N]&quot;)
+plot!(sol; idxs=ẋ*d)</code></pre><img src="65b37a22.svg" alt="Example block output"/><h2 id="Acausal-Component-Based-Modeling"><a class="docs-heading-anchor" href="#Acausal-Component-Based-Modeling">Acausal - Component Based Modeling</a><a id="Acausal-Component-Based-Modeling-1"></a><a class="docs-heading-anchor-permalink" href="#Acausal-Component-Based-Modeling" title="Permalink"></a></h2><p>ModelingToolkit.jl enables the application of Physical Network Acausal modeling, which is a type of modeling which is component based allowing one to build models by assembling parts together from a library.  The key to how this works is thru a simple rule of how components are connected.  A connection must define at minimum 2 variables (<em>through</em> and <em>across</em> see <a href="https://docs.sciml.ai/ModelingToolkitStandardLibrary/stable/connectors/connections/">about connectors</a> for a deeper explanation) which follows the rules:</p><ul><li>connections can only be made by <em>like</em> connectors (i.e. same pairs of <em>through</em> and <em>across</em> variables from the same physical domain)</li><li><em>through</em> variables sum to zero at connection points</li><li><em>across</em> variables are equal at connection points</li></ul><p>Consider a simple mechanical translational system of a mass and damper.  In this domain the <em>through</em> variable is force (<span>$f$</span>) and the <em>across</em> velocity (<span>$v$</span>).  We can define the mass component as</p><p class="math-container">\[f_{mass} = m_{mass} \cdot \dot{v}_{mass}\]</p><p>And the damper component as</p><p class="math-container">\[f_{damper} = d_{damper} \cdot v_{damper}\]</p><p>Based on the rules above, connecting these 2 components together would give the following additional equations</p><p class="math-container">\[\begin{aligned} 
+    0 &amp;= f_{mass} + f_{damper} \\ 
+    v_{mass} &amp;= v_{damper} 
+\end{aligned}  \]</p><p>With simple substitution it can be seen that this gives the expected mass-damper system</p><p class="math-container">\[m \cdot \dot{v} + d \cdot v = 0\]</p><p>Let&#39;s try this again by defining this system in ModelingToolkit.jl</p><h3 id="Connections"><a class="docs-heading-anchor" href="#Connections">Connections</a><a id="Connections-1"></a><a class="docs-heading-anchor-permalink" href="#Connections" title="Permalink"></a></h3><p>To define a connection in ModelingToolkit.jl we use the <code>@connector</code> macro and specify the <em>through</em> variable with <code>connect = Flow</code></p><pre><code class="language-julia hljs">@connector MechanicalPort begin
+    v(t)
+    f(t), [connect = Flow]
+end</code></pre><h3 id="Components"><a class="docs-heading-anchor" href="#Components">Components</a><a id="Components-1"></a><a class="docs-heading-anchor-permalink" href="#Components" title="Permalink"></a></h3><p>To define a component, we use the <code>@mtkmodel</code> macro and define it&#39;s parameters, variables, connection ports, and equations.  The mass component can be defined as</p><pre><code class="language-julia hljs">@mtkmodel Mass begin
+    @parameters begin
+        m = 10
+    end
+    @variables begin
+        v(t)
+        f(t)
+    end
+    @components begin
+        port = MechanicalPort()
+    end
+    @equations begin
+        # connectors
+        port.v ~ v
+        port.f ~ f
+
+        # physics
+        f ~ m*D(v)
+    end
+end</code></pre><p>Now there are 2 tricky issues when defining models at the component level.  First is the number of equations.  How can you know if you&#39;ve properly defined a base component without having the remaining parts to close the system and ensure you have a matching set of variables and equations?  A general rule of thumb is that a base level component should have an equation number that matches the number of variables + connectors.  The <code>Mass</code> component has 2 variables and 1 connector and therefore 3 equations.</p><p>The 2nd tricky issue is signs.  To determine this one can draw a diagram like below.  Below the port draw the across variable from left to right (positive) direction.  Then draw the through variable <em>entering</em> the component.  If the arrows point in the same direction, the connection port through variable assignment is positive, if opposing, then the sign should be negative.  </p><p><img src="../../img/mass.svg" alt="mass"/></p><p>Similarly the damper component is defined as below.  </p><pre><code class="language-julia hljs">@mtkmodel Damper begin
+    @parameters begin
+        d = 1
+    end
+    @variables begin
+        v(t)
+        f(t)
+    end
+    @components begin
+        port = MechanicalPort()
+    end
+    @equations begin
+        # connectors
+        port.v ~ v
+        port.f ~ f
+
+        # physics
+        f ~ d*v
+    end
+end</code></pre><p><img src="../../img/damper1.svg" alt="single port damper"/></p><p>Now the <code>Mass</code> and <code>Damper</code> components can be assembled in a system and connected together (note: the <code>connect</code> equation).  Also note the parameters <code>v</code>, <code>m</code>, and <code>d</code> are defined to expose the properties which can be set as keyword arguments of the same name.  </p><pre><code class="language-julia hljs">@mtkmodel System begin
+    @parameters begin
+        v
+        m
+        d
+    end
+    @components begin
+        mass = Mass(;v,m)
+        damper = Damper(;v,d)
+    end
+    @equations begin
+        connect(mass.port, damper.port)
+    end
+end
+
+@mtkbuild sys = System(;v=100, m=5, d=3)
+full_equations(sys)</code></pre><p class="math-container">\[ \begin{align}
+\frac{\mathrm{d} mass_{+}v\left( t \right)}{\mathrm{d}t} =&amp; \frac{ - damper_{+}d mass_{+}v\left( t \right)}{mass_{+}m}
+\end{align}
+ \]</p><p>As can be seen we arrive at the same equation as derived previously.  Now it would be easy to define a system that adds a spring, or has a series of connected masses, springs, dampers, etc.  </p><p>The <code>Damper</code> component created previously was a little incomplete because it only had one port.  In reality a damper or spring will be connected between 2 objects, for example the car frame and the wheel.  Therefore a proper component will define 2 ports so that the component can be as analogous with real life as possible.  In the example below the component is defined properly with 2 ports.  Note the velocity of the component <code>v</code> is defined as a relative velocity between the 2 ports.  It&#39;s easy to understand how this works if it&#39;s assumed that <code>port_b</code> is connected to a stationary reference frame.</p><pre><code class="language-julia hljs">@mtkmodel Damper begin
+    @parameters begin
+        d = 1
+    end
+    @variables begin
+        v(t)
+        f(t)
+    end
+    @components begin
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
+    end
+    @equations begin
+        # connectors
+        (port_a.v - port_b.v) ~ v
+        port_a.f ~ +f
+        port_b.f ~ -f
+
+        # physics
+        f ~ d*v
+    end
+end</code></pre><p>Note the force is drawn now as entering the component on both sides.  For port <code>a</code> the directions align, but for port <code>b</code> the directions are opposing, requiring a sign change: <code>port_b.f ~ -f</code></p><p><img src="../../img/damper.svg" alt="damper"/></p><p>Now we can do the same for the spring component.  Note that the spring is of course very similar to the damper, but now we need a relative position.  This can be obtained by integrating the port velocities, but how do we integrate in ModelingToolkit.jl?  We want to write the equation</p><p class="math-container">\[x = \int v \space \partial t\]</p><p>But we know that this is also true</p><p class="math-container">\[\frac{\partial x}{\partial t} = v\]</p><p>In ModelingToolkit therefore we can &quot;integrate&quot; by moving the differential to the appropriate side of the equation.</p><pre><code class="language-julia hljs">@mtkmodel Spring begin
+    @parameters begin
+        k = 100
+    end
+    @variables begin
+        x(t)
+        v(t)
+        f(t)
+    end
+    @components begin
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
+    end
+    @equations begin
+        # derivatives
+        D(x) ~ v
+
+        # connectors
+        (port_a.v - port_b.v) ~ v
+        port_a.f ~ +f
+        port_b.f ~ -f
+
+        # physics
+        f ~ k*x
+    end
+end</code></pre><p><img src="../../img/spring.svg" alt="spring"/></p><p>One thing to consider now in the <code>Spring</code> component is the meaning of the spring stretch/compression variable <code>x</code>.  What does it mean if this variable is positive or negative?  It&#39;s important to note when reviewing the model output that a positive <code>x</code> means the spring is compressed and vise versa for a negative <code>x</code>.</p><p>Now, if we want to create a full <em>mass-spring-damper</em> system with our new <code>Damper</code> and <code>Spring</code> components, we need to create some boundary conditions, such as a stationary reference and an input force.  Creating a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it&#39;s stationary.  But what should the force be?  Thinking about Newton&#39;s principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable <code>f</code> to represent this force, which will be part of the solved system solution. </p><pre><code class="language-julia hljs">@mtkmodel Reference begin
+    @parameters begin
+
+    end
+    @variables begin
+        f(t)
+    end
+    @components begin
+        port = MechanicalPort(;f,v=0)
+    end
+    @equations begin
+        # connectors
+        port.v ~ 0
+        port.f ~ -f
+    end
+end</code></pre><p>Note the sign convention <code>port.f ~ -f</code>.  This is maybe not expected.  To understand why a negative is needed here is because this component is different from the others, there is no physics involved.  The component is instead only a boundary condition, therefore force should be <em>leaving</em> the component rather than entering.</p><p><img src="../../img/reference.svg" alt="reference"/></p><p>Finally, considering an input force, we can imagine this to be an invisible hand that pushes with a constant force.  This invisible hand will move with the port with velocity <code>v</code>.  We don&#39;t know this velocity, it&#39;s a variable that will part of the solved system solution.  </p><pre><code class="language-julia hljs">@mtkmodel ConstantForce begin
+    @parameters begin
+        f
+    end
+    @variables begin
+        v(t)
+    end
+    @components begin
+        port = MechanicalPort()
+    end
+    @equations begin
+        # connectors
+        port.v ~ v
+        port.f ~ -f
+    end
+end</code></pre><p>As with the <code>Reference</code> component, the force is a boundary condition and is leaving the component rather than entering, giving the sign convention <code>port.f ~ -f</code>.</p><p><img src="../../img/force_input.svg" alt="force input"/></p><p>Now let&#39;s assemble a <em>mass-spring-damper</em> system with the full collection of components.</p><pre><code class="language-julia hljs">@mtkmodel System begin
+    @parameters begin
+        v=0
+        x=0
+        m=100
+        d=10
+        k=1000
+        f=1
+    end
+    @components begin
+        mass = Mass(;v,m)
+        damper = Damper(;v, d)
+        spring = Spring(;v, k, x)
+        ref = Reference()
+        force = ConstantForce(;v,f)
+    end
+    @equations begin
+        connect(mass.port, damper.port_a, spring.port_a, force.port)
+        connect(damper.port_b, spring.port_b, ref.port)
+    end
+end
+
+@mtkbuild sys = System()
+prob = ODEProblem(sys, [], (0, 10))
+sol = solve(prob)
+plot(sol)</code></pre><img src="e468d6d8.svg" alt="Example block output"/><p>There&#39;s a couple things we can do now to ensure the system is correct.  First, we can look at the equations.</p><pre><code class="language-julia hljs">full_equations(sys)</code></pre><p class="math-container">\[ \begin{align}
+\frac{\mathrm{d} mass_{+}v\left( t \right)}{\mathrm{d}t} =&amp; \frac{force_{+}f - damper_{+}d mass_{+}v\left( t \right) - spring_{+}k spring_{+}x\left( t \right)}{mass_{+}m} \\
+\frac{\mathrm{d} spring_{+}x\left( t \right)}{\mathrm{d}t} =&amp; mass_{+}v\left( t \right)
+\end{align}
+ \]</p><p>The first equation (after re-aranging) it can be seen is the classic <em>mass-spring-damper</em> equation.</p><p class="math-container">\[m \cdot \ddot{x} + d \cdot \dot{x} + k \cdot x = f\]</p><p>This way we know all the signs and equations are set correctly.  Let&#39;s also check the <code>Reference</code> component sign, which should give an equal but opposite force to the system connected to it.</p><pre><code class="language-julia hljs">plot(sol; idxs=sys.ref.f)
+plot!(sol; idxs=sys.spring.f + sys.damper.f)</code></pre><img src="9c3a8fd5.svg" alt="Example block output"/><p>Additionally it&#39;s easy enough in this case to re-construct the problem directly and solve to check the result.</p><pre><code class="language-julia hljs">vars = @variables x(t)=0 dx(t)=0 ddx(t)=0
+pars = @parameters m=100 d=10 k=1000 F=1
+eqs = [
+    D(x) ~ dx
+    D(dx) ~ ddx
+    m*ddx + d*dx + k*x ~ F
+]
+@named odesys = ODESystem(eqs, t, vars, pars)
+sys = structural_simplify(odesys)
+prob = ODEProblem(sys, [], (0,10))
+sol = solve(prob)
+plot(sol)</code></pre><img src="3a9f4cd7.svg" alt="Example block output"/><h3 id="Systems-and-Sub-Systems"><a class="docs-heading-anchor" href="#Systems-and-Sub-Systems">Systems and Sub-Systems</a><a id="Systems-and-Sub-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Systems-and-Sub-Systems" title="Permalink"></a></h3><p>Acausal modeling allows for an &quot;object-oriented&quot; like system that can organize models with hierarchy.  Let&#39;s say for example we want to make a part that is a collection of the mass, spring, damper into a single system.  The <code>MassSpringDamper</code> component below shows how this is possible.  As can be seen, this is nearly the same system we generated previously, except no boundary conditions are given, instead 2 <code>MechanicalPort</code>&#39;s are added and connected to the component parts.  These connection points are now exposed and can be connected to other components.</p><pre><code class="language-julia hljs">@mtkmodel MassSpringDamper begin
+    @parameters begin
+        m
+        k
+        d
+        v
+        x
+    end
+    @components begin
+        port_a = MechanicalPort()
+        port_b = MechanicalPort()
+        mass = Mass(;m,v)
+        damper = Damper(;d,v)
+        spring = Spring(;k,v,x)
+    end
+    @equations begin
+        connect(mass.port, damper.port_a, spring.port_a, port_a)
+        connect(damper.port_b, spring.port_b, port_b)
+    end
+end</code></pre><p>As an example, the <code>MassSpringDamper</code> component can be connected in series to make a complex system.  One can imagine then how this enables easy construction of complex models that can be quickly modified, extremely useful for the application of model based design.  </p><pre><code class="language-julia hljs">@mtkmodel System begin
+    @parameters begin
+        v = 0
+        x = 0
+    end
+    @components begin
+        msd1 = MassSpringDamper(;m = 10, d = 1, k = 1000, v, x)
+        msd2 = MassSpringDamper(;m = 20, d = 2, k = 2000, v, x)
+        msd3 = MassSpringDamper(;m = 30, d = 3, k = 3000, v, x)
+        ref = Reference()
+        force = ConstantForce(;f=1,v=0)
+    end
+    @equations begin
+        connect(force.port, msd1.port_a)
+        connect(msd1.port_b, msd2.port_a)
+        connect(msd2.port_b, msd3.port_a)
+        connect(msd3.port_b, ref.port)
+    end
+end
+
+@mtkbuild sys = System()
+prob = ODEProblem(sys, [], (0, 2))
+sol = solve(prob)
+plot(sol; idxs=[sys.msd1.spring.x, sys.msd2.spring.x, sys.msd3.spring.x])</code></pre><img src="5610a509.svg" alt="Example block output"/><h3 id="Practice-Exercise"><a class="docs-heading-anchor" href="#Practice-Exercise">Practice Exercise</a><a id="Practice-Exercise-1"></a><a class="docs-heading-anchor-permalink" href="#Practice-Exercise" title="Permalink"></a></h3><p>The current solution shows how the springs are compressed.  How can the model be updated to show the absolute positions of the springs?  For example, if each spring starts at an unstreched length of 10mm, connected together they will form a collection of 30mm with masses inbetween.  Update the model to show the absolute position of each mass in time.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../syllabus/">« Syllabus</a><a class="docs-footer-nextpage" href="../lecture2/">Lecture 2: Developing high-fidelity models of hydraulic systems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 23 January 2024 16:09">Tuesday 23 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
