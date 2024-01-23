@@ -88,14 +88,33 @@ println("[sol1: ", sol1.retcode, "]",
 
 To better understand the numerical behavior, let's analyze the variable step
 size behavior of the implicit Euler method of the original system. The local
-truncation error is
+truncation error for ``y`` is
 ```math
-\frac{\frac{\sin(t_n) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}
-{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n = \sin(t_{n}) - \sin(t_{n-1}) - h_n
-\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}.
+\begin{align}
+&\text{lte} = \frac{\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}}
+{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n \\
+=& \left(\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}\right) h_n
+\\
+=& h_n\left(\frac{\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}{h_n} -
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}\right)
+\\
+=&
+\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} -
+h_n
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}
+\end{align}
 ```
-Note that when ``h_{n} \to 0``, the local truncation error does not go to zero.
-Thus, numerical solvers could have difficulties in solving this system.
+Note that when ``h_{n} \to 0``, the local truncation error becomes
+```math
+\lim_{h_{n}\to 0} \text{lte} = \frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}
+= \cos(t_{n}) - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}
+```
+Note that this in general does not converge to ``0``. Thus, numerical solvers
+could have difficulties in solving this system. Let's also confirm this
+numerical behavior by setting the maximum order to ``1``.
+```@example l7
+solve(prob, DFBDF(max_order=Val(1)))
+```
 
 Let's replace the first equation with the differentiated equation and solve it
 numerically,
@@ -594,6 +613,101 @@ arbitrary systems.
 We can use the Pantelides algorithm [^Pantelides1988] to efficiently convert a
 DAE system that has structural integrability to a system with structural
 consistency solvability, even if it initially lacks this property.
+
+The gist of the Pantelides algorithm is that, we can try to find an augmenting
+path for all equation (source) vertices on the sub-graph that only contains
+highest differentiated variable (destination) vertices, and if there is no
+augmenting path starting at an equation vertex, then we can differentiate all
+the equations and variables reached in the augmenting path search until there is
+an augmenting path starting at the differentiated equation vertex. Note that if
+we differentiate an equation in the form of
+``f(x, y, ...)`` we get
+```math
+\frac{d}{dt}f(x, y, ...) = \frac{\partial f}{\partial x}x' + \frac{\partial f}{\partial y}y' + ...
+```
+Thus, the incidence of the differentiated equation is trivial to compute.
+
+The following code comes directly from ModelingToolkit.
+```julia
+function pantelides!(state::TransformationState; finalize = true, maxiters = 8000)
+    @unpack graph, solvable_graph, var_to_diff, eq_to_diff = state.structure
+    neqs = nsrcs(graph)
+    nvars = nv(var_to_diff)
+    vcolor = falses(nvars)
+    ecolor = falses(neqs)
+    var_eq_matching = Matching(nvars)
+    neqs′ = neqs
+    nnonemptyeqs = count(eq -> !isempty(𝑠neighbors(graph, eq)) && eq_to_diff[eq] === nothing,
+        1:neqs′)
+
+    varwhitelist = computed_highest_diff_variables(state.structure)
+
+    if nnonemptyeqs > count(varwhitelist)
+        throw(InvalidSystemException("System is structurally singular"))
+    end
+
+    for k in 1:neqs′
+        eq′ = k
+        eq_to_diff[eq′] === nothing || continue
+        isempty(𝑠neighbors(graph, eq′)) && continue
+        pathfound = false
+        # In practice, `maxiters=8000` should never be reached, otherwise, the
+        # index would be on the order of thousands.
+        for iii in 1:maxiters
+            # run matching on (dx, y) variables
+            #
+            # the derivatives and algebraic variables are zeros in the variable
+            # association list
+            resize!(vcolor, nvars)
+            fill!(vcolor, false)
+            resize!(ecolor, neqs)
+            fill!(ecolor, false)
+            pathfound = construct_augmenting_path!(var_eq_matching, graph, eq′,
+                v -> varwhitelist[v], vcolor, ecolor)
+            pathfound && break # terminating condition
+            if is_only_discrete(state.structure)
+                error("The discrete system has high structural index. This is not supported.")
+            end
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                if var_to_diff[var] === nothing
+                    # introduce a new variable
+                    nvars += 1
+                    var_diff = var_derivative!(state, var)
+                    push!(var_eq_matching, unassigned)
+                    push!(varwhitelist, false)
+                    @assert length(var_eq_matching) == var_diff
+                end
+                varwhitelist[var] = false
+                varwhitelist[var_to_diff[var]] = true
+            end
+
+            for eq in eachindex(ecolor)
+                ecolor[eq] || continue
+                # introduce a new equation
+                neqs += 1
+                eq_derivative!(state, eq)
+            end
+
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                # the newly introduced `var`s and `eq`s have the inherits
+                # assignment
+                var_eq_matching[var_to_diff[var]] = eq_to_diff[var_eq_matching[var]]
+            end
+            eq′ = eq_to_diff[eq′]
+        end # for _ in 1:maxiters
+        pathfound ||
+            error("maxiters=$maxiters reached! File a bug report if your system has a reasonable index (<100), and you are using the default `maxiters`. Try to increase the maxiters by `pantelides(sys::ODESystem; maxiters=1_000_000)` if your system has an incredibly high index and it is truly extremely large.")
+    end # for k in 1:neqs′
+
+    finalize && for var in 1:ndsts(graph)
+        varwhitelist[var] && continue
+        var_eq_matching[var] = unassigned
+    end
+    return var_eq_matching
+end
+```
 
 [^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of
     differential-algebraic systems." SIAM Journal on scientific and statistical
