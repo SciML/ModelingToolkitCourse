@@ -49,9 +49,63 @@ println(&quot;[sol1: &quot;, sol1.retcode, &quot;]&quot;,
   At t = 16.335 and h = 8.49321e-06, the error test failed repeatedly or with |h| = hmin.
 
 [sol1: Unstable]
-[sol2 Success: y(100pi)=1.0001207192054915 steps: 3086]</code></pre><p>To better understand the numerical behavior, let&#39;s analyze the variable step size behavior of the implicit Euler method of the original system. The local truncation error is</p><p class="math-container">\[\frac{\frac{\sin(t_n) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}
-{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n = \sin(t_{n}) - \sin(t_{n-1}) - h_n
-\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}.\]</p><p>Note that when <span>$h_{n} \to 0$</span>, the local truncation error does not go to zero. Thus, numerical solvers could have difficulties in solving this system.</p><p>Let&#39;s replace the first equation with the differentiated equation and solve it numerically,</p><pre><code class="language-julia hljs">function g!(out, du, u, p, t)
+[sol2 Success: y(100pi)=1.0001207192054915 steps: 3086]</code></pre><p>To better understand the numerical behavior, let&#39;s analyze the variable step size behavior of the implicit Euler method of the original system. The local truncation error for <span>$y$</span> is</p><p class="math-container">\[\begin{align}
+&amp;\text{lte} = \frac{\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}}
+{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n \\
+=&amp; \left(\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}\right) h_n
+\\
+=&amp; h_n\left(\frac{\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}{h_n} -
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}\right)
+\\
+=&amp;
+\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} -
+h_n
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}
+\end{align}\]</p><p>Note that when <span>$h_{n} \to 0$</span>, the local truncation error becomes</p><p class="math-container">\[\lim_{h_{n}\to 0} \text{lte} = \frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}
+= \cos(t_{n}) - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}\]</p><p>Note that this in general does not converge to <span>$0$</span>. Thus, numerical solvers could have difficulties in solving this system. Let&#39;s also confirm this numerical behavior by setting the maximum order to <span>$1$</span>.</p><pre><code class="language-julia hljs">solve(prob, DFBDF(max_order=Val(1)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: MaxIters
+Interpolation: 1st order linear
+t: 999997-element Vector{Float64}:
+   0.0
+   5.9122259226118514e-8
+   3.482873403416318e-7
+   9.878837822595348e-7
+   1.939419135851393e-6
+   3.1005754683177864e-6
+   4.38401403708843e-6
+   5.734204194967433e-6
+   7.119991498544613e-6
+   8.52489468131624e-6
+   ⋮
+ 168.01102271497368
+ 168.0111152896093
+ 168.01120773239938
+ 168.0113000435422
+ 168.01139222321862
+ 168.01148427162423
+ 168.01157618895002
+ 168.01166797537934
+ 168.01175963109773
+u: 999997-element Vector{Vector{Float64}}:
+ [0.0, 1.0]
+ [5.912225922611848e-8, 0.9999999999999996]
+ [3.4828734034162474e-7, 0.9999999999999758]
+ [9.878837822593741e-7, 0.9999999999997597]
+ [1.939419135850177e-6, 0.9999999999988911]
+ [3.1005754683128185e-6, 0.999999999996769]
+ [4.384014037074387e-6, 0.9999999999929289]
+ [5.7342041949360085e-6, 0.9999999999871271]
+ [7.119991498484456e-6, 0.9999999999792661]
+ [8.524894681212984e-6, 0.9999999999693221]
+ ⋮
+ [-0.9979408979309449, -0.06418644985168312]
+ [-0.9979468314096368, -0.06409399995040455]
+ [-0.9979527479036147, -0.06400168118153492]
+ [-0.9979586474619813, -0.06390949332473912]
+ [-0.9979645301326023, -0.06381743622441657]
+ [-0.9979703959641649, -0.06372550968654046]
+ [-0.9979762450049405, -0.0636337135112199]
+ [-0.9979820773025937, -0.06354204751854926]
+ [-0.99798789290481, -0.06345051151707824]</code></pre><p>Let&#39;s replace the first equation with the differentiated equation and solve it numerically,</p><pre><code class="language-julia hljs">function g!(out, du, u, p, t)
     # u[1]: x, du[1]: x&#39;
     # u[2]: y, du[2]: y&#39;
     out[1] = du[1] - cos(t)
@@ -63,7 +117,7 @@ sol2_diff = solve(prob, DFBDF())
 println(&quot;[sol1_diff: &quot;, sol1_diff.retcode, &quot;: y(100pi)=&quot;, sol1_diff[2, end], &quot; steps: &quot;, length(sol1_diff.t), &quot;]&quot;,
 &quot;\n&quot;, &quot;[sol2_diff &quot;, sol2_diff.retcode, &quot;: y(100pi)=&quot;, sol2_diff[2, end], &quot; steps: &quot;, length(sol2_diff.t), &quot;]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[sol1_diff: Success: y(100pi)=1.0000000000000002 steps: 1837]
 [sol2_diff Success: y(100pi)=1.0 steps: 1130]</code></pre><p>We can see that it takes far fewer iterations to solve the system, and the numerical solution is much closer to the analytical solution <span>$y(100\pi) = 1$</span>. If we check the residual of the original constraint, we get</p><pre><code class="language-julia hljs">plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = &quot;IDA&quot;)
-plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="3de167bc.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="74c0de7e.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
 D = Differential(t)
 eqs = [
     x ~ sin(t)
@@ -172,4 +226,81 @@ f_2(x&#39;, y&#39;, t)
 \end{equation}\]</p><p>Note that differentiating <span>$f&#39;_1$</span> and <span>$f_2$</span> further is not necessary because we will not get additional constraints for the states (<span>$u(t)$</span> and <span>$u&#39;(t)$</span>) of the DAE system.</p><p>We need a more systematic way of knowing when differentiating <span>$F$</span> does not add new &quot;information&quot; into the system. First, let&#39;s develop a characterization on the variables. Let <span>$z=\{z_i\}$</span> be the set of the highest order derivative variables, and let <span>$\lambda = \{\lambda_i\}$</span> contain the rest of the variables. Note that <span>$z$</span> and <span>$\lambda$</span> must be disjoint. Therefore, DAEs can then be written as</p><p class="math-container">\[0 = F(z, \lambda, p, t) \\\]</p><p>Differentiating the above equation gives us</p><p class="math-container">\[F_z z&#39; + F_\lambda \lambda&#39; + F_t = 0\]</p><p>Note that <span>$z&#39; = \{z&#39;_i\}$</span> contains all the new terms generated by the differentiation, as it contains variables with higher order derivatives than before. Rearranging terms, we get</p><p class="math-container">\[F_z z&#39; = -F_\lambda \lambda&#39; - F_t.\]</p><p>When <span>$F_z$</span> is non-singular, we can use old terms to explicitly solve for <span>$z&#39;$</span>, so we don&#39;t generate genuinely new equations, and this is the <em>numerical consistency solvability criterion</em>. Therefore, we only add new equations to the system if and only if <span>$F_z$</span> is singular. It&#39;s wasteful to differentiate the entire system until the matrix is invertible; we can differentiate a minimal subset of equations to make <span>$F_z$</span> non-singular.</p><p>Similarly, the <em>structural consistency solvability criterion</em> is then</p><p class="math-container">\[\mathfrak{I}(F, z) \text{ is structurally non-singular.}\]</p><p>For the above system, the differentiated system has</p><p class="math-container">\[\mathfrak{I}(F, \{x&#39;, y&#39;\}) = \begin{pmatrix}
 1 &amp; 0 \\
 1 &amp; 1
-\end{pmatrix},\]</p><p>which is structurally non-singular. Thus, the differentiated system satisfies the structural consistency solvability criterion.</p><p>Note that the sparsity pattern of <span>$\mathfrak{I}(\mathfrak{I}(F, \{u_i&#39;\}) + \mathfrak{I}(F, \{u_i\}))$</span> is always a subset of <span>$\mathfrak{I}(F, z)$</span> for arbitrary systems.</p><div class="admonition is-info"><header class="admonition-header">Structural Consistency Solvability Theorem</header><div class="admonition-body"><p>Structural consistency solvability implies structural integrability. Moreover, if a DAE system is not integrable, then structural consistency solvability cannot be achieved by differentiating any equation any number of times. <sup class="footnote-reference"><a id="citeref-2" href="#footnote-2">[2]</a></sup></p></div></div><h2 id="Pantelides-Algorithm"><a class="docs-heading-anchor" href="#Pantelides-Algorithm">Pantelides Algorithm</a><a id="Pantelides-Algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#Pantelides-Algorithm" title="Permalink"></a></h2><p>We can use the Pantelides algorithm <sup class="footnote-reference"><a id="citeref-Pantelides1988" href="#footnote-Pantelides1988">[Pantelides1988]</a></sup> to efficiently convert a DAE system that has structural integrability to a system with structural consistency solvability, even if it initially lacks this property.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 23 January 2024 04:45">Tuesday 23 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+\end{pmatrix},\]</p><p>which is structurally non-singular. Thus, the differentiated system satisfies the structural consistency solvability criterion.</p><p>Note that the sparsity pattern of <span>$\mathfrak{I}(\mathfrak{I}(F, \{u_i&#39;\}) + \mathfrak{I}(F, \{u_i\}))$</span> is always a subset of <span>$\mathfrak{I}(F, z)$</span> for arbitrary systems.</p><div class="admonition is-info"><header class="admonition-header">Structural Consistency Solvability Theorem</header><div class="admonition-body"><p>Structural consistency solvability implies structural integrability. Moreover, if a DAE system is not integrable, then structural consistency solvability cannot be achieved by differentiating any equation any number of times. <sup class="footnote-reference"><a id="citeref-2" href="#footnote-2">[2]</a></sup></p></div></div><h2 id="Pantelides-Algorithm"><a class="docs-heading-anchor" href="#Pantelides-Algorithm">Pantelides Algorithm</a><a id="Pantelides-Algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#Pantelides-Algorithm" title="Permalink"></a></h2><p>We can use the Pantelides algorithm <sup class="footnote-reference"><a id="citeref-Pantelides1988" href="#footnote-Pantelides1988">[Pantelides1988]</a></sup> to efficiently convert a DAE system that has structural integrability to a system with structural consistency solvability, even if it initially lacks this property.</p><p>The gist of the Pantelides algorithm is that, we can try to find an augmenting path for all equation (source) vertices on the sub-graph that only contains highest differentiated variable (destination) vertices, and if there is no augmenting path starting at an equation vertex, then we can differentiate all the equations and variables reached in the augmenting path search until there is an augmenting path starting at the differentiated equation vertex. Note that if we differentiate an equation in the form of <span>$f(x, y, ...)$</span> we get</p><p class="math-container">\[\frac{d}{dt}f(x, y, ...) = \frac{\partial f}{\partial x}x&#39; + \frac{\partial f}{\partial y}y&#39; + ...\]</p><p>Thus, the incidence of the differentiated equation is trivial to compute.</p><p>The following code comes directly from ModelingToolkit.</p><pre><code class="language-julia hljs">function pantelides!(state::TransformationState; finalize = true, maxiters = 8000)
+    @unpack graph, solvable_graph, var_to_diff, eq_to_diff = state.structure
+    neqs = nsrcs(graph)
+    nvars = nv(var_to_diff)
+    vcolor = falses(nvars)
+    ecolor = falses(neqs)
+    var_eq_matching = Matching(nvars)
+    neqs′ = neqs
+    nnonemptyeqs = count(eq -&gt; !isempty(𝑠neighbors(graph, eq)) &amp;&amp; eq_to_diff[eq] === nothing,
+        1:neqs′)
+
+    varwhitelist = computed_highest_diff_variables(state.structure)
+
+    if nnonemptyeqs &gt; count(varwhitelist)
+        throw(InvalidSystemException(&quot;System is structurally singular&quot;))
+    end
+
+    for k in 1:neqs′
+        eq′ = k
+        eq_to_diff[eq′] === nothing || continue
+        isempty(𝑠neighbors(graph, eq′)) &amp;&amp; continue
+        pathfound = false
+        # In practice, `maxiters=8000` should never be reached, otherwise, the
+        # index would be on the order of thousands.
+        for iii in 1:maxiters
+            # run matching on (dx, y) variables
+            #
+            # the derivatives and algebraic variables are zeros in the variable
+            # association list
+            resize!(vcolor, nvars)
+            fill!(vcolor, false)
+            resize!(ecolor, neqs)
+            fill!(ecolor, false)
+            pathfound = construct_augmenting_path!(var_eq_matching, graph, eq′,
+                v -&gt; varwhitelist[v], vcolor, ecolor)
+            pathfound &amp;&amp; break # terminating condition
+            if is_only_discrete(state.structure)
+                error(&quot;The discrete system has high structural index. This is not supported.&quot;)
+            end
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                if var_to_diff[var] === nothing
+                    # introduce a new variable
+                    nvars += 1
+                    var_diff = var_derivative!(state, var)
+                    push!(var_eq_matching, unassigned)
+                    push!(varwhitelist, false)
+                    @assert length(var_eq_matching) == var_diff
+                end
+                varwhitelist[var] = false
+                varwhitelist[var_to_diff[var]] = true
+            end
+
+            for eq in eachindex(ecolor)
+                ecolor[eq] || continue
+                # introduce a new equation
+                neqs += 1
+                eq_derivative!(state, eq)
+            end
+
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                # the newly introduced `var`s and `eq`s have the inherits
+                # assignment
+                var_eq_matching[var_to_diff[var]] = eq_to_diff[var_eq_matching[var]]
+            end
+            eq′ = eq_to_diff[eq′]
+        end # for _ in 1:maxiters
+        pathfound ||
+            error(&quot;maxiters=$maxiters reached! File a bug report if your system has a reasonable index (&lt;100), and you are using the default `maxiters`. Try to increase the maxiters by `pantelides(sys::ODESystem; maxiters=1_000_000)` if your system has an incredibly high index and it is truly extremely large.&quot;)
+    end # for k in 1:neqs′
+
+    finalize &amp;&amp; for var in 1:ndsts(graph)
+        varwhitelist[var] &amp;&amp; continue
+        var_eq_matching[var] = unassigned
+    end
+    return var_eq_matching
+end</code></pre><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 23 January 2024 16:08">Tuesday 23 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
