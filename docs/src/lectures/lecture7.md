@@ -92,7 +92,7 @@ truncation error for ``y`` is
 ```math
 \begin{align}
 &\text{lte} = \frac{\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}}
-{h_{n} + h_{n-1}} (h_{n} - h_{n-1}) h_n \\
+{h_{n} + h_{n-1}} (h_{n} + h_{n-1}) h_n \\
 =& \left(\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}\right) h_n
 \\
 =& h_n\left(\frac{\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}{h_n} -
