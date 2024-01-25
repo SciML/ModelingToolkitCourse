@@ -709,6 +709,125 @@ function pantelides!(state::TransformationState; finalize = true, maxiters = 800
 end
 ```
 
+## Demo
+
+```julia
+using ModelingToolkit, OrdinaryDiffEq, LinearAlgebra
+import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
+import ModelingToolkitStandardLibrary.Blocks as B
+import ModelingToolkitStandardLibrary.Mechanical.Translational as T
+
+@parameters t
+D = Differential(t)
+
+function System(use_input, f; name)
+    @parameters t
+
+    pars = @parameters begin
+        p_s = 200e5
+        p_r = 5e5
+
+        A_1 = 360e-4
+        A_2 = 360e-4
+
+        p_1 = 45e5
+        p_2 = 45e5
+
+        l_1 = 0.01
+        l_2 = 0.05
+        m_f = 250
+        g = 0
+
+        d = 100e-3
+
+        Cd = 0.01
+
+        m_piston = 880
+    end
+
+    vars = @variables begin
+        ddx(t) = 0
+    end
+
+    systems = @named begin
+        src = IC.FixedPressure(; p = p_s)
+        valve = IC.SpoolValve2Way(; p_s_int = p_s, p_a_int = p_1, p_b_int = p_2,
+            p_r_int = p_r, g, m = m_f, x_int = 0, d, Cd)
+        piston = IC.Actuator(5;
+            p_a_int = p_1,
+            p_b_int = p_2,
+            area_a = A_1,
+            area_b = A_2,
+            length_a_int = l_1,
+            length_b_int = l_2,
+            m = m_piston,
+            g = 0,
+            x_int = 0,
+            minimum_volume_a = A_1 * 1e-3,
+            minimum_volume_b = A_2 * 1e-3,
+            damping_volume_a = A_1 * 5e-3,
+            damping_volume_b = A_2 * 5e-3)
+        body = T.Mass(; m = 1500)
+        pipe = IC.Tube(5; p_int = p_2, area = A_2, length = 2.0)
+        snk = IC.FixedPressure(; p = p_r)
+        pos = T.Position()
+
+        m1 = IC.FlowDivider(; p_int = p_2, n = 3)
+        m2 = IC.FlowDivider(; p_int = p_2, n = 3)
+
+        fluid = IC.HydraulicFluid()
+    end
+
+    if use_input
+        @named input = B.SampledData(Float64)
+    else
+        @named input = B.TimeVaryingFunction(f)
+    end
+
+    push!(systems, input)
+
+    eqs = [connect(input.output, pos.s)
+        connect(valve.flange, pos.flange)
+        connect(valve.port_a, piston.port_a)
+        connect(piston.flange, body.flange)
+        connect(piston.port_b, m1.port_a)
+        connect(m1.port_b, pipe.port_b)
+        connect(pipe.port_a, m2.port_b)
+        connect(m2.port_a, valve.port_b)
+        connect(src.port, valve.port_s)
+        connect(snk.port, valve.port_r)
+        connect(fluid, src.port, snk.port)
+        D(body.v) ~ ddx]
+
+    ODESystem(eqs, t, vars, pars; name, systems)
+end
+
+@named system = System(true, nothing)
+
+# sys = structural_simplify(system)
+using ModelingToolkit.StructuralTransformations, ModelingToolkit.BipartiteGraphs,
+    Graphs
+ts = TearingState(ModelingToolkit.expand_connections(system))
+m = BipartiteGraphs.maximal_matching(ts.structure.graph, _->true, x->ts.structure.var_to_diff[x] === nothing);
+count(x->x isa Int, m)
+count(x->x===nothing, ts.structure.eq_to_diff)
+ModelingToolkit.pantelides!(ts)
+m = BipartiteGraphs.maximal_matching(ts.structure.graph, x->ts.structure.eq_to_diff[x]===nothing, x->ts.structure.var_to_diff[x] === nothing);
+count(x->x isa Int, m)
+count(x->x===nothing, ts.structure.eq_to_diff)
+M = incidence_matrix(ts.structure.graph)
+A = M[Int[m[i] for i in eachindex(m) if m[i] isa Int], Int[i for i in eachindex(m) if m[i] isa Int]]
+all(isequal(1), diag(A))
+g = BipartiteGraphs.DiCMOBiGraph{true}(complete(ts.structure.graph), complete(m));
+scc = strongly_connected_components(g);
+M[Int[m[i] for i in reduce(vcat, scc) if m[i] isa Int], Int[i for i in reduce(vcat, scc) if m[i] isa Int]]
+for c in scc
+    length(c) > 1 || continue
+    B = M[Int[m[i] for i in c if m[i] isa Int], Int[i for i in c if m[i] isa Int]]
+    display(B)
+end
+```
+
 [^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of
     differential-algebraic systems." SIAM Journal on scientific and statistical
     computing 9.2 (1988): 213-231.
