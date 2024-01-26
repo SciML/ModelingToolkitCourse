@@ -370,7 +370,7 @@ cardinality matching.
 
     Given a particular matching, an alternating path is a sequence of adjacent
     edges that alternate between being matched and free. In particular, an
-    augmenting path is a alternating path that starts and ends with free edges.
+    augmenting path is a alternating path that starts and ends with free vertices.
 
 !!! info "Bipartite Graph Maximum Cardinality Matching Theorem"
 
