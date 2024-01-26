@@ -162,7 +162,7 @@ This overshooting is exactly the behavior that causes a step size limitation, th
 ``h`` to be sufficiently small when there is such time-scale separation, and thus simulations
 of the long-scale phonomena require time steps on the scale of the short-scale phonomena.
 If those two time-scales are orders of magnitude different, then accurately handling this
-type of equations thus requires orders of mangitude more time steps, leading to the
+type of equations thus requires orders of magnitude more time steps, leading to the
 inefficiency of explicit methods.
 
 Implicit methods on the other hand effectively smooth out the behavior of the derivative
@@ -432,7 +432,7 @@ is a representation of the Van Der Pol equation. Notably, the "standard" ODE fro
 is of the same form, simply with $M = I$. If the mass matrix $M$ is non-singular, then the
 equation is a mass matrix ODE which does not represent a DAE. However, if $M$ is singular,
 then the equation is implicitly specifying an algebraic equation, like as in the Van Der
-Pol equation, and its in this case that a mass matrix ODE is representating a DAE.
+Pol equation, and its in this case that a mass matrix ODE is representing a DAE.
 
 ### The Three Canonical Representations of DAEs
 
