@@ -456,8 +456,8 @@ cardinality matching.
 
     Output: matching ``M``.
 
-    The following code comes directly from ModelingToolkit. Note that `𝑠
-    vertices(g)` returns `1:n` where ``n=|U|``.
+    The following code comes directly from ModelingToolkit. Note that
+    `𝑠vertices(g)` returns `1:n` where ``n=|U|``.
     ```julia
     function maximal_matching(g::BipartiteGraph, srcfilter = vsrc -> true,
             dstfilter = vdst -> true, ::Type{U} = Unassigned) where {U}
