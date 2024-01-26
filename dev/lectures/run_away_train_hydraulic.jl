@@ -1,6 +1,6 @@
 using ModelingToolkit
 using DifferentialEquations
-using ModelingToolkitStandardLibrary.Mechanical.Translational: MechanicalPort, Mass
+using ModelingToolkitStandardLibrary.Mechanical.Translational: MechanicalPort
 using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: Valve, DynamicVolume, HydraulicFluid, FixedPressure
 using ModelingToolkitStandardLibrary.Blocks: Constant
 using Plots
@@ -47,7 +47,7 @@ end
     end
     @variables begin
         v(t)
-        f(t)
+        f(t) = 0
         a(t) = f/m
     end
     @components begin
@@ -211,7 +211,7 @@ end
         valve = Valve(;p_a_int=0, p_b_int=0, area_int=area, Cd=0.7)
         constarea = Constant(;k=area)
         open = FixedPressure(;p=0)
-        fluid = HydraulicFluid()
+        fluid = HydraulicFluid(; density=876, bulk_modulus=1.2e9)
     end
     eqs = [
         connect(port, volume.flange)
@@ -259,13 +259,19 @@ end
     end
 end
 
+@named odesys = System()
+using JuliaSimCompiler
+sys = structural_simplify(IRSystem(odesys))
 @mtkbuild sys = System()
 
 # NOTE: missing_variable_defaults()
 prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 5))
-
+prob = ODEProblem(sys, [], (0, 5))
 # NOTE: strategies for challenging solve
-sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); adaptive=false, dt=1e-5)
+@time "solve Rodas" solve(prob, Rodas4());
+@time "solve" sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); adaptive=false, dt=1e-5);
+
+
 
 # NOTE: pressure wave and no negative pressure
 plot(sol; 
