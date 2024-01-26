@@ -2,13 +2,13 @@
 
 ## Strategies
 ### 1. Is your model correct?
-In the world of programming, debugging a model has got to be the most challenging because all equations must be solved together.  If any equation is wrong then not only will the model not solve, but there is very little that can be done to identify which equation is problematic.  Therefore the best that we can do is implement best practices to ensure the model is correct from the begining.  So 
+In the world of programming, debugging a model has got to be the most challenging because all equations must be solved together.  If any equation is wrong then not only will the model not solve, but there is very little that can be done to identify which equation is problematic.  Therefore the best that we can do is implement best practices to ensure the model is correct from the beginning.  So 
 
 **Use acausal modeling (i.e. ModelingToolkit.jl)**
-As has been shown ModelingToolkit.jl will help in many ways with model definition.  One of the first programming practices that it enables is the DRY (Don't Repeat Yourself) principle.  By defining components once and reusing them, this helps reduce the chance of human error.  For example, when discovering a component level bug, it will be fixed at one source of truth and the fix will automatically propogate throughout.  
+As has been shown ModelingToolkit.jl will help in many ways with model definition.  One of the first programming practices that it enables is the DRY (Don't Repeat Yourself) principle.  By defining components once and reusing them, this helps reduce the chance of human error.  For example, when discovering a component level bug, it will be fixed at one source of truth and the fix will automatically propagate throughout.  
 
 **Start small and verify components**
-In using acausal modeling, the main focus for ensuring well definied models lies mainly at the component level.  Make sure to implement the rules of thumb discussed previously for number of equations and sign conventions.   Each component should have a well definied unit test.  When building your model start with the smallest subsystem possible and build from there.  Attempting to build a full system model before checking the pieces is doomed to fail, leaving little to no insight into what went wrong.  When a model fails to run, the error message will rarely give enough information to pinpoint the problem.  The best tool for debugging is taking small incremental steps which allows one to identify which change caused the problem.  
+In using acausal modeling, the main focus for ensuring well defined models lies mainly at the component level.  Make sure to implement the rules of thumb discussed previously for number of equations and sign conventions.   Each component should have a well defined unit test.  When building your model start with the smallest subsystem possible and build from there.  Attempting to build a full system model before checking the pieces is doomed to fail, leaving little to no insight into what went wrong.  When a model fails to run, the error message will rarely give enough information to pinpoint the problem.  The best tool for debugging is taking small incremental steps which allows one to identify which change caused the problem.  
 
 **Make sure equations match states**
 It is not always the case, but for most models, the unsimplified system should give a match of equations and states.  Let's take the pendulum problem for example
@@ -103,7 +103,7 @@ plot(sol; idxs=[x,y])
 
 
 **Try `dae_index_lowering()`**
-In some cases we can apply `dae_index_lowering()` to further simplify the problem.  In this case ModelingToolkit.jl finds a better form of the equations which can be solved wihtout issue.
+In some cases we can apply `dae_index_lowering()` to further simplify the problem.  In this case ModelingToolkit.jl finds a better form of the equations which can be solved without issue.
 
 ```@example l6
 sys = structural_simplify(dae_index_lowering(pendulum))
@@ -124,10 +124,10 @@ Based on the inputs of these structural parameters, the number of generated equa
 
 
 **Check the values of parameters**
-Another possible cause of problems in your model can come not from the equations, but from the parameters that are supplied to the equations.  It's always a good idea to ensure your parameters match real life values to some degree, and to ensure human error is not factoring in, it can be a good idea to use units (note ModelingToolkit v9 will be enforcing units using Uniful.jl).  If you know all of your parameters are correct but still having issues, another debugging strategy is to reduce the energy input of your system.  Rather than starting at 100%, start at 10%.  This gives the model a better chance to solve and with a model solution this gives some insight to what the root cause problem might be.  For example, if working with a hydrualic system, turn the input pressure down to 10%.  If the model solves and you can see one of the pressure vessels is going into the negative, now you have a clue to a root cause problem.  
+Another possible cause of problems in your model can come not from the equations, but from the parameters that are supplied to the equations.  It's always a good idea to ensure your parameters match real life values to some degree, and to ensure human error is not factoring in, it can be a good idea to use units (note ModelingToolkit v9 will be enforcing units using Uniful.jl).  If you know all of your parameters are correct but still having issues, another debugging strategy is to reduce the energy input of your system.  Rather than starting at 100%, start at 10%.  This gives the model a better chance to solve and with a model solution this gives some insight to what the root cause problem might be.  For example, if working with a hydraulic system, turn the input pressure down to 10%.  If the model solves and you can see one of the pressure vessels is going into the negative, now you have a clue to a root cause problem.  
 
 **Check acausal boundary conditions**
-As discussed in Lecture 1, acausal connections always have a minumum of 2 variables.  Therefore, acausal input (or boundary condition) components will need to pay attention to what should be done to both variables.  As an example, refer to the hydraulic cylinder problem from Lecture 2 and consider the case where the position $x$ is supplied as the input boundary condition and the mass flow input $\dot{m}$ is set to an `Open()` boundary condition, thereby solving for $\dot{m}$ to give input $x$.
+As discussed in Lecture 1, acausal connections always have a minimum of 2 variables.  Therefore, acausal input (or boundary condition) components will need to pay attention to what should be done to both variables.  As an example, refer to the hydraulic cylinder problem from Lecture 2 and consider the case where the position $x$ is supplied as the input boundary condition and the mass flow input $\dot{m}$ is set to an `Open()` boundary condition, thereby solving for $\dot{m}$ to give input $x$.
 
 ![example](../img/Example.svg)
 
@@ -367,7 +367,7 @@ dt = 1e-7
 sol = solve(prob; initializealg=ShampineCollocationInit(dt))
 ```
 
-The `ShampineCollocationInit` solves the initial conditions by essentially taking a small step forward in time and then updating the initial condtions with that solve.  If this doesn't work, we can instead do this manually. 
+The `ShampineCollocationInit` solves the initial conditions by essentially taking a small step forward in time and then updating the initial conditions with that solve.  If this doesn't work, we can instead do this manually. 
 
 ```@example l6
 prob = ODEProblem(sys, [], (0, dt))
@@ -385,7 +385,7 @@ As can be seen, now we have a successful solve.  We can see the change to the in
 [println("$s $(round(x; digits=3)) -> $(round(y; digits=3))") for (s,x,y) in zip(states(sys), prob.u0, prob′.u0)];
 ```
 
-Another strategy that can help is to offset any initial condtions from 0 by a small value.  
+Another strategy that can help is to offset any initial conditions from 0 by a small value.  
 
 **Adjust tolerance**
 Here we get a solve by increasing the `abstol` and `reltol` to very large values.  This is therefore understood to give us a very low resolution solution that is far from the true solution, but we can now at least see if the model is calculating generally correct values, at least with the correct sign.  Here we expect the `act₊mass₊ẋ` to be around -1 and that's exactly what we get.  
@@ -398,7 +398,7 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 
 
 **Turn off adaptivity**
-Another strategy similar to adjusting tolerance is to turn off adaptivity.  This means we can no longer gaurantee tolerance and arrive at the most efficient numerical solution, but we can at least adjust the time step such that it's small enough to give a good solution, but large enough so that a reasonable amount of steps are taken.
+Another strategy similar to adjusting tolerance is to turn off adaptivity.  This means we can no longer guarantee tolerance and arrive at the most efficient numerical solution, but we can at least adjust the time step such that it's small enough to give a good solution, but large enough so that a reasonable amount of steps are taken.
 
 ```@example l6
 prob = ODEProblem(sys, [], (0, 0.1))
@@ -413,7 +413,7 @@ Note the use of keywords:
 - `max_iter` to ensure enough iterations are available
 
 **Jacobian generation**
-It's also helpful sometimes to play with the Jacobian.  There are 3 different ways to calculate the Jacobian from ModelingTookit:
+It's also helpful sometimes to play with the Jacobian.  There are 3 different ways to calculate the Jacobian from ModelingToolkit:
 
 1. analytically, by using `jac=true` keyword given to `ODEProblem`
 2. automatically with automatic differentiation using `autodiff=true` given to the solver algorithms that use Jacobians
