@@ -1,5 +1,168 @@
 # Lecture 7: Numerical and Structural Characterizations for DAEs
 
+Numerical solvers cannot solve all DAEs. Consider the DAE system
+```math
+F(\{x', y', z'\}, \{x, y, z\}, t) = \begin{pmatrix}
+    x + y - \sin(t) \\
+    z - \sin(t) \\
+    z' - \cos(t)
+\end{pmatrix} = 0.
+```
+Note that the second equation and the third equation are equivalent, and there
+are not enough constraints to uniquely determine ``x`` and ``y``. Let's see how
+numerical solvers and ModelingToolkit behave.
+```@example l7
+using DifferentialEquations, Sundials, ModelingToolkit, Plots, LinearAlgebra
+
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    # u[3]: z, du[3]: z'
+    out[1] = u[1] + u[2] - sin(t)
+    out[2] = u[3] - sin(t)
+    out[3] = du[3] - cos(t)
+end
+prob = DAEProblem(f!, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0], (0, 100.0), differential_vars=[false, false, true])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println(sol1.retcode, "\t", sol2.retcode)
+```
+As expected, numerical solvers exit early and they cannot take more than one
+step. We call such systems non-integrable or singular. Let's try to use
+ModelingToolkit to analyze this problem.
+
+```@example l7
+@variables t x(t) y(t) z(t)
+D = Differential(t)
+eqs = [
+    x + y ~ sin(t)
+    z ~ sin(t)
+    D(z) ~ cos(t)
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys);
+try structural_simplify(sys) catch e println(e) end
+```
+We can see that ModelingToolkit also errors, correctly identifying that the
+system is singular.
+
+Let's consider another DAE system
+```math
+F(\{x', y'\}, \{x, y\}, t) = \begin{pmatrix}
+    x - \sin(t) \\
+    x' - y
+\end{pmatrix} = 0.
+```
+If we plug the first equation into the second equation, we have
+```math
+y(t) = (\sin(t))' = \cos(t).
+```
+Superficially, we can have the initial condition
+```math
+x'(0) = x(0) = y(0) = y'(0) = 0.
+```
+However, if we differentiate the first equation once, we get the hidden
+constraint
+```math
+x'(t) - \cos(t) = 0.
+```
+Thus, the true consistent initial condition is
+```math
+x'(0) = y(0) = 1, x(0) = y'(0) = 0.
+```
+
+Let's try to solve this simple DAE using a numerical solver.
+```@example l7
+function f!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = u[1] - sin(t)
+    out[2] = du[1] - u[2]
+end
+prob = DAEProblem(f!, [1, 0.0], [0.0, 1.0], (0, 100pi), differential_vars=[true, false])
+sol1 = solve(prob, IDA())
+sol2 = solve(prob, DFBDF())
+println("[sol1: ", sol1.retcode, "]",
+"\n", "[sol2 ", sol2.retcode, ": y(100pi)=", sol2[2, end], " steps: ", length(sol2.t), "]")
+```
+
+To better understand the numerical behavior, let's analyze the variable step
+size behavior of the implicit Euler method of the original system. The local
+truncation error for ``y`` is
+```math
+\begin{align}
+&\text{lte} = \frac{\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}}
+{h_{n} + h_{n-1}} (h_{n} + h_{n-1}) h_n \\
+=& \left(\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}\right) h_n
+\\
+=& h_n\left(\frac{\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}}{h_n} -
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}\right)
+\\
+=&
+\frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} -
+h_n
+\frac{\frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}} - \frac{\sin(t_{n-2}) - \sin(t_{n-3})}{h_{n-2}}}{h_{n-1}}
+\end{align}
+```
+Note that when ``h_{n} \to 0``, the local truncation error becomes
+```math
+\lim_{h_{n}\to 0} \text{lte} = \frac{\sin(t_{n}) - \sin(t_{n-1})}{h_n} - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}
+= \cos(t_{n}) - \frac{\sin(t_{n-1}) - \sin(t_{n-2})}{h_{n-1}}
+```
+Note that this in general does not converge to ``0``. Thus, numerical solvers
+could have difficulties in solving this system. Let's also confirm this
+numerical behavior by setting the maximum order to ``1``.
+```@example l7
+solve(prob, DFBDF(max_order=Val(1)))
+```
+
+Let's replace the first equation with the differentiated equation and solve it
+numerically,
+```@example l7
+function g!(out, du, u, p, t)
+    # u[1]: x, du[1]: x'
+    # u[2]: y, du[2]: y'
+    out[1] = du[1] - cos(t)
+    out[2] = du[1] - u[2]
+end
+prob = DAEProblem(g!, [1, 0.0], [0.0, 1.0], (0, 100pi), differential_vars=[true, false])
+sol1_diff = solve(prob, IDA())
+sol2_diff = solve(prob, DFBDF())
+println("[sol1_diff: ", sol1_diff.retcode, ": y(100pi)=", sol1_diff[2, end], " steps: ", length(sol1_diff.t), "]",
+"\n", "[sol2_diff ", sol2_diff.retcode, ": y(100pi)=", sol2_diff[2, end], " steps: ", length(sol2_diff.t), "]")
+```
+We can see that it takes far fewer iterations to solve the system, and the
+numerical solution is much closer to the analytical solution ``y(100\pi) = 1``.
+If we check the residual of the original constraint, we get
+```@example l7
+plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = "IDA")
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = "DFBDF")
+```
+We see a significant numerical drift from the original constraint for both DAE
+solvers. Again, let's see how ModelingToolkit does.
+
+```@example l7
+@variables t x(t) y(t)
+D = Differential(t)
+eqs = [
+    x ~ sin(t)
+    D(x) ~ y
+]
+@named sys = ODESystem(eqs, t)
+sys = complete(sys)
+model = structural_simplify(sys)
+prob = ODEProblem(model, [x=>0.0, y=>1.0, D(x)=>0.0, D(y)=>1.0], (0, 100pi))
+sol = solve(prob, Rodas5P())
+println("[sol: ", sol.retcode, ": y(100pi)=", sol[y, end], " steps: ", length(sol.t), "]")
+```
+```@example l7
+norm(sol[x, :] - sin.(sol.t))
+```
+We can see that ModelingToolkit handles this DAE system perfectly. ``y(t)`` is
+completely accurate, the original constraints are satisfied without drift, and
+the numerical solver needs to take minimal steps. In my following lectures, we
+will study how ModelingToolkit handles this example system.
+
 ## Numerical Integrability Criterion for DAEs
 
 There are both differential equations and algebraic equations in acausal models.
@@ -141,7 +304,7 @@ checking if a sparse matrix is structurally non-singular.
       ```math
       \begin{equation}
       \det(A)=\sum_{\sigma \in S_{n}}\operatorname{sgn}(\sigma)\prod_{i = 1}^n
-      a_{i,\sigma (i)} \ne 0,
+      a_{i,\sigma(i)} \ne 0,
       \end{equation}
       ```
       where ``S_n`` denotes the set of all permutations of the set ``\{1, 2, ...,
@@ -165,7 +328,7 @@ cardinality matching.
     and edges between them ``E \subseteq U\times V`` defined by
     ```math
     \begin{equation}
-    \forall (i, j) \in U\times V, (i, j) \in E \iff A_{i, j} = 1.
+    E = \{(i, j): A_{i,j} \ne 0\}.
     \end{equation}
     ```
     Similarly, the induced bipartite graph of a sparse matrix is the induced
@@ -177,10 +340,13 @@ cardinality matching.
     where every vertex in ``U`` and ``V`` can appear at most once in ``M``. A
     matching ``M`` is perfect if ``|M| = |U| = |V|``. We call an edge in a
     matching matched, otherwise, free. It is often more convenient to interpret
-    matching as the function ``m: U \to (V \cup \emptyset)`` defined by
+    matching as the function ``M: U \to (V \cup \emptyset)`` defined as
     ```math
     \begin{equation}
-    x \mapsto \cup \{y | (x, y) \in M\}.
+    m(i) = \begin{cases}
+        j, & \text{if } (i, j) \in E \\
+        \emptyset, & \text{else}
+    \end{cases}.
     \end{equation}
     ```
 
@@ -189,44 +355,124 @@ cardinality matching.
     A sparse matrix ``A\in\mathbb{R}^{m\times n}`` is structurally non-singular
     if and only if its induced bipartite graph has a perfect matching.
 
+    ##### Proof:
+    - ``\Leftarrow``: Suppose ``A\in\mathbb{R}^{m\times n}`` is a structurally
+      non-singular sparse matrix, then ``m=n`` and there exists a row
+      permutation ``\sigma\in S_n`` such that ``\forall i\in\{1, ..., n\},
+      A_{\sigma(i), i} \ne 0``. Note that ``\sigma`` is a perfect matching.
+    - ``\Rightarrow``: Suppose the induced bipartite graph ``(U, V, E)`` of
+      ``A\in\mathbb{R}^{m\times n}`` has a perfect bipartite matching ``\sigma``,
+      then ``|U| = |V| = |\sigma| = m = n`` and ``\sigma\in S_n``. In particular,
+      ``\forall i\in\{1, ..., n\}, A_{\sigma(i), i} \ne 0``. Hence, ``A`` is
+      structurally non-singular. ``\blacksquare``
+
 !!! definition "Augmenting Path"
 
     Given a particular matching, an alternating path is a sequence of adjacent
     edges that alternate between being matched and free. In particular, an
-    augmenting path is a alternating path that starts and ends with free edges.
+    augmenting path is a alternating path that starts and ends with free vertices.
+
+!!! info "Bipartite Graph Maximum Cardinality Matching Theorem"
+
+    A matching ``M`` of a bipartite graph has maximum cardinality matching if
+    and only if there is no augmenting path with respect to ``M``.
+
+    ##### Proof:
+    - ``\Rightarrow``: We will show this using proof by contrapositive. Suppose
+      a bipartite graph has a matching ``M`` and an augmenting path ``A``. Let
+      ``\hat{M} = M \bigtriangleup A := (M \setminus A)\cup (A\setminus M)``,
+      then ``\hat{M}`` is a matching and ``|\hat{M}| = |M| + 1``. Thus, ``M`` is
+      not a maximum cardinality matching.
+    - ``\Leftarrow``: We will should this using proof by contrapositive, again.
+      Suppose a bipartite graph ``(U, V, E)`` has a non-maximum cardinality
+      matching ``B``, we want to seek an augmenting path. Let ``A`` be a
+      maximum cardinality matching. We claim ``P = A\bigtriangleup B`` contains
+      at least one augmenting path by the following arguments
+        - Since all edges of ``P`` come from two matchings, by the definition of
+          a matching, each vertex can have at most two edges. Therefore, ``P``
+          contains either paths or cycles, and such segments are alternating
+          between ``A`` and ``B``.
+        - ``|P\cap A| > |P\cap B|``. Note that
+          ``P\cap A = ((A\setminus B) \cup (B\setminus A)) \cap A = ((A\setminus B)\cap A)\cup ((B\setminus A) \cap A) = (A\setminus B)``,
+          and similarly ``|P\cap B| = |B\setminus A|``. Thus,
+          ``|P\cap A| = |A| - |A \cap B|`` and ``|P\cap B| = |B| - |A \cap B|``.
+          By the maximality of ``A``, we know ``|A|>|B|``. Therefore, ``|P\cap
+          A| > |P\cap B|``.
+        - By the previous argument, there must be at least one connected
+          component such that it contains more edges in ``A`` than ``B``. Since
+          all cycles in ``P`` must be even length and alternating, such
+          segment can only be a path, and in particular, an augmenting path
+          with respect to ``B``.
+      ``\blacksquare``
+
+!!! info "Augmenting Path Algorithm"
+
+    Input: bipartite graph ``g = (U, V, E)``, a vertex ``\text{vsrc} \in U``,
+    and a partial matching.
+
+    Output: return a boolean indicating the existence of an augmenting path,
+    and if one is present, use the augmenting path to increase the cardinality
+    of the partial matching by exactly one.
+
+    In ModelingToolkit, there are the `𝑠neighbors(g, i)` function that returns a
+    sorted list containing ``\{j: (i, j) \in E\}``, and the `𝑑neighbors(g, j)`
+    function that returns a sorted list containing ``\{i: (i, j) \in E\}``.
+    ModelingToolkit also encodes matching `M` using the `m::Matching` structure,
+    let `j = m[i]`, it holds that `j::Int` if and only if ``(i, j) \in M`` and
+    `j::Unassigned` if and only if ``(i, j) \not\in M``. It following code comes
+    directly from ModelingToolkit.
+    ```julia
+    function construct_augmenting_path!(matching::Matching, g::BipartiteGraph, vsrc, dstfilter,
+            dcolor = falses(ndsts(g)), scolor = nothing)
+        scolor === nothing || (scolor[vsrc] = true)
+
+        # if a `vdst` is unassigned and the edge `vsrc <=> vdst` exists
+        for vdst in 𝑠neighbors(g, vsrc)
+            if dstfilter(vdst) && matching[vdst] === unassigned
+                matching[vdst] = vsrc
+                return true
+            end
+        end
+
+        # for every `vsrc` such that edge `vsrc <=> vdst` exists and `vdst` is uncolored
+        for vdst in 𝑠neighbors(g, vsrc)
+            (dstfilter(vdst) && !dcolor[vdst]) || continue
+            dcolor[vdst] = true
+            if construct_augmenting_path!(matching, g, matching[vdst], dstfilter, dcolor,
+                scolor)
+                matching[vdst] = vsrc
+                return true
+            end
+        end
+        return false
+    end
+    ```
+    Note that the augmenting path algorithm never removes any matched vertices
+    in ``U``.
 
 !!! info "Augmenting Path Algorithm for Finding a Maximum Cardinality Matching"
 
-    Input: bipartite graph ``G = (U, V, E)``.
+    Input: bipartite graph ``g = (U, V, E)``.
 
     Output: matching ``M``.
+
+    The following code comes directly from ModelingToolkit. Note that
+    `𝑠vertices(g)` returns `1:n` where ``n=|U|``.
     ```julia
-    M = []
-    for each u in U
-        p ← find an augmenting path w.r.t. M that starts with u
-        if p === nothing
-            continue
-        else
-            add all free edges of p to M
-            remove all matched edges of p from M
+    function maximal_matching(g::BipartiteGraph, srcfilter = vsrc -> true,
+            dstfilter = vdst -> true, ::Type{U} = Unassigned) where {U}
+        matching = Matching{U}(ndsts(g))
+        foreach(Iterators.filter(srcfilter, 𝑠vertices(g))) do vsrc
+            construct_augmenting_path!(matching, g, vsrc, dstfilter)
         end
+        return matching
     end
     ```
-    Note that by the definition of augmenting paths, whenever ``p`` is not
-    `nothing` in the above algorithm, we increase the cardinality of ``M`` by
-    ``1``. We will assert without a proof that the above algorithm outputs a
-    maximum cardinality matching, and in particular, if ``p`` is `nothing` for a
-    source vertex ``u``, then no maximum cardinality matching contains an edge
-    that starts with ``u``. More details of this algorithm including the search
-    algorithm of an augmenting path are available in the original Pantelides
-    paper [^Pantelides1988].
-
-    Note that a perfect matching for ``G`` exists if and only if a maximum
-    cardinality matching ``M`` satisfies ``|M| = |U| = |V|``.
-
-
-
-[^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of differential-algebraic systems." SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.
+    Given that the augmenting path algorithm never removes any matched vertices
+    in ``U``, and if no augmenting path starts in vertex ``i\in U``, then ``i``
+    will never be matched using the augmenting path algorithm. It is sufficient
+    to run the augmenting path algorithm for all vertices in ``U`` by the
+    Bipartite Graph Maximum Cardinality Matching Theorem.
 
 ## Structural Integrability Criterion for DAEs
 
@@ -349,6 +595,239 @@ the structural consistency solvability criterion.
 
 Note that the sparsity pattern of ``\mathfrak{I}(\mathfrak{I}(F, \{u_i'\}) +
 \mathfrak{I}(F, \{u_i\}))`` is always a subset of ``\mathfrak{I}(F, z)`` for
-arbitrary systems. The structural consistency solvability criterion is stronger
-than the structural integrability criterion, so we just check the structural
-consistency solvability criterion.
+arbitrary systems.
+
+!!! info "Structural Consistency Solvability Theorem"
+
+    Structural consistency solvability implies structural integrability.
+    Moreover, if a DAE system is not integrable, then structural consistency
+    solvability cannot be achieved by differentiating any equation any number of
+    times. [^2]
+
+
+[^2]: Curious readers can read the original Pantelides paper for ideas to prove
+    this.
+
+## Pantelides Algorithm
+
+We can use the Pantelides algorithm [^Pantelides1988] to efficiently convert a
+DAE system that has structural integrability to a system with structural
+consistency solvability, even if it initially lacks this property.
+
+The gist of the Pantelides algorithm is that, we can try to find an augmenting
+path for all equation (source) vertices on the sub-graph that only contains
+highest differentiated variable (destination) vertices, and if there is no
+augmenting path starting at an equation vertex, then we can differentiate all
+the equations and variables reached in the augmenting path search until there is
+an augmenting path starting at the differentiated equation vertex. Note that if
+we differentiate an equation in the form of
+``f(x, y, ...)`` we get
+```math
+\frac{d}{dt}f(x, y, ...) = \frac{\partial f}{\partial x}x' + \frac{\partial f}{\partial y}y' + ...
+```
+Thus, the incidence of the differentiated equation is trivial to compute.
+
+The following code comes directly from ModelingToolkit.
+```julia
+function pantelides!(state::TransformationState; finalize = true, maxiters = 8000)
+    @unpack graph, solvable_graph, var_to_diff, eq_to_diff = state.structure
+    neqs = nsrcs(graph)
+    nvars = nv(var_to_diff)
+    vcolor = falses(nvars)
+    ecolor = falses(neqs)
+    var_eq_matching = Matching(nvars)
+    neqs′ = neqs
+    nnonemptyeqs = count(eq -> !isempty(𝑠neighbors(graph, eq)) && eq_to_diff[eq] === nothing,
+        1:neqs′)
+
+    varwhitelist = computed_highest_diff_variables(state.structure)
+
+    if nnonemptyeqs > count(varwhitelist)
+        throw(InvalidSystemException("System is structurally singular"))
+    end
+
+    for k in 1:neqs′
+        eq′ = k
+        eq_to_diff[eq′] === nothing || continue
+        isempty(𝑠neighbors(graph, eq′)) && continue
+        pathfound = false
+        # In practice, `maxiters=8000` should never be reached, otherwise, the
+        # index would be on the order of thousands.
+        for iii in 1:maxiters
+            # run matching on (dx, y) variables
+            #
+            # the derivatives and algebraic variables are zeros in the variable
+            # association list
+            resize!(vcolor, nvars)
+            fill!(vcolor, false)
+            resize!(ecolor, neqs)
+            fill!(ecolor, false)
+            pathfound = construct_augmenting_path!(var_eq_matching, graph, eq′,
+                v -> varwhitelist[v], vcolor, ecolor)
+            pathfound && break # terminating condition
+            if is_only_discrete(state.structure)
+                error("The discrete system has high structural index. This is not supported.")
+            end
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                if var_to_diff[var] === nothing
+                    # introduce a new variable
+                    nvars += 1
+                    var_diff = var_derivative!(state, var)
+                    push!(var_eq_matching, unassigned)
+                    push!(varwhitelist, false)
+                    @assert length(var_eq_matching) == var_diff
+                end
+                varwhitelist[var] = false
+                varwhitelist[var_to_diff[var]] = true
+            end
+
+            for eq in eachindex(ecolor)
+                ecolor[eq] || continue
+                # introduce a new equation
+                neqs += 1
+                eq_derivative!(state, eq)
+            end
+
+            for var in eachindex(vcolor)
+                vcolor[var] || continue
+                # the newly introduced `var`s and `eq`s have the inherits
+                # assignment
+                var_eq_matching[var_to_diff[var]] = eq_to_diff[var_eq_matching[var]]
+            end
+            eq′ = eq_to_diff[eq′]
+        end # for _ in 1:maxiters
+        pathfound ||
+            error("maxiters=$maxiters reached! File a bug report if your system has a reasonable index (<100), and you are using the default `maxiters`. Try to increase the maxiters by `pantelides(sys::ODESystem; maxiters=1_000_000)` if your system has an incredibly high index and it is truly extremely large.")
+    end # for k in 1:neqs′
+
+    finalize && for var in 1:ndsts(graph)
+        varwhitelist[var] && continue
+        var_eq_matching[var] = unassigned
+    end
+    return var_eq_matching
+end
+```
+
+## Demo
+
+```julia
+using ModelingToolkit, OrdinaryDiffEq, LinearAlgebra
+import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
+import ModelingToolkitStandardLibrary.Blocks as B
+import ModelingToolkitStandardLibrary.Mechanical.Translational as T
+
+@parameters t
+D = Differential(t)
+
+function System(use_input, f; name)
+    @parameters t
+
+    pars = @parameters begin
+        p_s = 200e5
+        p_r = 5e5
+
+        A_1 = 360e-4
+        A_2 = 360e-4
+
+        p_1 = 45e5
+        p_2 = 45e5
+
+        l_1 = 0.01
+        l_2 = 0.05
+        m_f = 250
+        g = 0
+
+        d = 100e-3
+
+        Cd = 0.01
+
+        m_piston = 880
+    end
+
+    vars = @variables begin
+        ddx(t) = 0
+    end
+
+    systems = @named begin
+        src = IC.FixedPressure(; p = p_s)
+        valve = IC.SpoolValve2Way(; p_s_int = p_s, p_a_int = p_1, p_b_int = p_2,
+            p_r_int = p_r, g, m = m_f, x_int = 0, d, Cd)
+        piston = IC.Actuator(5;
+            p_a_int = p_1,
+            p_b_int = p_2,
+            area_a = A_1,
+            area_b = A_2,
+            length_a_int = l_1,
+            length_b_int = l_2,
+            m = m_piston,
+            g = 0,
+            x_int = 0,
+            minimum_volume_a = A_1 * 1e-3,
+            minimum_volume_b = A_2 * 1e-3,
+            damping_volume_a = A_1 * 5e-3,
+            damping_volume_b = A_2 * 5e-3)
+        body = T.Mass(; m = 1500)
+        pipe = IC.Tube(5; p_int = p_2, area = A_2, length = 2.0)
+        snk = IC.FixedPressure(; p = p_r)
+        pos = T.Position()
+
+        m1 = IC.FlowDivider(; p_int = p_2, n = 3)
+        m2 = IC.FlowDivider(; p_int = p_2, n = 3)
+
+        fluid = IC.HydraulicFluid()
+    end
+
+    if use_input
+        @named input = B.SampledData(Float64)
+    else
+        @named input = B.TimeVaryingFunction(f)
+    end
+
+    push!(systems, input)
+
+    eqs = [connect(input.output, pos.s)
+        connect(valve.flange, pos.flange)
+        connect(valve.port_a, piston.port_a)
+        connect(piston.flange, body.flange)
+        connect(piston.port_b, m1.port_a)
+        connect(m1.port_b, pipe.port_b)
+        connect(pipe.port_a, m2.port_b)
+        connect(m2.port_a, valve.port_b)
+        connect(src.port, valve.port_s)
+        connect(snk.port, valve.port_r)
+        connect(fluid, src.port, snk.port)
+        D(body.v) ~ ddx]
+
+    ODESystem(eqs, t, vars, pars; name, systems)
+end
+
+@named system = System(true, nothing)
+
+# sys = structural_simplify(system)
+using ModelingToolkit.StructuralTransformations, ModelingToolkit.BipartiteGraphs,
+    Graphs
+ts = TearingState(ModelingToolkit.expand_connections(system))
+m = BipartiteGraphs.maximal_matching(ts.structure.graph, _->true, x->ts.structure.var_to_diff[x] === nothing);
+count(x->x isa Int, m)
+count(x->x===nothing, ts.structure.eq_to_diff)
+ModelingToolkit.pantelides!(ts)
+m = BipartiteGraphs.maximal_matching(ts.structure.graph, x->ts.structure.eq_to_diff[x]===nothing, x->ts.structure.var_to_diff[x] === nothing);
+count(x->x isa Int, m)
+count(x->x===nothing, ts.structure.eq_to_diff)
+M = incidence_matrix(ts.structure.graph)
+A = M[Int[m[i] for i in eachindex(m) if m[i] isa Int], Int[i for i in eachindex(m) if m[i] isa Int]]
+all(isequal(1), diag(A))
+g = BipartiteGraphs.DiCMOBiGraph{true}(complete(ts.structure.graph), complete(m));
+scc = strongly_connected_components(g);
+M[Int[m[i] for i in reduce(vcat, scc) if m[i] isa Int], Int[i for i in reduce(vcat, scc) if m[i] isa Int]]
+for c in scc
+    length(c) > 1 || continue
+    B = M[Int[m[i] for i in c if m[i] isa Int], Int[i for i in c if m[i] isa Int]]
+    display(B)
+end
+```
+
+[^Pantelides1988]: Pantelides, Constantinos C. "The consistent initialization of
+    differential-algebraic systems." SIAM Journal on scientific and statistical
+    computing 9.2 (1988): 213-231.
