@@ -76,31 +76,32 @@ function plot_train(sol, sys, tx=0.0)
     
     poly!(a, lift(brp, tm), color=(:red, 0.5))
 
+    scaling(t,p) = (10+log((slt(t,p)/1e5+0.01)/100))/10
 
-    v1(t) = slt(t, 10-sys.stopper.volume.v1.x)
-    v1c(t) = (:red, 0.1+slt(t, sys.stopper.volume.v1.port.p/1e5)/20 )
-    v1p(t) = Polygon(Point2f[
-                            (v1(t),0)
+    v5(t) = slt(t, 10-sys.stopper.volume.v5.x)
+    v5c(t) = (:red, scaling(t, sys.stopper.volume.v5.port.p) )
+    v5p(t) = Polygon(Point2f[
+                            (v5(t),0)
                             (11,0)
                             (11,0.3)
-                            (v1(t),0.3)
+                            (v5(t),0.3)
                             ])
-    poly!(a, lift(v1p, tm); color=lift(v1c, tm)) #, colormap = :jet, colorrange = (1, 20))
+    poly!(a, lift(v5p, tm); color=lift(v5c, tm)) #, colormap = :jet, colorrange = (1, 20))
 
 
-    v2(t) = slt(t, 10+1-sys.stopper.volume.v2.x)
-    v2c(t) = (:red, 0.1+slt(t, sys.stopper.volume.v2.port.p/1e5)/20 )
-    v2p(t) = Polygon(Point2f[
-                            (v2(t),0)
+    v4(t) = slt(t, 10+1-sys.stopper.volume.v4.x)
+    v4c(t) = (:red, scaling(t, sys.stopper.volume.v4.port.p) )
+    v4p(t) = Polygon(Point2f[
+                            (v4(t),0)
                             (12,0)
                             (12,0.3)
-                            (v2(t),0.3)
+                            (v4(t),0.3)
                             ])
-    poly!(a, lift(v2p, tm); color=lift(v2c, tm)) #, colormap = :jet, colorrange = (1, 20))
+    poly!(a, lift(v4p, tm); color=lift(v4c, tm)) #, colormap = :jet, colorrange = (1, 20))
 
 
     v3(t) = slt(t, 10+2-sys.stopper.volume.v3.x)
-    v3c(t) = (:red, 0.1+slt(t, sys.stopper.volume.v3.port.p/1e5)/20 )
+    v3c(t) = (:red, scaling(t, sys.stopper.volume.v3.port.p) )
     v3p(t) = Polygon(Point2f[
                             (v3(t),0)
                             (13,0)
@@ -109,25 +110,25 @@ function plot_train(sol, sys, tx=0.0)
                             ])
     poly!(a, lift(v3p, tm); color=lift(v3c, tm)) #, colormap = :jet, colorrange = (1, 20))
 
-    v4(t) = slt(t, 10+3-sys.stopper.volume.v4.x)
-    v4c(t) = (:red, 0.1+slt(t, sys.stopper.volume.v4.port.p/1e5)/20 )
-    v4p(t) = Polygon(Point2f[
-                            (v4(t),0)
+    v2(t) = slt(t, 10+3-sys.stopper.volume.v2.x)
+    v2c(t) = (:red, scaling(t, sys.stopper.volume.v2.port.p) )
+    v2p(t) = Polygon(Point2f[
+                            (v2(t),0)
                             (14,0)
                             (14,0.3)
-                            (v4(t),0.3)
+                            (v2(t),0.3)
                             ])
-    poly!(a, lift(v4p, tm); color=lift(v4c, tm)) #, colormap = :jet, colorrange = (1, 20))
+    poly!(a, lift(v2p, tm); color=lift(v2c, tm)) #, colormap = :jet, colorrange = (1, 20))
 
-    v5(t) = slt(t, 10+4-sys.stopper.volume.v5.x)
-    v5c(t) = (:red, 0.1+slt(t, sys.stopper.volume.v5.port.p/1e5)/20 )
-    v5p(t) = Polygon(Point2f[
-                            (v5(t),0)
+    v1(t) = slt(t, 10+4-sys.stopper.volume.v1.x)
+    v1c(t) = (:red, scaling(t, sys.stopper.volume.v1.port.p) )
+    v1p(t) = Polygon(Point2f[
+                            (v1(t),0)
                             (15,0)
                             (15,0.3)
-                            (v5(t),0.3)
+                            (v1(t),0.3)
                             ])
-    poly!(a, lift(v5p, tm); color=lift(v5c, tm)) #, colormap = :jet, colorrange = (1, 20))
+    poly!(a, lift(v1p, tm); color=lift(v1c, tm)) #, colormap = :jet, colorrange = (1, 20))
 
     # track
     lines!(a, [0,15], [-0.05,-0.05]; linewidth=1, color=:black)
@@ -154,7 +155,7 @@ function record_train(fig, tm; start, stop, step, framerate, filename)
 end
 
 fig, tm = plot_train(sol, sys)
-# record_train(fig, tm; start=0.7125, stop=0.76, step=2e-4, framerate=30, filename="slow_motion.mp4")
+record_train(fig, tm; start=0.72, stop=0.729, step=1e-4, framerate=20, filename="run_away_train_slow.mp4")
 record_train(fig, tm; start=0.0, stop=5, step=1/30, framerate=30, filename="run_away_train.mp4")
 
 # plot(sol; idxs=sys.stopper.volume.moving_volume.port.p/1e5, xlims=(0.7, 0.9))

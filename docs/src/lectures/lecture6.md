@@ -67,7 +67,7 @@ sol = solve(prob)# gives retcode: DtLessThanMin
 plot(sol; idxs=[x,y])
 ```
 
-The problem is rooted in the algebraic constraint which has `x^2`.  Having exponents (squares or square roots) can often cause issues with numerical solutions.  In this case the issue is that a unique solution cannot be found, `x` could be positive or negative.  There are different solutions to this problem, however lets consider the concept of adding compliance.  In reality is it really possible to have a massless, perfectly stiff and rigid string?  No.  Therefore let's consider adjusting the problem so the string has stiffness, which means we add `L` now as a variable.
+The problem is rooted in the algebraic constraint which has `x^2` and `y^2`.  Having exponents (squares or square roots) can often cause issues with numerical solutions.  In this case the issue is that a unique solution cannot be found, `x` could be positive or negative.  There are different solutions to this problem, however lets consider the concept of adding compliance.  In reality is it really possible to have a massless, perfectly stiff and rigid string?  No.  Therefore let's consider adjusting the problem so the string has stiffness, which means we add `L` now as a variable.
 
 ```@example l6
 pars = @parameters m = 1 g = 1 L_0 = 1 Φ=0 k=1e6
@@ -90,7 +90,7 @@ eqs = [
 
     x^2 + y^2 ~ L^2 # algebraic constraint
 
-    λ ~ k*(L - L_0)
+    λ ~ k*(L - L_0) # string stiffness
 ]
 
 @named stiffness_pendulum = ODESystem(eqs, t, vars, pars)
@@ -100,10 +100,9 @@ sol = solve(prob)# Success
 plot(sol; idxs=[x,y])
 ```
 
-As can be seen, now we get a solution.  But is it correct?  
 
 
-**Try `dae_index_lowering`**
+**Try `dae_index_lowering()`**
 In some cases we can apply `dae_index_lowering()` to further simplify the problem.  In this case ModelingToolkit.jl finds a better form of the equations which can be solved wihtout issue.
 
 ```@example l6
@@ -226,33 +225,121 @@ Next step is to force a model solution.  It's still possible that something with
         dmp₊c = 1000
     end
     @variables begin
+        res₁₊ṁ(t) = 0
+        res₁₊p₁(t) = res₁₊p′
+        res₁₊p₂(t) = res₁₊p′
+        res₁₊port₁₊p(t) = res₁₊p′
+        res₁₊port₁₊ṁ(t) = 0
+        res₁₊port₂₊p(t) = res₁₊p′
+        res₁₊port₂₊ṁ(t) = 0
+        res₂₊ṁ(t) = 0
+        res₂₊p₁(t) = res₂₊p′
+        res₂₊p₂(t) = res₂₊p′
+        res₂₊port₁₊p(t) = res₂₊p′
+        res₂₊port₁₊ṁ(t) = 0
+        res₂₊port₂₊p(t) = res₂₊p′
+        res₂₊port₂₊ṁ(t) = 0
+        act₊port₁₊p(t) = act₊p₁′
+        act₊port₁₊ṁ(t) = 0
+        act₊port₂₊p(t) = act₊p₂′
+        act₊port₂₊ṁ(t) = 0
+        act₊vol₁₊p(t) = act₊vol₁₊p′
         act₊vol₁₊x(t) = act₊vol₁₊x′
+        act₊vol₁₊ṁ(t) = 0
+        act₊vol₁₊f(t) = act₊vol₁₊A * act₊vol₁₊p′
+        act₊vol₁₊ẋ(t) = 0
         act₊vol₁₊r(t) = act₊vol₁₊ρ₀ * (1 + act₊vol₁₊p′ / act₊vol₁₊β)
+        act₊vol₁₊ṙ(t) = 0
+        act₊vol₁₊port₊p(t) = act₊vol₁₊p′
+        act₊vol₁₊port₊ṁ(t) = 0
+        act₊vol₁₊flange₊ẋ(t) = 0
+        act₊vol₁₊flange₊f(t) = -act₊vol₁₊A * act₊vol₁₊direction * act₊vol₁₊p′
+        act₊vol₂₊p(t) = act₊vol₂₊p′
         act₊vol₂₊x(t) = act₊vol₂₊x′
+        act₊vol₂₊ṁ(t) = 0
+        act₊vol₂₊f(t) = act₊vol₂₊A * act₊vol₂₊p′
+        act₊vol₂₊ẋ(t) = 0
         act₊vol₂₊r(t) = act₊vol₂₊ρ₀ * (1 + act₊vol₂₊p′ / act₊vol₂₊β)
+        act₊vol₂₊ṙ(t) = 0
+        act₊vol₂₊port₊p(t) = act₊vol₂₊p′
+        act₊vol₂₊port₊ṁ(t) = 0
+        act₊vol₂₊flange₊ẋ(t) = 0
+        act₊vol₂₊flange₊f(t) = -act₊vol₂₊A * act₊vol₂₊direction * act₊vol₂₊p′
+        act₊mass₊f(t) = act₊mass₊f′
         act₊mass₊x(t) = 0
         act₊mass₊ẋ(t) = 0
-        res₁₊ṁ(t) = 0
-        res₂₊ṁ(t) = 0
-        act₊vol₁₊ṙ(t) = 0
-        act₊vol₂₊ṙ(t) = 0
+        act₊mass₊ẍ(t) = act₊mass₊f′ / act₊mass₊m
+        act₊mass₊flange₊ẋ(t) = 0
+        act₊mass₊flange₊f(t) = act₊mass₊f′
+        act₊flange₊ẋ(t) = 0
+        act₊flange₊f(t) = 0
+        src₊port₊p(t) = src₊p′
+        src₊port₊ṁ(t) = 0
+        snk₊port₊p(t) = snk₊p′
+        snk₊port₊ṁ(t) = 0
+        dmp₊flange₊ẋ(t) = 0
+        dmp₊flange₊f(t) = 0
     end
     @equations begin
-        D(act₊vol₁₊x) ~ act₊vol₁₊direction * act₊mass₊ẋ
+        res₁₊ṁ ~ res₁₊port₁₊ṁ
+        res₁₊ṁ ~ -res₁₊port₂₊ṁ
+        res₁₊p₁ ~ res₁₊port₁₊p
+        res₁₊p₂ ~ res₁₊port₂₊p
+        -res₁₊p₂ + res₁₊p₁ ~ 0.5res₁₊Cₒ * res₁₊ρ₀ * ((res₁₊ṁ / (res₁₊Aₒ * res₁₊ρ₀))^2)
+        res₂₊ṁ ~ res₂₊port₁₊ṁ
+        res₂₊ṁ ~ -res₂₊port₂₊ṁ
+        res₂₊p₁ ~ res₂₊port₁₊p
+        res₂₊p₂ ~ res₂₊port₂₊p
+        -res₂₊p₂ + res₂₊p₁ ~ 0.5res₂₊Cₒ * res₂₊ρ₀ * ((res₂₊ṁ / (res₂₊Aₒ * res₂₊ρ₀))^2)
+        D(act₊vol₁₊x) ~ act₊vol₁₊ẋ
         D(act₊vol₁₊r) ~ act₊vol₁₊ṙ
-        D(act₊vol₂₊x) ~ act₊vol₂₊direction * act₊mass₊ẋ
+        act₊vol₁₊p ~ act₊vol₁₊port₊p
+        act₊vol₁₊ṁ ~ act₊vol₁₊port₊ṁ
+        act₊vol₁₊f ~ -act₊vol₁₊direction * act₊vol₁₊flange₊f
+        act₊vol₁₊ẋ ~ act₊vol₁₊direction * act₊vol₁₊flange₊ẋ
+        act₊vol₁₊r ~ act₊vol₁₊ρ₀ * (1 + act₊vol₁₊p / act₊vol₁₊β)
+        act₊vol₁₊ṁ ~ act₊vol₁₊A * act₊vol₁₊ẋ * act₊vol₁₊r + act₊vol₁₊A * act₊vol₁₊x * act₊vol₁₊ṙ
+        act₊vol₁₊f ~ act₊vol₁₊A * act₊vol₁₊p
+        D(act₊vol₂₊x) ~ act₊vol₂₊ẋ
         D(act₊vol₂₊r) ~ act₊vol₂₊ṙ
+        act₊vol₂₊p ~ act₊vol₂₊port₊p
+        act₊vol₂₊ṁ ~ act₊vol₂₊port₊ṁ
+        act₊vol₂₊f ~ -act₊vol₂₊direction * act₊vol₂₊flange₊f
+        act₊vol₂₊ẋ ~ act₊vol₂₊direction * act₊vol₂₊flange₊ẋ
+        act₊vol₂₊r ~ act₊vol₂₊ρ₀ * (1 + act₊vol₂₊p / act₊vol₂₊β)
+        act₊vol₂₊ṁ ~ act₊vol₂₊A * act₊vol₂₊r * act₊vol₂₊ẋ + act₊vol₂₊A * act₊vol₂₊ṙ * act₊vol₂₊x
+        act₊vol₂₊f ~ act₊vol₂₊A * act₊vol₂₊p
         D(act₊mass₊x) ~ act₊mass₊ẋ
-        D(act₊mass₊ẋ) ~ ((-act₊vol₂₊A * act₊vol₂₊β * (act₊vol₂₊ρ₀ - act₊vol₂₊r)) / (act₊vol₂₊direction * act₊vol₂₊ρ₀) + (-act₊vol₁₊A * act₊vol₁₊β * (act₊vol₁₊ρ₀ - act₊vol₁₊r)) / (act₊vol₁₊direction * act₊vol₁₊ρ₀) - dmp₊c * act₊mass₊ẋ) / act₊mass₊m
-        0 ~ -src₊p′ + (-act₊vol₁₊β * (act₊vol₁₊ρ₀ - act₊vol₁₊r)) / act₊vol₁₊ρ₀ + 0.5res₁₊Cₒ * res₁₊ρ₀ * ((res₁₊ṁ / (res₁₊Aₒ * res₁₊ρ₀))^2)
-        0 ~ snk₊p′ + (act₊vol₂₊β * (act₊vol₂₊ρ₀ - act₊vol₂₊r)) / act₊vol₂₊ρ₀ + 0.5res₂₊Cₒ * res₂₊ρ₀ * ((res₂₊ṁ / (res₂₊Aₒ * res₂₊ρ₀))^2)
-        0 ~ -res₁₊ṁ + act₊vol₁₊A * act₊vol₁₊x * act₊vol₁₊ṙ + act₊vol₁₊A * act₊vol₁₊direction * act₊mass₊ẋ * act₊vol₁₊r
-        0 ~ res₂₊ṁ + act₊vol₂₊A * act₊vol₂₊ṙ * act₊vol₂₊x + act₊vol₂₊A * act₊vol₂₊direction * act₊mass₊ẋ * act₊vol₂₊r
+        D(act₊mass₊ẋ) ~ act₊mass₊ẍ
+        act₊mass₊f ~ act₊mass₊flange₊f
+        act₊mass₊ẋ ~ act₊mass₊flange₊ẋ
+        act₊mass₊m * act₊mass₊ẍ ~ act₊mass₊f
+        src₊port₊p ~ src₊p′
+        snk₊port₊p ~ snk₊p′
+        dmp₊flange₊f ~ dmp₊c * dmp₊flange₊ẋ
+        src₊port₊p ~ res₁₊port₁₊p
+        0 ~ res₁₊port₁₊ṁ + src₊port₊ṁ
+        res₁₊port₂₊p ~ act₊port₁₊p
+        0 ~ act₊port₁₊ṁ + res₁₊port₂₊ṁ
+        act₊port₂₊p ~ res₂₊port₁₊p
+        0 ~ act₊port₂₊ṁ + res₂₊port₁₊ṁ
+        res₂₊port₂₊p ~ snk₊port₊p
+        0 ~ res₂₊port₂₊ṁ + snk₊port₊ṁ
+        dmp₊flange₊ẋ ~ act₊flange₊ẋ
+        0 ~ act₊flange₊f + dmp₊flange₊f
+        act₊port₁₊p ~ act₊vol₁₊port₊p
+        0 ~ act₊vol₁₊port₊ṁ - act₊port₁₊ṁ
+        act₊port₂₊p ~ act₊vol₂₊port₊p
+        0 ~ -act₊port₂₊ṁ + act₊vol₂₊port₊ṁ
+        act₊vol₁₊flange₊ẋ ~ act₊vol₂₊flange₊ẋ
+        act₊vol₁₊flange₊ẋ ~ act₊mass₊flange₊ẋ
+        act₊vol₁₊flange₊ẋ ~ act₊flange₊ẋ
+        0 ~ act₊vol₁₊flange₊f - act₊flange₊f + act₊vol₂₊flange₊f + act₊mass₊flange₊f
     end
 end
 
 @mtkbuild sys = System()
-prob = ODEProblem(sys, [], (0, 1))
+prob = ODEProblem(sys, [], (0, 0.1))
 sol = solve(prob)
 ```
 
@@ -262,7 +349,7 @@ As can be seen, when attempting to solve we get an `Unstable` return code.  Let'
 First, let's check the initial conditions to see if at time 0 we are starting with zero residual for our algebraic equations.
 
 ```@example l6
-eqs = equations(sys)
+eqs = full_equations(sys)
 defs = ModelingToolkit.defaults(sys)
 residuals = Float64[]
 for eq in eqs
@@ -283,7 +370,6 @@ sol = solve(prob; initializealg=ShampineCollocationInit(dt))
 The `ShampineCollocationInit` solves the initial conditions by essentially taking a small step forward in time and then updating the initial condtions with that solve.  If this doesn't work, we can instead do this manually. 
 
 ```@example l6
-dt = 1e-7
 prob = ODEProblem(sys, [], (0, dt))
 sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); dt, adaptive=false)
 
@@ -305,8 +391,8 @@ Another strategy that can help is to offset any initial condtions from 0 by a sm
 Here we get a solve by increasing the `abstol` and `reltol` to very large values.  This is therefore understood to give us a very low resolution solution that is far from the true solution, but we can now at least see if the model is calculating generally correct values, at least with the correct sign.  Here we expect the `act₊mass₊ẋ` to be around -1 and that's exactly what we get.  
 
 ```@example l6
-prob = ODEProblem(sys, [], (0, 1))
-sol = solve(prob, ImplicitEuler(); abstol=10000, reltol=100.0, initializealg=NoInit())
+prob = ODEProblem(sys, [], (0, 0.1))
+sol = solve(prob, ImplicitEuler(); abstol=10000.0, reltol=100.0)
 plot(sol; idxs=sys.act₊mass₊ẋ)
 ```
 
@@ -315,22 +401,87 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 Another strategy similar to adjusting tolerance is to turn off adaptivity.  This means we can no longer gaurantee tolerance and arrive at the most efficient numerical solution, but we can at least adjust the time step such that it's small enough to give a good solution, but large enough so that a reasonable amount of steps are taken.
 
 ```@example l6
-prob = ODEProblem(sys, [], (0, 1))
-sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); initializealg=NoInit(), adaptive=false, dt=1e-4)
+prob = ODEProblem(sys, [], (0, 0.1))
+sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); initializealg=NoInit(), adaptive=false, dt=1e-6)
 plot(sol; idxs=sys.act₊mass₊ẋ)
 ```
 
+Note the use of keywords: 
+- `check_div=false` ensures the problem doesn't exit early because of divergence
+- `always_new=true` ensures Jacobian is always updated
+- `relax` for relaxation of Newton iterations
+- `max_iter` to ensure enough iterations are available
 
-- use a lower order solver
-- check_div=false
-- always_new=true
-- relaxation (increase, decrease)
-- tolerances (increase, decrease)
-- timestep (increase, decrease)
-- autodiff (true, false, analytical jacobian)
+**Jacobian generation**
+It's also helpful sometimes to play with the Jacobian.  There are 3 different ways to calculate the Jacobian from ModelingTookit:
+
+1. analytically, by using `jac=true` keyword given to `ODEProblem`
+2. automatically with automatic differentiation using `autodiff=true` given to the solver algorithms that use Jacobians
+3. automatically with finite differencing using `autodiff=false`
 
 ### 3. Experimental Strategies
+If all else fails, one concept that may work is to convert the DAE to an ODE by implementing a small epsilon term, converting the algebraic equaitons into differential equations related to the states lacking derivative terms.  The below function can create such a transformation.  
 
+```@example l6
+using Setfield
 
+function dae_to_ode(sys::ODESystem)
 
+    are_vars_equal(var1, var2) = string(var1) == string(var2)
+
+    defs = ModelingToolkit.defaults(sys)
+    pars = parameters(sys)
+    sts = states(sys)
+    eqs = equations(sys)
+    iv = ModelingToolkit.independent_variable(sys)   
+    D = Differential(iv)
+
+    diff_vars = []
+    for eq in eqs
+        eq_sts = []
+        ModelingToolkit.vars!(eq_sts, eq)
+        diffs = ModelingToolkit.isdifferential.(eq_sts) 
+        if any(diffs)
+            diff = eq_sts[diffs] |> first
+            diff_var = ModelingToolkit.arguments(diff) |> first
+            push!(diff_vars, diff_var)
+        end
+    end
+   
+    diffs = setdiff(sts, diff_vars)
+
+    @parameters ϵ
+    j = 1
+    neqs = Equation[]
+    for eq in eqs
+        if ModelingToolkit._iszero(eq.lhs)
+            push!(neqs, D(diffs[j]) ~ eq.rhs/ϵ)
+            j+=1
+        else
+            push!(neqs, eq)
+        end
+    end
+
+    @set! sys.eqs = neqs
+    @set! sys.ps = [ModelingToolkit.unwrap(ϵ); pars]
+    @set! sys.defaults = Dict(ϵ => -1e-12,  pairs(defs)...)
+
+    return sys
+end
+```
+
+Implementing this for the hydraulic system works well, giving an adaptive time solution using `Tsit5`
+
+```@example l6
+odesys = dae_to_ode(sys)
+prob = ODEProblem(odesys, [], (0,0.1))
+sol = solve(prob)
+plot(sol; idxs=sys.act₊mass₊ẋ)
+```
+
+Note this problem, as we've seen, has a lot of trouble with initialization.  Note how the first 200 steps are taken with a very small time step.  The `Tsit5` solver is able to successfully push through the model initialization and then solve the remaining time steps at a reasonable time step.  
+
+```@example l6
+plot(diff(sol.t))
+```
 

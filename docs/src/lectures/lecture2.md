@@ -119,7 +119,7 @@ where ``V`` is the cylinder volume ``=x \cdot A``
 **(2) Newton's law**:
 
 ```math
-M \cdot \ddot{x} = p*A - m*g
+M \cdot \ddot{x} = p \cdot A - m \cdot g
 ```
 
 **(3) Density equation**:
@@ -424,7 +424,7 @@ where
 
 ```math
 \begin{align}
-F_{viscous} = \frac{1}{2} \rho u^2 f \frac{L}{d_h}
+F_{viscous} = A \frac{1}{2} \rho u^2 f \frac{L}{d_h}
 \end{align}
 ```
 
