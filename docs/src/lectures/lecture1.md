@@ -1,4 +1,4 @@
-# Lecture 1: Introduction to acausal modeling for physical systems with ModelingToolkit.jl
+# Introduction to acausal modeling for physical systems with ModelingToolkit.jl
 
 ## Background
 ### Modeling Tools Reference
