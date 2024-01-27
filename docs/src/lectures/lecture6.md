@@ -45,7 +45,7 @@ nothing # hide
 
 When we view the `ODESystem` we can see it has matching equations and states
 
-```@repl
+```@repl l6
 pendulum
 ```
 
