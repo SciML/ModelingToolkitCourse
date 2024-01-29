@@ -8,6 +8,7 @@ pages = [
     "lectures/lecture3.md",
     "lectures/lecture6.md",
     "lectures/lecture7.md",
+    "lectures/lecture8.md",
 ]
 
 ENV["GKSwstype"] = "100"
