@@ -36,9 +36,11 @@
 
 Consider a nonlinear system represented by
 ```math
-f_1(v_1, v_3) = 0
-f_2(v_1, v_3) = 0
-f_3(v_1, v_2) = 0
+\begin{align}
+f_1(v_1, v_3) &= 0 \\
+f_2(v_1, v_3) &= 0 \\
+f_3(v_1, v_2) &= 0
+\end{align}
 ```
 The incidence matrix is
 ```math
