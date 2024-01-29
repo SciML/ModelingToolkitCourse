@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course</title><meta name="title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta property="og:title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta property="twitter:title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta name="description" content="Documentation for ModelingToolkit Course."/><meta property="og:description" content="Documentation for ModelingToolkit Course."/><meta property="twitter:description" content="Documentation for ModelingToolkit Course."/><meta property="og:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><meta property="twitter:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><link rel="canonical" href="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ModelingToolkit Course</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../syllabus/">Syllabus</a></li><li><a class="tocitem" href="../lecture1/">Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a></li><li><a class="tocitem" href="../lecture2/">Developing high-fidelity models of hydraulic systems</a></li><li><a class="tocitem" href="../lecture3/">Solvers for Non-Stiff Ordinary Differential Equations</a></li><li><a class="tocitem" href="../lecture4/">Numerical Methods for Stiff ODEs and Differential-Algebraic Equations</a></li><li><a class="tocitem" href="../lecture6/">Debugging difficult stiff ODE/DAE models</a></li><li class="is-active"><a class="tocitem" href>Lecture 7: Numerical and Structural Characterizations for DAEs</a><ul class="internal"><li><a class="tocitem" href="#Numerical-Integrability-Criterion-for-DAEs"><span>Numerical Integrability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Structural-Analysis"><span>Structural Analysis</span></a></li><li><a class="tocitem" href="#Structural-Integrability-Criterion-for-DAEs"><span>Structural Integrability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Consistency-Solvability-Criterion-for-DAEs"><span>Consistency Solvability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Pantelides-Algorithm"><span>Pantelides Algorithm</span></a></li><li><a class="tocitem" href="#Demo"><span>Demo</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Lecture 7: Numerical and Structural Characterizations for DAEs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lecture 7: Numerical and Structural Characterizations for DAEs</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse/blob/main/docs/src/lectures/lecture7.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs"><a class="docs-heading-anchor" href="#Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs">Lecture 7: Numerical and Structural Characterizations for DAEs</a><a id="Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs-1"></a><a class="docs-heading-anchor-permalink" href="#Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs" title="Permalink"></a></h1><p>Numerical solvers cannot solve all DAEs. Consider the DAE system</p><p class="math-container">\[F(\{x&#39;, y&#39;, z&#39;\}, \{x, y, z\}, t) = \begin{pmatrix}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course</title><meta name="title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta property="og:title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta property="twitter:title" content="Lecture 7: Numerical and Structural Characterizations for DAEs · ModelingToolkit Course"/><meta name="description" content="Documentation for ModelingToolkit Course."/><meta property="og:description" content="Documentation for ModelingToolkit Course."/><meta property="twitter:description" content="Documentation for ModelingToolkit Course."/><meta property="og:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><meta property="twitter:url" content="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><link rel="canonical" href="https://docs.sciml.ai/ModelingToolkitCourse/stable/lectures/lecture7/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ModelingToolkit Course</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../syllabus/">Syllabus</a></li><li><a class="tocitem" href="../lecture1/">Introduction to acausal modeling for physical systems with ModelingToolkit.jl</a></li><li><a class="tocitem" href="../lecture2/">Developing high-fidelity models of hydraulic systems</a></li><li><a class="tocitem" href="../lecture3/">Solvers for Non-Stiff Ordinary Differential Equations</a></li><li><a class="tocitem" href="../lecture4/">Numerical Methods for Stiff ODEs and Differential-Algebraic Equations</a></li><li><a class="tocitem" href="../lecture6/">Debugging difficult stiff ODE/DAE models</a></li><li class="is-active"><a class="tocitem" href>Lecture 7: Numerical and Structural Characterizations for DAEs</a><ul class="internal"><li><a class="tocitem" href="#Numerical-Integrability-Criterion-for-DAEs"><span>Numerical Integrability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Structural-Analysis"><span>Structural Analysis</span></a></li><li><a class="tocitem" href="#Structural-Integrability-Criterion-for-DAEs"><span>Structural Integrability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Consistency-Solvability-Criterion-for-DAEs"><span>Consistency Solvability Criterion for DAEs</span></a></li><li><a class="tocitem" href="#Pantelides-Algorithm"><span>Pantelides Algorithm</span></a></li></ul></li><li><a class="tocitem" href="../lecture8/">Tearing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Lecture 7: Numerical and Structural Characterizations for DAEs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lecture 7: Numerical and Structural Characterizations for DAEs</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/SciML/ModelingToolkitCourse/blob/main/docs/src/lectures/lecture7.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs"><a class="docs-heading-anchor" href="#Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs">Lecture 7: Numerical and Structural Characterizations for DAEs</a><a id="Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs-1"></a><a class="docs-heading-anchor-permalink" href="#Lecture-7:-Numerical-and-Structural-Characterizations-for-DAEs" title="Permalink"></a></h1><p>Numerical solvers cannot solve all DAEs. Consider the DAE system</p><p class="math-container">\[F(\{x&#39;, y&#39;, z&#39;\}, \{x, y, z\}, t) = \begin{pmatrix}
     x + y - \sin(t) \\
     z - \sin(t) \\
     z&#39; - \cos(t)
@@ -22,7 +22,7 @@ println(sol1.retcode, &quot;\t&quot;, sol2.retcode)</code></pre><pre class="docu
 
 ┌ Warning: Interrupted. Larger maxiters is needed. If you are using an integrator for non-stiff ODEs or an automatic switching algorithm (the default), you may want to consider using a method for stiff equations. See the solver pages for more details (e.g. https://docs.sciml.ai/DiffEqDocs/stable/solvers/ode_solve/#Stiff-Problems).
 └ @ SciMLBase ~/.julia/packages/SciMLBase/XxTxA/src/integrator_interface.jl:585
-Unstable	MaxIters</code></pre><p>As expected, numerical solvers exit early and they cannot take more than one step. We call such systems non-integrable or singular. Let&#39;s try to use ModelingToolkit to analyze this problem.</p><pre><code class="language-julia hljs">@variables t x(t) y(t) z(t)
+ConvergenceFailure	MaxIters</code></pre><p>As expected, numerical solvers exit early and they cannot take more than one step. We call such systems non-integrable or singular. Let&#39;s try to use ModelingToolkit to analyze this problem.</p><pre><code class="language-julia hljs">@variables t x(t) y(t) z(t)
 D = Differential(t)
 eqs = [
     x + y ~ sin(t)
@@ -117,7 +117,7 @@ sol2_diff = solve(prob, DFBDF())
 println(&quot;[sol1_diff: &quot;, sol1_diff.retcode, &quot;: y(100pi)=&quot;, sol1_diff[2, end], &quot; steps: &quot;, length(sol1_diff.t), &quot;]&quot;,
 &quot;\n&quot;, &quot;[sol2_diff &quot;, sol2_diff.retcode, &quot;: y(100pi)=&quot;, sol2_diff[2, end], &quot; steps: &quot;, length(sol2_diff.t), &quot;]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[sol1_diff: Success: y(100pi)=1.0000000000000002 steps: 1837]
 [sol2_diff Success: y(100pi)=1.0 steps: 1130]</code></pre><p>We can see that it takes far fewer iterations to solve the system, and the numerical solution is much closer to the analytical solution <span>$y(100\pi) = 1$</span>. If we check the residual of the original constraint, we get</p><pre><code class="language-julia hljs">plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = &quot;IDA&quot;)
-plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="7ddfab1a.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="dbda2eb9.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
 D = Differential(t)
 eqs = [
     x ~ sin(t)
@@ -303,117 +303,4 @@ f_2(x&#39;, y&#39;, t)
         var_eq_matching[var] = unassigned
     end
     return var_eq_matching
-end</code></pre><h2 id="Demo"><a class="docs-heading-anchor" href="#Demo">Demo</a><a id="Demo-1"></a><a class="docs-heading-anchor-permalink" href="#Demo" title="Permalink"></a></h2><pre><code class="language-julia hljs">using ModelingToolkit, OrdinaryDiffEq, LinearAlgebra
-import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
-import ModelingToolkitStandardLibrary.Blocks as B
-import ModelingToolkitStandardLibrary.Mechanical.Translational as T
-
-@parameters t
-D = Differential(t)
-
-function System(use_input, f; name)
-    @parameters t
-
-    pars = @parameters begin
-        p_s = 200e5
-        p_r = 5e5
-
-        A_1 = 360e-4
-        A_2 = 360e-4
-
-        p_1 = 45e5
-        p_2 = 45e5
-
-        l_1 = 0.01
-        l_2 = 0.05
-        m_f = 250
-        g = 0
-
-        d = 100e-3
-
-        Cd = 0.01
-
-        m_piston = 880
-    end
-
-    vars = @variables begin
-        ddx(t) = 0
-    end
-
-    systems = @named begin
-        src = IC.FixedPressure(; p = p_s)
-        valve = IC.SpoolValve2Way(; p_s_int = p_s, p_a_int = p_1, p_b_int = p_2,
-            p_r_int = p_r, g, m = m_f, x_int = 0, d, Cd)
-        piston = IC.Actuator(5;
-            p_a_int = p_1,
-            p_b_int = p_2,
-            area_a = A_1,
-            area_b = A_2,
-            length_a_int = l_1,
-            length_b_int = l_2,
-            m = m_piston,
-            g = 0,
-            x_int = 0,
-            minimum_volume_a = A_1 * 1e-3,
-            minimum_volume_b = A_2 * 1e-3,
-            damping_volume_a = A_1 * 5e-3,
-            damping_volume_b = A_2 * 5e-3)
-        body = T.Mass(; m = 1500)
-        pipe = IC.Tube(5; p_int = p_2, area = A_2, length = 2.0)
-        snk = IC.FixedPressure(; p = p_r)
-        pos = T.Position()
-
-        m1 = IC.FlowDivider(; p_int = p_2, n = 3)
-        m2 = IC.FlowDivider(; p_int = p_2, n = 3)
-
-        fluid = IC.HydraulicFluid()
-    end
-
-    if use_input
-        @named input = B.SampledData(Float64)
-    else
-        @named input = B.TimeVaryingFunction(f)
-    end
-
-    push!(systems, input)
-
-    eqs = [connect(input.output, pos.s)
-        connect(valve.flange, pos.flange)
-        connect(valve.port_a, piston.port_a)
-        connect(piston.flange, body.flange)
-        connect(piston.port_b, m1.port_a)
-        connect(m1.port_b, pipe.port_b)
-        connect(pipe.port_a, m2.port_b)
-        connect(m2.port_a, valve.port_b)
-        connect(src.port, valve.port_s)
-        connect(snk.port, valve.port_r)
-        connect(fluid, src.port, snk.port)
-        D(body.v) ~ ddx]
-
-    ODESystem(eqs, t, vars, pars; name, systems)
-end
-
-@named system = System(true, nothing)
-
-# sys = structural_simplify(system)
-using ModelingToolkit.StructuralTransformations, ModelingToolkit.BipartiteGraphs,
-    Graphs
-ts = TearingState(ModelingToolkit.expand_connections(system))
-m = BipartiteGraphs.maximal_matching(ts.structure.graph, _-&gt;true, x-&gt;ts.structure.var_to_diff[x] === nothing);
-count(x-&gt;x isa Int, m)
-count(x-&gt;x===nothing, ts.structure.eq_to_diff)
-ModelingToolkit.pantelides!(ts)
-m = BipartiteGraphs.maximal_matching(ts.structure.graph, x-&gt;ts.structure.eq_to_diff[x]===nothing, x-&gt;ts.structure.var_to_diff[x] === nothing);
-count(x-&gt;x isa Int, m)
-count(x-&gt;x===nothing, ts.structure.eq_to_diff)
-M = incidence_matrix(ts.structure.graph)
-A = M[Int[m[i] for i in eachindex(m) if m[i] isa Int], Int[i for i in eachindex(m) if m[i] isa Int]]
-all(isequal(1), diag(A))
-g = BipartiteGraphs.DiCMOBiGraph{true}(complete(ts.structure.graph), complete(m));
-scc = strongly_connected_components(g);
-M[Int[m[i] for i in reduce(vcat, scc) if m[i] isa Int], Int[i for i in reduce(vcat, scc) if m[i] isa Int]]
-for c in scc
-    length(c) &gt; 1 || continue
-    B = M[Int[m[i] for i in c if m[i] isa Int], Int[i for i in c if m[i] isa Int]]
-    display(B)
-end</code></pre><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 13:50">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><a class="docs-footer-nextpage" href="../lecture8/">Tearing »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Monday 29 January 2024 03:44">Monday 29 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
