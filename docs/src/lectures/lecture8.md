@@ -64,9 +64,11 @@ The permuted matrix is then
 ```
 The matching can be interpreted as a solvability assignment, i.e.
 ```math
-v_1 = \hat{f}_1(v_3)
-v_2 = \hat{f}_3(v_1)
-v_3 = \hat{f}_2(v_2)
+\begin{align}
+v_1 &= \hat{f}_1(v_3) \\
+v_2 &= \hat{f}_3(v_1) \\
+v_3 &= \hat{f}_2(v_2)
+\end{align}
 ```
 Even if all ``\{\hat{f}_i\}`` are symbolically solvable, the above assignment
 will not work because the interdependence of variables. The strongly connected
