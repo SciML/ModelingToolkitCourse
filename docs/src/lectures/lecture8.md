@@ -1,4 +1,387 @@
-# Tearing
+# Dummy Derivatives and Reordering of Equations
+
+Consider a single pendulum in the Cartesian coordinate
+```math
+\begin{align}
+&e_1: x'' - \lambda x = 0 \\
+&e_2: y'' - (\lambda y - g) = 0 \\
+&e_3: x^2 + y^2 - 1 = 0.
+\end{align}
+```
+Its incidence matrix with respect to the highest differentiated variables
+``\{x'', y'', \lambda\}`` is
+```math
+\begin{pmatrix}
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+0 & 0 & 0
+\end{pmatrix}
+```
+We can obtain a structurally non-singular incidence matrix if we were to
+differentiate the last equation two times and get:
+```math
+\begin{pmatrix}
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+1 & 1 & 0
+\end{pmatrix}
+```
+The perfect matching ``m`` can be ``1 \mapsto 1, 2 \mapsto 3, 3 \mapsto 2``.
+According to the perfect matching, we need to interchange the second and the
+third row of the incidence matrix to move all nonzero entries to the diagonal.
+```math
+\begin{pmatrix}
+1 & 0 & 1 \\
+1 & 1 & 0 \\
+0 & 1 & 1
+\end{pmatrix}
+```
+The matching also informs us that we can attempt to solve the highester order
+differentiated variables by the assignment
+```math
+\begin{align}
+&e_1: \lambda \mapsto x'' \\
+&e_3: x'' \mapsto y'' \\
+&e_2: y'' \mapsto \lambda
+\end{align}
+```
+Hence, we have the following dependency graph
+```mermaid
+flowchart LR
+    A(x'') --> B(λ)
+    C(y'') --> A
+    B --> C
+```
+Since all the variables are in one strongly connected component, unfortunately,
+we cannot break the nonlinear system into smaller subsystems. Let's implement
+the differentiated system and solve it numerically.
+```example l8
+using ModelingToolkit, OrdinaryDiffEq, Plots, LinearAlgebra
+
+function pend_manual(out, u, g, t)
+    ẋ, x, ẏ, y, λ = u
+    ẍ = out[1] = λ * x
+    out[2] = ẋ
+    ÿ = out[3] = λ * y - g
+    out[4] = ẏ
+    # x^2 + y^2 - 1
+    # x' x + y' y
+    # x'' x + x'^2 + y'' y + y'^2
+    out[5] = ẍ*x + ẋ^2 + ÿ*y + ẏ^2
+end
+fun = ODEFunction(pend_manual, mass_matrix = Diagonal([1, 1, 1, 1, 0]))
+prob = ODEProblem(fun, [0, 1, 0, 0, 0.0], (0, 500.0), 1)
+sol = solve(prob, Rodas5P())
+plot(sol.t, (@. sol[2, :]^2 + sol[4, :]^2), lab = "d0")
+```
+
+```example l8
+plot(sol.t, (@. sol[1, :] * sol[2, :] + sol[3, :] * sol[4, :]), lab = "d1")
+```
+Note that the original constraints are not satisified and, even worse, the
+residual drifts over time. Let's plot the pendulum in the Cartesian coordinate
+over time.
+```example l8
+plot(sol, idxs = (2, 4), lab = "pendulum", aspect_ratio = 1)
+```
+The drift causes the system to be completely unphysical.
+
+The issue stems from the fact that we are not explicitly enforcing length and
+momentum constraints in the differentiated DAE system. However, if we were to
+enforce the equations simultaneously
+```math
+\begin{align}
+&e_3: x^2 + y^2 - 1 &= 0 \\
+&e'_3: x' x + y' y &= 0 \\
+&e''_3: x'' x + x'^2 + y'' y + y'^2 &= 0
+\end{align}
+```
+We will get an under-determined system that is not numerically integrable.
+However, we only need to balance the number of highest order differentiated
+variables with the number of equations. We can demote highest order
+differentiated variables to algebraic variables to increase the number of
+highest order differentiated variables by ``1``. Also, since our objective it to
+increase the number of highest order differentiated variables by the number of
+differentiated equations introduced during index reduction, we can just focus on
+the incidence matrix ``\mathfrak{I}(F_d, \{z_i\})``, where ``F_d`` denotes
+differentiated equations. For the pendulum system, we have
+```math
+\mathfrak{I}(e''_3, \{x'', y'', \lambda\}) = \begin{pmatrix}
+1 & 1 & 0
+\end{pmatrix}.
+```
+Furthermore, we want the newly introduced algebraic variables to be solvable. By
+analyzing the incidence matrix, we can conclude that we can pick either ``x''``
+or ``y''``. Let's arbitrarily pick ``x''``, we have
+```math
+\mathfrak{I}(e''_3, \{x''\}) = \begin{pmatrix}
+1
+\end{pmatrix}
+```
+which is structurally nonsingular. After demoteing ``x''`` to an algebraic
+variable, the remaining highest order differentiated variable associated with
+``x`` is ``x'``. Thus, we need to pick a variable in
+```math
+\mathfrak{I}(e'_3, \{x'\}) = \begin{pmatrix}
+1
+\end{pmatrix}
+```
+so that the incidence matrix is structurally nonsingular. Trivially, we can just
+pick ``x'``. From the above process, we can demote ``x''\in \{u'_i\}`` and
+``x'\in \{u'_i\}`` to algebraic variables ``x_{dd}\in\{u_i\}`` and
+``x_d\in\{u_i\}``. We get the system
+```math
+\begin{align}
+&e_1: x_{dd} - \lambda x = 0 \\
+&e_2: y'' - (\lambda y - g) = 0 \\
+&e_3: x^2 + y^2 - 1 = 0 \\
+&e'_3: x_d x + y' y = 0 \\
+&e''_3: x_{dd} x + x_{d}^2 + y'' y + y'^2 = 0,
+\end{align}
+```
+with the corresponding incidence matrix
+```math
+\mathfrak{I}(F, \{x_{dd}, x_{d}, x, y'', \lambda\}) = \begin{pmatrix}
+1 & 0 & 1 & 0 & 1 \\
+0 & 0 & 0 & 1 & 1 \\
+0 & 0 & 1 & 0 & 0 \\
+0 & 1 & 1 & 0 & 0 \\
+1 & 1 & 1 & 1 & 0
+\end{pmatrix}
+```
+A perfect matching ``m`` for this system can be ``1\mapsto 5, 2\mapsto 4,
+3\mapsto 3, 4\mapsto 2, 5\mapsto 1``, i.e. we can reverse all rows to move all
+nonzeros to the diagonal
+```math
+\begin{pmatrix}
+1 & 1 & 1 & 0 & 0 \\
+0 & 1 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 1 & 1 \\
+1 & 0 & 1 & 0 & 1
+\end{pmatrix}.
+```
+Note that if we reorder the variables to ``\{x\}, \{x_{d}\}, \{y'', \lambda, x_{dd}\}``
+according to the matching, the equation order should be ``\{e_3, e'_3, e_2, e_1,
+e''_3\}`` the incidence matrix is then
+```math
+\begin{pmatrix}
+    1 & 0 & 0 & 0 & 0 \\
+    1 & 1 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 1 & 0 \\
+    1 & 0 & 0 & 1 & 1 \\
+    1 & 1 & 0 & 0 & 1
+\end{pmatrix}.
+```
+The reordered original system is then
+```math
+\begin{align}
+&e_3: x^2 + y^2 - 1 = 0 \\
+&e'_3: x_d x + y' y = 0 \\
+&e_2: y'' - (\lambda y - g) = 0 \\
+&e_1: x_{dd} - \lambda x = 0 \\
+&e''_3: x_{dd} x + x_{d}^2 + y'' y + y'^2 = 0,
+\end{align}
+```
+and applying the symbolic solving, we have
+```math
+\begin{align}
+&e_3: x^2 + y^2 - 1 = 0 \\
+&e'_3: x_d := -\frac{y' y}{x} \\
+&e_2: y'' = \lambda y - g\\
+&e_1: x_{dd} := \lambda x \\
+&e''_3: x_{dd} x + x_{d}^2 + y'' y + y'^2 = 0,
+\end{align}.
+```
+The above system is still second order, we can lower its order to one if we
+introduce a variable ``y' = v``, i.e.
+```math
+\begin{align}
+&e_0: y' = v \\
+&e_3: x^2 + y^2 - 1 = 0 \\
+&e'_3: x_d = -\frac{v y}{x} \\
+&e_2: v' = \lambda y - g\\
+&e_1: x_{dd} = \lambda x \\
+&e''_3: x_{dd} x + x_{d}^2 + v' y + v^2 = 0,
+\end{align}
+```
+Note that ``v'`` appears nonlinearly in ``e''_3``, so it is impossible to
+implement the above system in the mass matrix formulation ``Mu' = f(u, p, t)``.
+However, we can substitute ``e_2`` to ``e''_3`` to alleviate this problem. Let's
+implement this simplified system and solve it using a numerical solver.
+```example l8
+function pend_manual_2(out, u, g, t)
+    y, x, v, λ = u
+    out[1] = v
+    out[2] = x^2 + y^2 - 1
+    x_d = -v*y/x
+    v̇ = out[3] = λ * y - g
+    x_dd = λ * x
+    out[4] = x_dd * x + x_d^2 + v̇ * y + v^2
+end
+fun = ODEFunction(pend_manual, mass_matrix = Diagonal([1, 0, 1, 0]))
+prob = ODEProblem(fun, [0, 1, 0, 0.0], (0, 500.0), 1)
+sol = solve(prob, Rodas5P())
+plot(sol.t, (@. sol[1, :]^2 + sol[2, :]^2), lab = "d0", ylims = (0, 2))
+```
+```example l8
+plot(sol.t, (@. sol[2, :] * (-sol[3, :] * sol[1, :] / sol[2, :]) + sol[1, :] * sol[3, :]), lab = "d1", ylims = (-1, 1))
+```
+```example l8
+plot(sol, idxs = (2, 1), lab = "pendulum", aspect_ratio = 1)
+```
+Note that this formulation solves the drift problem. However, this time, the
+numerical solver terminates early at ``x = 0``. The root problem is that the
+true symbolic Jacobian is
+```math
+\mathfrak{J}(e''_3, \{x'', y'', \lambda\}) = \begin{pmatrix}
+x & y & 0
+\end{pmatrix},
+```
+and when ``x=0``, the sub-matrix that we selected will become numerically
+singular. Even if we initially pick ``y``, we would run into a similar problem
+when ``y=0``. Therefore, a globally valid state selection does not exist in this
+system. We can implement the same system in ModelingToolkit and see the same
+behavior.
+```example l8
+@parameters g
+@variables t x(t) y(t) [state_priority = 10] λ(t)
+D = Differential(t)
+eqs = [
+       D(D(x)) ~ λ * x
+       D(D(y)) ~ λ * y - g
+       x^2 + y^2 ~ 1
+      ]
+@named pend = ODESystem(eqs)
+pend = complete(pend)
+ss = structural_simplify(pend)
+prob_ir = ODEProblem(ss, [ModelingToolkit.missing_variable_defaults(ss); x => 1], (0.0, 25.0), [g => 1])
+sol = solve(prob_ir, Rodas5P())
+plot(sol, idxs = (x, y), lab = "pendulum", aspect_ratio = 1)
+```
+
+To have a globally valid state selection, we must pick the polar coordinate, and
+the system is then
+```math
+\begin{align}
+&e_1: x'' - \lambda x = 0 \\
+&e_2: y'' - (\lambda y - g) = 0 \\
+&e_3: x = \cos(\theta) \\
+&e_3: y = \sin(\theta).
+\end{align}
+```
+To save the hassle of running algorithms by hand, we can just implement the new
+system in ModelingToolkit.
+```example l8
+@parameters g
+@variables t x(t) y(t) λ(t) θ(t) [state_priority = 10] T(t) V(t) E(t)
+D = Differential(t)
+eqs = [
+       D(D(x)) ~ λ * x
+       D(D(y)) ~ λ * y - g
+       x ~ cos(θ)
+       y ~ sin(θ)
+       T ~ (D(x)^2 + D(y)^2) / 2
+       V ~ y * g
+       E ~ T + V
+      ]
+@named pend = ODESystem(eqs)
+pend = complete(pend)
+ss = structural_simplify(pend)
+prob_ir = ODEProblem(ss, ModelingToolkit.missing_variable_defaults(ss), (0.0, 25.0), [g => 1])
+sol = solve(prob_ir, Rodas5P())
+plot(sol, idxs = (x, y), lab = "pendulum", aspect_ratio = 1)
+```
+The trajectory looks perfect! For another sanity check, let's plot the energy
+variation of the system
+```example l8
+plot(sol, idxs = [E-sol[E, 1]])
+```
+Unfortunately, we see that the total energy is slowly increasing. This is
+because `Rodas5P` is not symplectic. A relatively straightforward compiler
+internal project is to lower second dynamical systems directly to a
+`SecondOrderODEProblem` so that users can use symplectic integrators from
+ModelingToolkit as well.
+
+### Bonus Demo
+
+```example l8
+@parameters g
+@variables t x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
+@variables T(t) V(t) lx2(t) ly2(t)
+D = Differential(t)
+eqs = [
+       D(D(x1)) ~ λ1 * x1 - λ2 * lx2
+       D(D(y1)) ~ λ1 * y1 - λ2 * ly2 - g
+       x1 ~ cos(θ1)
+       y1 ~ sin(θ1)
+       D(D(x2)) ~ λ2 * lx2
+       D(D(y2)) ~ λ2 * ly2 - g
+       lx2 ~ cos(θ2)
+       ly2 ~ sin(θ2)
+       x2 ~ lx2 + x1
+       y2 ~ ly2 + y1
+       T ~ (D(x1)^2 + D(y1)^2) / 2 + (D(x2)^2 + D(y2)^2) / 2
+       V ~ y1 * g + y2 * g
+      ]
+
+@named pend = ODESystem(eqs)
+pend = complete(pend)
+ss = structural_simplify(pend)
+prob_ir = ODEProblem(ss,
+                     [ModelingToolkit.missing_variable_defaults(ss); θ2=>1.4],
+                     (0.0, 25.0), [g => 1])
+sol = solve(prob_ir, Rodas5P(), reltol=1e-7, abstol=1e-9)
+plot(sol, idxs = (x1, y1))
+plot!(sol, idxs = (x2, y2), xlab = "x", ylab = "y", aspect_ratio=1, dpi=400)
+```
+
+```example l8
+plot(sol, idxs = [T+V-sol[T+V, 1]])
+```
+![](../img/double_pendulum.mp4)
+
+Plotting code:
+```julia
+nframes = ceil(Int, sol.t[end]*20)
+ts = range(0, sol.t[end], length=nframes)
+fps = 20
+loop_pend = let (x1s, y1s, x2s, y2s) = [Float64[] for _ in 1:4]
+    @time @animate for t in ts
+        @show t
+        nnn = sol(t, idxs=[x1, y1, x2, y2])
+        push!(x1s, nnn[1])
+        push!(y1s, nnn[2])
+        push!(x2s, nnn[3])
+        push!(y2s, nnn[4])
+        x1s = x1s[max(1, end-100):end]
+        y1s = y1s[max(1, end-100):end]
+        x2s = x2s[max(1, end-100):end]
+        y2s = y2s[max(1, end-100):end]
+        n = length(x1s)
+        plot([0, x1s[end]], [0, y1s[end]], linewidth = 3, color=:black)
+        plot!([x1s[end], x2s[end]], [y1s[end], y2s[end]], linewidth = 3, color=:black)
+        linewidth = 10
+        seriesalpha = 1
+        if n != 1
+            linewidth = range(0, linewidth, length = n)
+            seriesalpha = range(0, seriesalpha, length = n)
+        end
+        plot!(x1s, y1s; linewidth, seriesalpha)
+        linewidth = 10
+        if n != 1
+            linewidth = range(0, linewidth, length = n)
+        end
+        plot!(x2s, y2s; linewidth, seriesalpha,
+              dpi = 400, aspect_ratio = 1,
+              xlims = (-2.3, 2.3), ylims = (-2.3, 2.3),
+              axis=false, leg = false, grid=false)
+    end every 5
+end
+@time mp4(loop_pend, "double_pendulum.mp4"; fps)
+```
+
+### Details on Reordering
 
 !!! definition "Induced Directed Graphs"
 
@@ -98,7 +481,7 @@ granted by the following theorem.
     ```
     and edges
     ```math
-    E_c = \{(i, j): \exists i_e \in i, j_e \in j, i_e \ne j_e \land (i_e, j_e)
+    E_c = \{(i, j): \exists i_e \in i, j_e \in j, i \ne j \land (i_e, j_e)
     \in E\}.
     ```
 
@@ -236,5 +619,76 @@ for c in scc
     length(c) > 1 || continue
     B = M[Int[m[i] for i in c if m[i] isa Int], Int[i for i in c if m[i] isa Int]]
     display(B)
+end
+```
+
+```julia
+using ModelingToolkit, OrdinaryDiffEq, Plots
+
+@parameters g
+@variables t x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
+D = Differential(t)
+eqs = [
+       D(D(x1)) ~ λ1 * x1,
+       D(D(y1)) ~ λ1 * y1 - g,
+       x1 ~ cos(θ1),
+       y1 ~ sin(θ1),
+       D(D(x2)) ~ λ2 * x2,
+       D(D(y2)) ~ λ2 * y2 - g,
+       x2 ~ x1 + cos(θ2),
+       y2 ~ y1 + sin(θ2),
+      ]
+
+@named pend = ODESystem(eqs)
+pend = complete(pend)
+ss = structural_simplify(pend)
+prob_ir = ODEProblem(ss,
+    [
+     ModelingToolkit.missing_variable_defaults(ss);
+     θ1 => 0
+     θ2 => 0
+     D(θ1) => 0.0
+     D(θ2) => 0.0
+     λ1 => 0
+     λ2 => 0
+    ],
+    (0.0, 25.0), [g => 1])
+sol = solve(prob_ir, Rodas5P())
+plot(sol, idxs = (x1, y1))
+plot!(sol, idxs = (x2, y2), xlab = "x", ylab = "y", aspect_ratio=1, dpi=400)
+nframes = ceil(Int, sol.t[end]*20)
+ts = range(0, sol.t[end], length=nframes)
+fps = 20
+let (x1s, y1s, x2s, y2s) = [Float64[] for _ in 1:4]
+    loop_pend = @time @animate for t in ts
+        nnn = sol(t, idxs=[x1, y1, x2, y2])
+        push!(x1s, nnn[1])
+        push!(y1s, nnn[2])
+        push!(x2s, nnn[3])
+        push!(y2s, nnn[4])
+        x1s = x1s[max(1, end-100):end]
+        y1s = y1s[max(1, end-100):end]
+        x2s = x2s[max(1, end-100):end]
+        y2s = y2s[max(1, end-100):end]
+        n = length(x1s)
+        plot([0, x1s[end]], [0, y1s[end]], linewidth = 3, color=:black)
+        plot!([x1s[end], x2s[end]], [y1s[end], y2s[end]], linewidth = 3, color=:black)
+        linewidth = 10
+        seriesalpha = 1
+        if n != 1
+            linewidth = range(0, linewidth, length = n)
+            seriesalpha = range(0, seriesalpha, length = n)
+        end
+        plot!(x1s, y1s; linewidth, seriesalpha)
+        linewidth = 10
+        if n != 1
+            linewidth = range(0, linewidth, length = n)
+        end
+        plot!(x2s, y2s; linewidth, seriesalpha,
+              dpi = 400, aspect_ratio = 1,
+              xlims = (-2.3, 2.3), ylims = (-2.3, 1),
+              axis=false, leg = false, grid=false)
+    end every 5
+    @time mp4(loop_pend, "double_pendulum.mp4"; fps)
 end
 ```
