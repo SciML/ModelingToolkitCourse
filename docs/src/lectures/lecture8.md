@@ -36,7 +36,7 @@ third row of the incidence matrix to move all nonzero entries to the diagonal.
 0 & 1 & 1
 \end{pmatrix}
 ```
-The matching also informs us that we can attempt to solve the highester order
+The matching also informs us that we can attempt to solve the highest order
 differentiated variables by the assignment
 ```math
 \begin{align}
@@ -78,7 +78,7 @@ plot(sol.t, (@. sol[2, :]^2 + sol[4, :]^2), lab = "d0")
 ```@example l8
 plot(sol.t, (@. sol[1, :] * sol[2, :] + sol[3, :] * sol[4, :]), lab = "d1")
 ```
-Note that the original constraints are not satisified and, even worse, the
+Note that the original constraints are not satisfied and, even worse, the
 residual drifts over time. Let's plot the pendulum in the Cartesian coordinate
 over time.
 ```@example l8
