@@ -55,7 +55,7 @@ flowchart LR
 Since all the variables are in one strongly connected component, unfortunately,
 we cannot break the nonlinear system into smaller subsystems. Let's implement
 the differentiated system and solve it numerically.
-```example l8
+```@example l8
 using ModelingToolkit, OrdinaryDiffEq, Plots, LinearAlgebra
 
 function pend_manual(out, u, g, t)
@@ -75,13 +75,13 @@ sol = solve(prob, Rodas5P())
 plot(sol.t, (@. sol[2, :]^2 + sol[4, :]^2), lab = "d0")
 ```
 
-```example l8
+```@example l8
 plot(sol.t, (@. sol[1, :] * sol[2, :] + sol[3, :] * sol[4, :]), lab = "d1")
 ```
 Note that the original constraints are not satisified and, even worse, the
 residual drifts over time. Let's plot the pendulum in the Cartesian coordinate
 over time.
-```example l8
+```@example l8
 plot(sol, idxs = (2, 4), lab = "pendulum", aspect_ratio = 1)
 ```
 The drift causes the system to be completely unphysical.
@@ -209,7 +209,7 @@ Note that ``v'`` appears nonlinearly in ``e''_3``, so it is impossible to
 implement the above system in the mass matrix formulation ``Mu' = f(u, p, t)``.
 However, we can substitute ``e_2`` to ``e''_3`` to alleviate this problem. Let's
 implement this simplified system and solve it using a numerical solver.
-```example l8
+```@example l8
 function pend_manual_2(out, u, g, t)
     y, x, v, λ = u
     out[1] = v
@@ -224,10 +224,10 @@ prob = ODEProblem(fun, [0, 1, 0, 0.0], (0, 500.0), 1)
 sol = solve(prob, Rodas5P())
 plot(sol.t, (@. sol[1, :]^2 + sol[2, :]^2), lab = "d0", ylims = (0, 2))
 ```
-```example l8
+```@example l8
 plot(sol.t, (@. sol[2, :] * (-sol[3, :] * sol[1, :] / sol[2, :]) + sol[1, :] * sol[3, :]), lab = "d1", ylims = (-1, 1))
 ```
-```example l8
+```@example l8
 plot(sol, idxs = (2, 1), lab = "pendulum", aspect_ratio = 1)
 ```
 Note that this formulation solves the drift problem. However, this time, the
@@ -243,7 +243,7 @@ singular. Even if we initially pick ``y``, we would run into a similar problem
 when ``y=0``. Therefore, a globally valid state selection does not exist in this
 system. We can implement the same system in ModelingToolkit and see the same
 behavior.
-```example l8
+```@example l8
 @parameters g
 @variables t x(t) y(t) [state_priority = 10] λ(t)
 D = Differential(t)
@@ -272,7 +272,7 @@ the system is then
 ```
 To save the hassle of running algorithms by hand, we can just implement the new
 system in ModelingToolkit.
-```example l8
+```@example l8
 @parameters g
 @variables t x(t) y(t) λ(t) θ(t) [state_priority = 10] T(t) V(t) E(t)
 D = Differential(t)
@@ -294,7 +294,7 @@ plot(sol, idxs = (x, y), lab = "pendulum", aspect_ratio = 1)
 ```
 The trajectory looks perfect! For another sanity check, let's plot the energy
 variation of the system
-```example l8
+```@example l8
 plot(sol, idxs = [E-sol[E, 1]])
 ```
 Unfortunately, we see that the total energy is slowly increasing. This is
@@ -305,7 +305,7 @@ ModelingToolkit as well.
 
 ### Bonus Demo
 
-```example l8
+```@example l8
 @parameters g
 @variables t x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
 @variables T(t) V(t) lx2(t) ly2(t)
@@ -336,7 +336,7 @@ plot(sol, idxs = (x1, y1))
 plot!(sol, idxs = (x2, y2), xlab = "x", ylab = "y", aspect_ratio=1, dpi=400)
 ```
 
-```example l8
+```@example l8
 plot(sol, idxs = [T+V-sol[T+V, 1]])
 ```
 ![](../img/double_pendulum.mp4)
