@@ -219,7 +219,7 @@ function pend_manual_2(out, u, g, t)
     x_dd = λ * x
     out[4] = x_dd * x + x_d^2 + v̇ * y + v^2
 end
-fun = ODEFunction(pend_manual, mass_matrix = Diagonal([1, 0, 1, 0]))
+fun = ODEFunction(pend_manual_2, mass_matrix = Diagonal([1, 0, 1, 0]))
 prob = ODEProblem(fun, [0, 1, 0, 0.0], (0, 500.0), 1)
 sol = solve(prob, Rodas5P())
 plot(sol.t, (@. sol[1, :]^2 + sol[2, :]^2), lab = "d0", ylims = (0, 2))
@@ -301,7 +301,13 @@ Unfortunately, we see that the total energy is slowly increasing. This is
 because `Rodas5P` is not symplectic. A relatively straightforward compiler
 internal project is to lower second dynamical systems directly to a
 `SecondOrderODEProblem` so that users can use symplectic integrators from
-ModelingToolkit as well.
+ModelingToolkit as well. Finally, we note that a detail description of the
+balancing algorithm is available in the original dummy derivative paper
+[^Mattsson1993].
+
+[^Mattsson1993]: Mattsson, Sven Erik, and Gustaf Söderlind. "Index reduction in
+    differential-algebraic equations using dummy derivatives." SIAM Journal on
+    Scientific Computing 14.3 (1993): 677-692.
 
 ### Bonus Demo
 
