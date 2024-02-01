@@ -1,4 +1,4 @@
-# Lecture 7: Numerical and Structural Characterizations for DAEs
+# Numerical and Structural Characterizations for DAEs
 
 Numerical solvers cannot solve all DAEs. Consider the DAE system
 ```math
