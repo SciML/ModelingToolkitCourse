@@ -117,7 +117,7 @@ sol2_diff = solve(prob, DFBDF())
 println(&quot;[sol1_diff: &quot;, sol1_diff.retcode, &quot;: y(100pi)=&quot;, sol1_diff[2, end], &quot; steps: &quot;, length(sol1_diff.t), &quot;]&quot;,
 &quot;\n&quot;, &quot;[sol2_diff &quot;, sol2_diff.retcode, &quot;: y(100pi)=&quot;, sol2_diff[2, end], &quot; steps: &quot;, length(sol2_diff.t), &quot;]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[sol1_diff: Success: y(100pi)=1.0000000000000002 steps: 1837]
 [sol2_diff Success: y(100pi)=1.0 steps: 1130]</code></pre><p>We can see that it takes far fewer iterations to solve the system, and the numerical solution is much closer to the analytical solution <span>$y(100\pi) = 1$</span>. If we check the residual of the original constraint, we get</p><pre><code class="language-julia hljs">plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = &quot;IDA&quot;)
-plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="74c0de7e.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="09efd4bc.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables t x(t) y(t)
 D = Differential(t)
 eqs = [
     x ~ sin(t)
