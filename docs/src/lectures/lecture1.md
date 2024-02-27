@@ -218,19 +218,19 @@ Note the variables are defined as a function of the independent variable `t` and
 As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
 
 ```@example l1
-unknowns(sys)
+unknowns(odesys)
 ```
 
 Now we are solving for only `x(t)` with the equation:
 
 ```@example l1
-equations(sys)
+equations(odesys)
 ```
 
 This seems correct, but what is `ẋ(t)`?  This variable has been moved to the observables of the system, which are terms which can be computed algebraicly.
 
 ```@example l1
-observed(sys)
+observed(odesys)
 ```
 
 Notice how the 2nd derivative term `ẍ(t)` has been automatically determined from the symbolic derivative of `ẋ(t)`.
@@ -240,7 +240,7 @@ We can now assembly a problem and solve it.  The initial conditions do not need 
 ```@example l1
 u0 = [] # <-- used to override defaults of ODESystem variables
 p = [] # <-- used to override defaults of ODESystem parameters
-prob = ODEProblem(sys, u0, tspan, p)
+prob = ODEProblem(odesys, u0, tspan, p)
 sol = solve(prob; abstol=tol)
 plot(sol; idxs=ẍ, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 ```
