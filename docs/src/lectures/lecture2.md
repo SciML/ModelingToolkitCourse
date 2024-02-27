@@ -397,7 +397,7 @@ dm = sol_x[ṁ][1]
 prob = ODEProblem(odesys, [], (0, t_end))
 sol=solve(prob)
 
-plot(sol; idxs=sys.vol.x, linewidth=2)
+plot(sol; idxs=odesys.vol.x, linewidth=2)
 plot!(sol_x; idxs=x)
 ```
 

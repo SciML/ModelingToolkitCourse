@@ -490,7 +490,7 @@ nothing # hide
 
 Implementing this for the hydraulic system works well, giving an adaptive time solution using `Tsit5`
 
-```@example l6
+```julia
 odesys = dae_to_ode(sys)
 prob = ODEProblem(odesys, [], (0,0.1))
 sol = solve(prob)
@@ -499,7 +499,7 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 
 Note this problem, as we've seen, has a lot of trouble with initialization.  Note how the first 200 steps are taken with a very small time step.  The `Tsit5` solver is able to successfully push through the model initialization and then solve the remaining steps at a reasonable time step.  
 
-```@example l6
+```julia
 plot(diff(sol.t))
 ```
 

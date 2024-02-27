@@ -585,8 +585,7 @@ eqs = [
     m*ddx + d*dx + k*x ~ F
 ]
 @mtkbuild odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
-prob = ODEProblem(sys, [], (0,10))
+prob = ODEProblem(odesys, [], (0,10))
 sol = solve(prob)
 plot(sol)
 ```
