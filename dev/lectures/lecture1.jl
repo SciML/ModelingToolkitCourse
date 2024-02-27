@@ -149,15 +149,15 @@ plot!(sol′; idxs=3, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 # ---------------------------------
 
 using ModelingToolkit
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
+
 vars = @variables x(t)=0.0 ẋ(t)=F/d ẍ(t)=0.0
 eqs = [
     D(x) ~ ẋ
     D(ẋ) ~ ẍ
     d*ẋ + k*x^1.5 ~ F
 ]
-@named odesys = ODESystem(eqs, t, vars, [])
+@mtkbuild odesys = ODESystem(eqs, t, vars, [])
 sys = structural_simplify(odesys)
 prob = ODEProblem(sys, [], (0.0, 0.01))
 sol = solve(prob; abstol=tol)
@@ -498,16 +498,15 @@ plot!(iteration_number(errors_ie))
 
 using ModelingToolkit
 using DAE2AE
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
-@parameters t
-D = Differential(t)
 vars = @variables x(t)=0
 
 eqs =[
     D(x) ~ (F - k*x^1.5)/d
 ]
 
-@named odesys = ODESystem(eqs, t, vars, [])
+@mtkbuild odesys = ODESystem(eqs, t, vars, [])
 
 aesys = DAE2AE.dae_to_ae(odesys, Δt)
 sys = structural_simplify(aesys)
