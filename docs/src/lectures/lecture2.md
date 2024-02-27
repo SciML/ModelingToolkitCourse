@@ -157,9 +157,7 @@ using ModelingToolkit
 using DifferentialEquations
 using Symbolics
 using Plots
-
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 # parameters -------
 pars = @parameters begin
@@ -253,19 +251,18 @@ nothing # hide
 Now we have 3 sets of equations, let's construct the systems and solve.  If we start with case 3 with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
 
 ```@example l2
-@named odesys_x = ODESystem(eqs_x, t, vars, pars)
-sys_x = structural_simplify(odesys_x)
+@mtkbuild odesys_x = ODESystem(eqs_x, t, vars, pars)
 nothing # hide
 ```
 
 ```@repl l2
-sys_x
+odesys_x
 ```
 
 What this means is ModelingToolkit.jl has found that this model can be solved entirely analytically.  The full system of equations has been moved to what is called "observables", which can be obtained using the `observed()` function
 
 ```@repl l2
-observed(sys_x)
+observed(odesys_x)
 ```
 
 !!! note "dummy derivatives"
@@ -274,7 +271,7 @@ observed(sys_x)
 This system can still be "solved" using the same steps to generate an `ODESolution` which allows us to easily obtain any calculated observed state.
 
 ```@example l2
-prob_x = ODEProblem(sys_x, [], (0, t_end))
+prob_x = ODEProblem(odesys_x, [], (0, t_end))
 sol_x = solve(prob_x; saveat=time)
 plot(sol_x; idxs=ṁ)
 ```
@@ -282,20 +279,19 @@ plot(sol_x; idxs=ṁ)
 Now let's solve the other system and compare the results. 
 
 ```@example l2
-@named odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
-sys_ṁ1 = structural_simplify(odesys_ṁ1)
+@mtkbuild odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
 nothing # hide
 ```
 
 ```@repl l2
-sys_ṁ1
+odesys_ṁ1
 ```
 
 Notice that now, with a simple change of the system input variable, `structural_simplify()` outputs a system with 4 states to be solved.  We can find the initial conditions needed for these states from `sol_x` and solve.
 
 ```@example l2
-u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
-prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
+u0 = [sol_x[s][1] for s in unknowns(odesys_ṁ1)]
+prob_ṁ1 = ODEProblem(odesys_ṁ1, u0, (0, t_end))
 @time sol_ṁ1 = solve(prob_ṁ1);
 nothing # hide
 ```
@@ -310,9 +306,8 @@ plot!(sol_x; idxs=ṁ, label="solution")
 If we now solve for case 2, we can study the impact the compressibility derivation
 
 ```@example l2
-@named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
-sys_ṁ2 = structural_simplify(odesys_ṁ2)
-prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
+@mtkbuild odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
+prob_ṁ2 = ODEProblem(odesys_ṁ2, u0, (0, t_end))
 @time sol_ṁ2 = solve(prob_ṁ2);
 nothing # hide
 ```
@@ -397,14 +392,12 @@ dx = sol_x[ẋ][1]
 drho = sol_x[ṙ][1]
 dm = sol_x[ṁ][1]
 
-@named odesys = MassVolume(; dx, drho, dm)
+@mtkbuild odesys = MassVolume(; dx, drho, dm)
 
-sys = structural_simplify(odesys)
-
-prob = ODEProblem(sys, [], (0, t_end))
+prob = ODEProblem(odesys, [], (0, t_end))
 sol=solve(prob)
 
-plot(sol; idxs=sys.vol.x, linewidth=2)
+plot(sol; idxs=odesys.vol.x, linewidth=2)
 plot!(sol_x; idxs=x)
 ```
 

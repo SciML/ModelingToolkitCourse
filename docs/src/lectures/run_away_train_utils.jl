@@ -3,7 +3,7 @@ using Makie.GeometryBasics
 
 function plot_train(sol, sys, tx=0.0)
     tm = Observable(tx)
-    idx = Dict(reverse.(enumerate(states(sys))))
+    idx = Dict(reverse.(enumerate(unknowns(sys))))
 
     fig = Figure()
     a = Axis(fig[1,1], aspect=DataAspect(), )

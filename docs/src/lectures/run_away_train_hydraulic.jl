@@ -4,9 +4,7 @@ using ModelingToolkitStandardLibrary.Mechanical.Translational: MechanicalPort
 using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: Valve, DynamicVolume, HydraulicFluid, FixedPressure
 using ModelingToolkitStandardLibrary.Blocks: Constant
 using Plots
-
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 # NOTE: How Decouple works to provide discontinuous behavior
 @mtkmodel Decouple begin #Decouple(;k, d, v_a, v_b, x_a, x_b, f=0) | port_a, port_b

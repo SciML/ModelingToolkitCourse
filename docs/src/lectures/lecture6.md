@@ -16,8 +16,7 @@ It is not always the case, but for most models, the unsimplified system should g
 
 ```@example l6
 using ModelingToolkit, DifferentialEquations, Plots
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 pars = @parameters m = 1 g = 1 L = 1 Φ=0
 
@@ -62,7 +61,7 @@ The pendulum problem as described above is derived assuming the following:
 If we attempt to solve this system we can see that it only solves up to the point that `x` crosses 0.
 
 ```@example l6
-sys = structural_simplify(pendulum)
+sys = complete(structural_simplify(pendulum))
 prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 10))
 sol = solve(prob)# gives retcode: DtLessThanMin
 plot(sol; idxs=[x,y])
@@ -383,7 +382,7 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 As can be seen, now we have a successful solve.  We can see the change to the initial conditions is very minimal.  As can be seen, the solver needs the derivative terms to be offset by a small amount.
 
 ```@example l6
-println(join(["$s : $(round(x; digits=3)) -> $(round(y; digits=3))" for (s,x,y) in zip(states(sys), prob.u0, prob′.u0)],'\n'))
+println(join(["$s : $(round(x; digits=3)) -> $(round(y; digits=3))" for (s,x,y) in zip(unknowns(sys), prob.u0, prob′.u0)],'\n'))
 ```
 
 Another strategy that can help issues with initial conditions is to offset or perturb any initial conditions from 0 by a small value.  
@@ -449,7 +448,7 @@ function dae_to_ode(sys::ODESystem)
 
     defs = ModelingToolkit.defaults(sys)
     pars = parameters(sys)
-    sts = states(sys)
+    sts = unknowns(sys)
     eqs = equations(sys)
     iv = ModelingToolkit.independent_variable(sys)   
     D = Differential(iv)
@@ -491,7 +490,7 @@ nothing # hide
 
 Implementing this for the hydraulic system works well, giving an adaptive time solution using `Tsit5`
 
-```@example l6
+```julia
 odesys = dae_to_ode(sys)
 prob = ODEProblem(odesys, [], (0,0.1))
 sol = solve(prob)
@@ -500,7 +499,7 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 
 Note this problem, as we've seen, has a lot of trouble with initialization.  Note how the first 200 steps are taken with a very small time step.  The `Tsit5` solver is able to successfully push through the model initialization and then solve the remaining steps at a reasonable time step.  
 
-```@example l6
+```julia
 plot(diff(sol.t))
 ```
 

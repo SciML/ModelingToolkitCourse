@@ -185,8 +185,7 @@ ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic ind
 
 ```@example l1
 using ModelingToolkit
-@variables t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 nothing # hide
 ```
 
@@ -213,26 +212,25 @@ nothing # hide
 Note the variables are defined as a function of the independent variable `t` and given initial conditions which are captured in the variable `vars`.  The equations are then defined using the tilde `~` operator, which represents the equation equality.  This information is then fed to an `ODESystem` constructor and simplified using the `structural_simplify` function.  
 
 ```@example l1
-@named odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
+@mtkbuild odesys = ODESystem(eqs, t, vars, pars)
 ```
 
 As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
 
 ```@example l1
-states(sys)
+unknowns(odesys)
 ```
 
 Now we are solving for only `x(t)` with the equation:
 
 ```@example l1
-equations(sys)
+equations(odesys)
 ```
 
 This seems correct, but what is `ẋ(t)`?  This variable has been moved to the observables of the system, which are terms which can be computed algebraicly.
 
 ```@example l1
-observed(sys)
+observed(odesys)
 ```
 
 Notice how the 2nd derivative term `ẍ(t)` has been automatically determined from the symbolic derivative of `ẋ(t)`.
@@ -242,7 +240,7 @@ We can now assembly a problem and solve it.  The initial conditions do not need 
 ```@example l1
 u0 = [] # <-- used to override defaults of ODESystem variables
 p = [] # <-- used to override defaults of ODESystem parameters
-prob = ODEProblem(sys, u0, tspan, p)
+prob = ODEProblem(odesys, u0, tspan, p)
 sol = solve(prob; abstol=tol)
 plot(sol; idxs=ẍ, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 ```
@@ -586,9 +584,8 @@ eqs = [
     D(dx) ~ ddx
     m*ddx + d*dx + k*x ~ F
 ]
-@named odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
-prob = ODEProblem(sys, [], (0,10))
+@mtkbuild odesys = ODESystem(eqs, t, vars, pars)
+prob = ODEProblem(odesys, [], (0,10))
 sol = solve(prob)
 plot(sol)
 ```
