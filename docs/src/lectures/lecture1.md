@@ -218,7 +218,7 @@ Note the variables are defined as a function of the independent variable `t` and
 As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
 
 ```@example l1
-states(sys)
+unknowns(sys)
 ```
 
 Now we are solving for only `x(t)` with the equation:

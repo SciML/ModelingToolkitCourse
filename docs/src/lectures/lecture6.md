@@ -382,7 +382,7 @@ plot(sol; idxs=sys.act₊mass₊ẋ)
 As can be seen, now we have a successful solve.  We can see the change to the initial conditions is very minimal.  As can be seen, the solver needs the derivative terms to be offset by a small amount.
 
 ```@example l6
-println(join(["$s : $(round(x; digits=3)) -> $(round(y; digits=3))" for (s,x,y) in zip(states(sys), prob.u0, prob′.u0)],'\n'))
+println(join(["$s : $(round(x; digits=3)) -> $(round(y; digits=3))" for (s,x,y) in zip(unknowns(sys), prob.u0, prob′.u0)],'\n'))
 ```
 
 Another strategy that can help issues with initial conditions is to offset or perturb any initial conditions from 0 by a small value.  
@@ -448,7 +448,7 @@ function dae_to_ode(sys::ODESystem)
 
     defs = ModelingToolkit.defaults(sys)
     pars = parameters(sys)
-    sts = states(sys)
+    sts = unknowns(sys)
     eqs = equations(sys)
     iv = ModelingToolkit.independent_variable(sys)   
     D = Differential(iv)

@@ -70,7 +70,7 @@ prob_x = ODEProblem(sys_x, [], (0, t_end))
 sol_x = solve(prob_x; saveat=time)
 
 @mtkbuild odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
-u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
+u0 = [sol_x[s][1] for s in unknowns(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
 sol_ṁ1 = solve(prob_ṁ1)
 

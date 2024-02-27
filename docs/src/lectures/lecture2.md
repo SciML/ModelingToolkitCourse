@@ -290,7 +290,7 @@ sys_ṁ1
 Notice that now, with a simple change of the system input variable, `structural_simplify()` outputs a system with 4 states to be solved.  We can find the initial conditions needed for these states from `sol_x` and solve.
 
 ```@example l2
-u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
+u0 = [sol_x[s][1] for s in unknowns(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
 @time sol_ṁ1 = solve(prob_ṁ1);
 nothing # hide
