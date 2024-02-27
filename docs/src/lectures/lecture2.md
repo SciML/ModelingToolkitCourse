@@ -157,9 +157,7 @@ using ModelingToolkit
 using DifferentialEquations
 using Symbolics
 using Plots
-
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 # parameters -------
 pars = @parameters begin
@@ -253,8 +251,7 @@ nothing # hide
 Now we have 3 sets of equations, let's construct the systems and solve.  If we start with case 3 with the target ``x`` input, notice that the `structural_simplify` step outputs a system with 0 equations!
 
 ```@example l2
-@named odesys_x = ODESystem(eqs_x, t, vars, pars)
-sys_x = structural_simplify(odesys_x)
+@mtkbuild odesys_x = ODESystem(eqs_x, t, vars, pars)
 nothing # hide
 ```
 
@@ -282,8 +279,7 @@ plot(sol_x; idxs=ṁ)
 Now let's solve the other system and compare the results. 
 
 ```@example l2
-@named odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
-sys_ṁ1 = structural_simplify(odesys_ṁ1)
+@mtkbuild odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
 nothing # hide
 ```
 
@@ -310,8 +306,7 @@ plot!(sol_x; idxs=ṁ, label="solution")
 If we now solve for case 2, we can study the impact the compressibility derivation
 
 ```@example l2
-@named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
-sys_ṁ2 = structural_simplify(odesys_ṁ2)
+@mtkbuild odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
 prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
 @time sol_ṁ2 = solve(prob_ṁ2);
 nothing # hide

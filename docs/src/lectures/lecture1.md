@@ -185,8 +185,7 @@ ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic ind
 
 ```@example l1
 using ModelingToolkit
-@variables t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 nothing # hide
 ```
 
@@ -213,8 +212,7 @@ nothing # hide
 Note the variables are defined as a function of the independent variable `t` and given initial conditions which are captured in the variable `vars`.  The equations are then defined using the tilde `~` operator, which represents the equation equality.  This information is then fed to an `ODESystem` constructor and simplified using the `structural_simplify` function.  
 
 ```@example l1
-@named odesys = ODESystem(eqs, t, vars, pars)
-sys = structural_simplify(odesys)
+@mtkbuild odesys = ODESystem(eqs, t, vars, pars)
 ```
 
 As can be seen, the 3 equation system is simplified down to 1 equation.  To see the solved states and equations we can use the respective functions
@@ -586,7 +584,7 @@ eqs = [
     D(dx) ~ ddx
     m*ddx + d*dx + k*x ~ F
 ]
-@named odesys = ODESystem(eqs, t, vars, pars)
+@mtkbuild odesys = ODESystem(eqs, t, vars, pars)
 sys = structural_simplify(odesys)
 prob = ODEProblem(sys, [], (0,10))
 sol = solve(prob)

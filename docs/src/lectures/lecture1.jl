@@ -157,7 +157,7 @@ eqs = [
     D(ẋ) ~ ẍ
     d*ẋ + k*x^1.5 ~ F
 ]
-@named odesys = ODESystem(eqs, t, vars, [])
+@mtkbuild odesys = ODESystem(eqs, t, vars, [])
 sys = structural_simplify(odesys)
 prob = ODEProblem(sys, [], (0.0, 0.01))
 sol = solve(prob; abstol=tol)
@@ -507,7 +507,7 @@ eqs =[
     D(x) ~ (F - k*x^1.5)/d
 ]
 
-@named odesys = ODESystem(eqs, t, vars, [])
+@mtkbuild odesys = ODESystem(eqs, t, vars, [])
 
 aesys = DAE2AE.dae_to_ae(odesys, Δt)
 sys = structural_simplify(aesys)

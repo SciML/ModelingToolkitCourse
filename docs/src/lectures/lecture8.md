@@ -57,6 +57,7 @@ we cannot break the nonlinear system into smaller subsystems. Let's implement
 the differentiated system and solve it numerically.
 ```@example l8
 using ModelingToolkit, OrdinaryDiffEq, Plots, LinearAlgebra
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 function pend_manual(out, u, g, t)
     ẋ, x, ẏ, y, λ = u
@@ -245,14 +246,14 @@ system. We can implement the same system in ModelingToolkit and see the same
 behavior.
 ```@example l8
 @parameters g
-@variables t x(t) y(t) [state_priority = 10] λ(t)
-D = Differential(t)
+@variables x(t) y(t) [state_priority = 10] λ(t)
+
 eqs = [
        D(D(x)) ~ λ * x
        D(D(y)) ~ λ * y - g
        x^2 + y^2 ~ 1
       ]
-@named pend = ODESystem(eqs)
+@named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
 prob_ir = ODEProblem(ss, [ModelingToolkit.missing_variable_defaults(ss); x => 1], (0.0, 25.0), [g => 1])
@@ -274,8 +275,7 @@ To save the hassle of running algorithms by hand, we can just implement the new
 system in ModelingToolkit.
 ```@example l8
 @parameters g
-@variables t x(t) y(t) λ(t) θ(t) [state_priority = 10] T(t) V(t) E(t)
-D = Differential(t)
+@variables x(t) y(t) λ(t) θ(t) [state_priority = 10] T(t) V(t) E(t)
 eqs = [
        D(D(x)) ~ λ * x
        D(D(y)) ~ λ * y - g
@@ -285,7 +285,7 @@ eqs = [
        V ~ y * g
        E ~ T + V
       ]
-@named pend = ODESystem(eqs)
+@named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
 prob_ir = ODEProblem(ss, ModelingToolkit.missing_variable_defaults(ss), (0.0, 25.0), [g => 1])
@@ -313,9 +313,8 @@ balancing algorithm is available in the original dummy derivative paper
 
 ```@example l8
 @parameters g
-@variables t x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
+@variables x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
 @variables T(t) V(t) lx2(t) ly2(t)
-D = Differential(t)
 eqs = [
        D(D(x1)) ~ λ1 * x1 - λ2 * lx2
        D(D(y1)) ~ λ1 * y1 - λ2 * ly2 - g
@@ -331,7 +330,7 @@ eqs = [
        V ~ y1 * g + y2 * g
       ]
 
-@named pend = ODESystem(eqs)
+@named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
 prob_ir = ODEProblem(ss,
@@ -516,9 +515,7 @@ using ModelingToolkit, OrdinaryDiffEq, LinearAlgebra
 import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
 import ModelingToolkitStandardLibrary.Blocks as B
 import ModelingToolkitStandardLibrary.Mechanical.Translational as T
-
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 function System(use_input, f; name)
     @parameters t
@@ -630,10 +627,10 @@ end
 
 ```julia
 using ModelingToolkit, OrdinaryDiffEq, Plots
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 @parameters g
-@variables t x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
-D = Differential(t)
+@variables x1(t) x2(t) y1(t) y2(t) λ1(t) λ2(t) θ1(t) [state_priority = 10] θ2(t) [state_priority = 10]
 eqs = [
        D(D(x1)) ~ λ1 * x1,
        D(D(y1)) ~ λ1 * y1 - g,
@@ -645,7 +642,7 @@ eqs = [
        y2 ~ y1 + sin(θ2),
       ]
 
-@named pend = ODESystem(eqs)
+@named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
 prob_ir = ODEProblem(ss,

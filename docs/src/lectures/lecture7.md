@@ -13,6 +13,7 @@ are not enough constraints to uniquely determine ``x`` and ``y``. Let's see how
 numerical solvers and ModelingToolkit behave.
 ```@example l7
 using DifferentialEquations, Sundials, ModelingToolkit, Plots, LinearAlgebra
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 function f!(out, du, u, p, t)
     # u[1]: x, du[1]: x'
@@ -32,8 +33,8 @@ step. We call such systems non-integrable or singular. Let's try to use
 ModelingToolkit to analyze this problem.
 
 ```@example l7
-@variables t x(t) y(t) z(t)
-D = Differential(t)
+@variables x(t) y(t) z(t)
+
 eqs = [
     x + y ~ sin(t)
     z ~ sin(t)

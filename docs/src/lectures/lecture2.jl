@@ -67,13 +67,11 @@ eqs_x = [
     x ~ x_fun(t,amp,f)
 ]
 
-@named odesys_x = ODESystem(eqs_x, t, vars, pars)
-sys_x = structural_simplify(odesys_x)
+@mtkbuild odesys_x = ODESystem(eqs_x, t, vars, pars)
 prob_x = ODEProblem(sys_x, [], (0, t_end))
 sol_x = solve(prob_x; saveat=time)
 
-@named odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
-sys_ṁ1 = structural_simplify(odesys_ṁ1)
+@mtkbuild odesys_ṁ1 = ODESystem(eqs_ṁ1, t, vars, pars)
 u0 = [sol_x[s][1] for s in states(sys_ṁ1)]
 prob_ṁ1 = ODEProblem(sys_ṁ1, u0, (0, t_end))
 sol_ṁ1 = solve(prob_ṁ1)
@@ -81,8 +79,7 @@ sol_ṁ1 = solve(prob_ṁ1)
 plot(sol_ṁ1; idxs=ṁ, label="guess", ylabel="ṁ")
 plot!(sol_x; idxs=ṁ, label="solution")
 
-@named odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
-sys_ṁ2 = structural_simplify(odesys_ṁ2)
+@mtkbuild odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
 prob_ṁ2 = ODEProblem(sys_ṁ2, u0, (0, t_end))
 sol_ṁ2 = solve(prob_ṁ2)
 

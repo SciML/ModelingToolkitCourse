@@ -62,7 +62,7 @@ The pendulum problem as described above is derived assuming the following:
 If we attempt to solve this system we can see that it only solves up to the point that `x` crosses 0.
 
 ```@example l6
-sys = structural_simplify(pendulum)
+sys = complete(structural_simplify(pendulum))
 prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 10))
 sol = solve(prob)# gives retcode: DtLessThanMin
 plot(sol; idxs=[x,y])
