@@ -16,8 +16,7 @@ It is not always the case, but for most models, the unsimplified system should g
 
 ```@example l6
 using ModelingToolkit, DifferentialEquations, Plots
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 pars = @parameters m = 1 g = 1 L = 1 Φ=0
 

@@ -143,8 +143,7 @@ We see a significant numerical drift from the original constraint for both DAE
 solvers. Again, let's see how ModelingToolkit does.
 
 ```@example l7
-@variables t x(t) y(t)
-D = Differential(t)
+@variables x(t) y(t)
 eqs = [
     x ~ sin(t)
     D(x) ~ y

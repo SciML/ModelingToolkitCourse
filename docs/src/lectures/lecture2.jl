@@ -2,9 +2,7 @@ using ModelingToolkit
 using DifferentialEquations
 using Symbolics
 using Plots
-
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
 # parameters -------
 pars = @parameters begin

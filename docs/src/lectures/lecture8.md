@@ -518,7 +518,6 @@ import ModelingToolkitStandardLibrary.Mechanical.Translational as T
 using ModelingToolkit: t_nounits as t, D_nounits as D
 
 function System(use_input, f; name)
-    @parameters t
 
     pars = @parameters begin
         p_s = 200e5

@@ -149,8 +149,8 @@ plot!(sol′; idxs=3, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 # ---------------------------------
 
 using ModelingToolkit
-@parameters t
-D = Differential(t)
+using ModelingToolkit: t_nounits as t, D_nounits as D
+
 vars = @variables x(t)=0.0 ẋ(t)=F/d ẍ(t)=0.0
 eqs = [
     D(x) ~ ẋ
@@ -498,9 +498,8 @@ plot!(iteration_number(errors_ie))
 
 using ModelingToolkit
 using DAE2AE
+using ModelingToolkit: t_nounits as t, D_nounits as D
 
-@parameters t
-D = Differential(t)
 vars = @variables x(t)=0
 
 eqs =[
