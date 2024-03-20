@@ -292,7 +292,7 @@ Notice that now, with a simple change of the system input variable, `structural_
 ```@example l2
 u0 = [sol_x[s][1] for s in unknowns(odesys_ṁ1)]
 prob_ṁ1 = ODEProblem(odesys_ṁ1, u0, (0, t_end))
-@time sol_ṁ1 = solve(prob_ṁ1);
+@time sol_ṁ1 = solve(prob_ṁ1; initializealg=NoInit());
 nothing # hide
 ```
 
@@ -308,7 +308,7 @@ If we now solve for case 2, we can study the impact the compressibility derivati
 ```@example l2
 @mtkbuild odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
 prob_ṁ2 = ODEProblem(odesys_ṁ2, u0, (0, t_end))
-@time sol_ṁ2 = solve(prob_ṁ2);
+@time sol_ṁ2 = solve(prob_ṁ2; initializealg=NoInit());
 nothing # hide
 ```
 
