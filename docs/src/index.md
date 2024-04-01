@@ -1,4 +1,4 @@
-# ModelingToolkitCourse
+# ModelingToolkit Course: Composable System Modeling and Its Compilation
 
 ## 18.S191 Special Subject in Mathematics: Composable System Modeling and Its Compilation
 
