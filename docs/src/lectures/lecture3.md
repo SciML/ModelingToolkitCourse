@@ -13,7 +13,7 @@ u' = f(u,p,t)
 where ``u(t_0) = u_0`` is known, to solve this equation on a time span from ``t \in [t_0, t_f]`` is known as the Initial Value Problem (IVP). The most basic method for handling this type of equation is known as Euler's method, which is given by the linear approximation of the derivative. Let ``u_n`` be the numerical approximation to ``u(t_0 + nh)`` at time ``t_n = t_0 + nh`` where ``h`` is the time discretization size, then can approximate via a Taylor Series expansion:
 
 ```math
-u(t+(n+1)h) = u(t+nh) + h u'(t+nh) + \frac{1}{2}h^2 u''(t) + \mathcal{O}(h^3)
+u(t+(n+1)h) = u(t+nh) + h u'(t+nh) + \frac{1}{2}h^2 u''(t+nh) + \mathcal{O}(h^3)
 ```
 
 which motivates the approximation by dropping the higher order terms:
@@ -65,10 +65,10 @@ LTE = u(t+(n+1)h) - u_{n+1}
 LTE = (u(t+nh) + h u'(t+nh) + \mathcal{O}(h^2)) - (u_n + h f(u_n,p,t_n))
 ```
 ```math
-LTE = (u(t+nh) + h u'(t+nh) + \frac{1}{2}h^2 u''(t) + \mathcal{O}(h^3)) - (u(t+nh) + h u'(t+nh))
+LTE = (u(t+nh) + h u'(t+nh) + \frac{1}{2}h^2 u''(t+nh) + \mathcal{O}(h^3)) - (u(t+nh) + h u'(t+nh))
 ```
 ```math
-LTE = \frac{1}{2}h^2 u''(t) + \mathcal{O}(h^3)
+LTE = \frac{1}{2}h^2 u''(t+nh) + \mathcal{O}(h^3)
 ```
 
 ### Global Truncation Error in Euler's Method
