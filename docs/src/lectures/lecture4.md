@@ -468,7 +468,7 @@ This form is slightly more general since one can consider the mass matrix form a
 that $f(u',u,t)$ has a linear partial derivative with respect to the ``u'`` term, with $-M$
 being that derivative. Thus it allows for example ``u_1'^2``.
 
-Though note that this the mass matrix and the implicit ODE definitions are not a substantial
+Though note that the mass matrix and the implicit ODE definitions are not a substantial
 difference as via a variable definition ``u_i = u_1^3`` and other tricks you can rewrite a
 term with nonlinear derivatives into one with linear derivative relationships, and thus
 arrive at a mass matrix form (with a larger set of equations). The semi-explicit ODE however
