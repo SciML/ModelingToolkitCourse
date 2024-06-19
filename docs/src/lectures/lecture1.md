@@ -384,11 +384,17 @@ Now the `Mass` and `Damper` components can be assembled in a system and connecte
 end
 
 @mtkbuild sys = System(;v=100, m=5, d=3)
+nothing # hide
+```
+
+![mass-damper](../img/System1.png)
+
+Here we arrive at the following equations
+```@example l1 
 full_equations(sys)
 ```
 
 As can be seen we arrive at the same equation as derived previously.  Now it would be easy to define a system that adds a spring, or has a series of connected masses, springs, dampers, etc.  
-
 
 The `Damper` component created previously was a little incomplete because it only had one port.  In reality a damper or spring will be connected between 2 objects, for example the car frame and the wheel.  Therefore a proper component will define 2 ports so that the component can be as analogous with real life as possible.  In the example below the component is defined properly with 2 ports.  Note the velocity of the component `v` is defined as a relative velocity between the 2 ports.  It's easy to understand how this works if it's assumed that `port_b` is connected to a stationary reference frame.
 
@@ -550,6 +556,13 @@ Now let's assemble a *mass-spring-damper* system with the full collection of com
 end
 
 @mtkbuild sys = System()
+```
+
+![mass-spring-damper](../img/System2.png)
+
+Solving the system gives a plot of the 2 solved uknowns.
+
+```@example l1 
 prob = ODEProblem(sys, [], (0, 10))
 sol = solve(prob)
 plot(sol)
@@ -620,6 +633,8 @@ end
 nothing # hide
 ```
 
+![MassSpringDamper component](../img/MassSpringDamper.png)
+
 As an example, the `MassSpringDamper` component can be connected in series to make a complex system.  One can imagine then how this enables easy construction of complex models that can be quickly modified, extremely useful for the application of model based design.  
 
 ```@example l1
@@ -644,6 +659,14 @@ As an example, the `MassSpringDamper` component can be connected in series to ma
 end
 
 @mtkbuild sys = System()
+nothing #hide
+```
+
+![Composite System](../img/System3.png)
+
+Solving this complex system gives
+
+```@example l1
 prob = ODEProblem(sys, [], (0, 2))
 sol = solve(prob)
 plot(sol; idxs=[sys.msd1.spring.x, sys.msd2.spring.x, sys.msd3.spring.x])

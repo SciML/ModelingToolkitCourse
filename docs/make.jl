@@ -1,4 +1,5 @@
 using Documenter, ModelingToolkitCourse
+# NOTE: OrdinaryDiffEq limited to v6.74.1 because of bug https://github.com/SciML/OrdinaryDiffEq.jl/issues/2250
 
 pages = [
     "Home" => "index.md",
@@ -25,6 +26,11 @@ makedocs(sitename = "ModelingToolkit Course",
     format = Documenter.HTML(assets = ["assets/favicon.ico"],
         canonical = "https://docs.sciml.ai/ModelingToolkitCourse/stable/"),
     pages = pages)
+
+#= 
+using LiveServer
+serve(dir="build")
+=#
 
 deploydocs(repo = "github.com/SciML/ModelingToolkitCourse.git";
     push_preview = true)
