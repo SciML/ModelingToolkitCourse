@@ -149,18 +149,18 @@ time step.
 ![](../img/numerical_stiffness_effect.png)
 
 In this illustrative plot, the grey is "the true solution". The representative solution
-has a fast process and a slow process, the slow precess is an r-shaped curve. The fast
-process is a quasi-steady state process, i.e. it very quickly brings any purturbation from
-the r-shaped curve back to the main curve (and example of this is the ``y_2`` term in the
+has a fast process and a slow process, the slow process is an r-shaped curve. The fast
+process is a quasi-steady state process, i.e. it very quickly brings any perturbation from
+the r-shaped curve back to the main curve (an example of this is the ``y_2`` term in the
 Robertson equation below). The black line up top is a **numerical solution** with an
-explicit method on such an equation. It's show how for a "reasonable" sized ``h`` that the
+explicit method on such an equation. It's shown how for a "reasonable" sized ``h`` that the
 large derivatives of the fast process back to the stable manifold cause explicit methods
 to overshoot the manifold, thus requiring the ``h`` to be small enough to "not overshoot
 too much", with this overshooting resulting in a jagged behavior.
 
 This overshooting is exactly the behavior that causes a step size limitation, thus forcing
 ``h`` to be sufficiently small when there is such time-scale separation, and thus simulations
-of the long-scale phonomena require time steps on the scale of the short-scale phonomena.
+of the long-scale phenomena require time steps on the scale of the short-scale phenomena.
 If those two time-scales are orders of magnitude different, then accurately handling this
 type of equations thus requires orders of magnitude more time steps, leading to the
 inefficiency of explicit methods.
@@ -383,7 +383,7 @@ iterations is because the time scale separation increased, and therefore the `dt
 for stability decreased, and therefore it started requiring too many steps (default
 1e5) in order to solve the equation.
 
-**Notably, this shows that stiffness is a parameter-dependent phonomena**
+**Notably, this shows that stiffness is a parameter-dependent phenomenon**
 
 If you change the parameter values, you can change whether an equation is stiff or non-stiff.
 

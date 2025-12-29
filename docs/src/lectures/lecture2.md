@@ -138,13 +138,13 @@ The variables of this system are ``x``, ``p``, ``\rho``, and ``\dot{m}``.  By in
 
 !!! note "mass flow guess"
 
-    We know that mass flow rate thru a pipe is equal to 
+    We know that mass flow rate through a pipe is equal to 
 
     ```math
     \dot{m} = \rho \bar{u} A
     ```
 
-    where ``\bar{u}`` is the average flow velocity thru cross section ``A``.  We can assume that ``\bar{u} \approx \dot{x}``.  Therefore we have
+    where ``\bar{u}`` is the average flow velocity through cross section ``A``.  We can assume that ``\bar{u} \approx \dot{x}``.  Therefore we have
 
     ```math
     \dot{m} = \rho \cdot \dot{x} \cdot A
@@ -443,7 +443,7 @@ u_2 = \frac{\dot{m}}{\rho_2 A}
 
 
 !!! note "Conservation of Momentum"
-    the term ``\rho V \dot{u}`` introduces what is referd to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
+    the term ``\rho V \dot{u}`` introduces what is referred to as fluid inertia.  This is what resolves the pressure wave propagation through a pipe.  A classic wave propagation example in pipes is the "water hammer" effect.  The full derivation for the flow velocity derivative is when deriving in 2 dimensions is 
     ```math 
     \frac{D \text{V}}{Dt} = \frac{\partial \text{V}}{\partial t} + \frac{\partial \text{V}}{\partial x} u + \frac{\partial \text{V}}{\partial z} w
     ```

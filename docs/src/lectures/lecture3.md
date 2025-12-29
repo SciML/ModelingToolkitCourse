@@ -346,7 +346,7 @@ An equivalent statement to this problem is the following:
 
 This is equivalent because "the order conditions for order ``o-1`` are satisfied exactly" is equivalent to stating that the method satisfies that the Taylor series expansion exactly calculates the ``o``th derivative term in the Taylor series expansion, and as the divergence of the order conditions shrinks then so does ``C`` which is a linear combination of the divergences of the order conditions. In this formulation, the optimal Runge-Kutta tableau is thus the solution to a (generally high dimensional) nonlinear constrained optimization problem!
 
-However, similar to how the order conditions can quickly become intractible concisely state or compute by hand, and thus many of the methods used in practice used a mixture of hand-optimization mixed with a numerical optimization process. The most famous method is the Dormand-Prince method, which is the tableau behind popular software such as `dopri5`, `ode45`, `DP5`, and other implementations. It is thus given by the tabeleau:
+However, similar to how the order conditions can quickly become intractable to concisely state or compute by hand, many of the methods used in practice used a mixture of hand-optimization mixed with a numerical optimization process. The most famous method is the Dormand-Prince method, which is the tableau behind popular software such as `dopri5`, `ode45`, `DP5`, and other implementations. It is thus given by the tableau:
 
 ![](../img/dp5.png)
 
@@ -535,7 +535,7 @@ The scheme 2 uses our developed machinery to be as fast as possible, while achie
 
 !!! note 
 
-    Because the Dormand-Prince method has a 4th order dense output, it's commonly misstated the `ode45`/`dopri5` method is 4th order, since empirical studies which do not carefully control the stepping to match the saving will see 4th order convergence!
+    Because the Dormand-Prince method has a 4th order dense output, it's commonly misstated that the `ode45`/`dopri5` method is 4th order, since empirical studies which do not carefully control the stepping to match the saving will see 4th order convergence!
 
 !!! note
 
