@@ -11,7 +11,7 @@ The following list is a reference of the tools used for building advanced models
 
 
 ### Julia
-This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package written in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologeies, lets focus on one of the most fundamental engineering problems: the *mass-spring-damper*.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
+This course will use Julia as the fundamental tool to solve numerical problems.  ModelingToolkit.jl is a package written in pure Julia and leverages the fundamental technologies of symbolic math from Symbolics.jl, numerical solvers from DifferentialEquations.jl, and automatic differentiation from ForwardDiff.jl.  To demonstrate an introduction to these technologies, let's focus on one of the most fundamental engineering problems: the *mass-spring-damper*.  For now, let's leave the mass out of the system to avoid the 2nd derivative term and assume a non-linear spring (``k \cdot x^{1.5}``)
 
 ![](../img/spring_damper.svg)
 
@@ -178,10 +178,10 @@ sol = solve(prob);
 sol.retcode
 ```
 
-Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algrebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can make all this easier and automatic: ModelingToolkit.jl
+Now we get a `DtLessThanMin` code, meaning the solver failed to converge.  The reason for this is an index problem, our algebraic constraint equation does not use the 2nd derivative term ``\ddot{x}``.  To solve index problems, the algebraic constraints must be differentiated until they contain the highest order terms.  This can be done as an exercise, however, this provides a perfect segue to the tool that can make all this easier and automatic: ModelingToolkit.jl
 
 ### ModelingToolkit.jl
-ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplification to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independent variable ``t`` and it's differential operator
+ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic index reduction and problem simplification to provide the optimal form for a numerical solver.  To define the same problem attempted previously in ModelingToolkit.jl, we first specify an independent variable ``t`` and its differential operator
 
 ```@example l1
 using ModelingToolkit
@@ -235,7 +235,7 @@ observed(odesys)
 
 Notice how the 2nd derivative term `ẍ(t)` has been automatically determined from the symbolic derivative of `ẋ(t)`.
 
-We can now assembly a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardless if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
+We can now assemble a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardless if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
 
 ```@example l1
 u0 = [] # <-- used to override defaults of ODESystem variables
@@ -305,7 +305,7 @@ nothing # hide
 
 
 ### Components
-To define a component, we use the `@mtkmodel` macro and define it's parameters, variables, connection ports, and equations.  The mass component can be defined as
+To define a component, we use the `@mtkmodel` macro and define its parameters, variables, connection ports, and equations.  The mass component can be defined as
 
 ```@example l1 
 @mtkmodel Mass begin
@@ -475,7 +475,7 @@ nothing # hide
 
 ![spring](../img/spring.svg)
 
-One thing to consider now in the `Spring` component is the meaning of the spring stretch/compression variable `x`.  What does it mean if this variable is positive or negative?  It's important to note when reviewing the model output that a positive `x` means the spring is compressed and vise versa for a negative `x`.
+One thing to consider now in the `Spring` component is the meaning of the spring stretch/compression variable `x`.  What does it mean if this variable is positive or negative?  It's important to note when reviewing the model output that a positive `x` means the spring is compressed and vice versa for a negative `x`.
 
 Now, if we want to create a full *mass-spring-damper* system with our new `Damper` and `Spring` components, we need to create some boundary conditions, such as a stationary reference and an input force.  Creating a stationary reference in acausal modeling is a bit tricky.  We know that the velocity should be set to zero, as it's stationary.  But what should the force be?  Thinking about Newton's principles, every force on a non-moving object is met with an equal but opposite force.  Therefore we add a variable `f` to represent this force, which will be part of the solved system solution. 
 
@@ -504,7 +504,7 @@ Note the sign convention `port.f ~ -f`.  This is maybe not expected.  To underst
 
 ![reference](../img/reference.svg)
 
-Finally, considering an input force, we can imagine this to be an invisible hand that pushes with a constant force.  This invisible hand will move with the port with velocity `v`.  We don't know this velocity, it's a variable that will part of the solved system solution.  
+Finally, considering an input force, we can imagine this to be an invisible hand that pushes with a constant force.  This invisible hand will move with the port with velocity `v`.  We don't know this velocity, it's a variable that will be part of the solved system solution.  
 
 ```@example l1 
 @mtkmodel ConstantForce begin
