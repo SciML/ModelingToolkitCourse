@@ -560,7 +560,7 @@ end
 
 ![mass-spring-damper](../img/System2.png)
 
-Solving the system gives a plot of the 2 solved uknowns.
+Solving the system gives a plot of the 2 solved unknowns.
 
 ```@example l1 
 prob = ODEProblem(sys, [], (0, 10))
