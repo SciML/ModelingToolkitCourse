@@ -86,3 +86,4 @@ The following sources can be used as inspiration:
 * January 29th: Guest Lecture: Yingbo Ma. How acausal model compilers work: Loop rerolling, specialized optimizations for multibody systems, and other generated code robustness and performance optimizations.
 * January 31st: TBD based on what is not sufficiently covered earlier in the course.
 * February 2nd: Final project presentations!
+
