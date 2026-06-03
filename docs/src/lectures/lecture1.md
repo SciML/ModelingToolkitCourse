@@ -574,7 +574,7 @@ There's a couple things we can do now to ensure the system is correct.  First, w
 full_equations(sys)
 ```
 
-The first equation (after re-aranging) it can be seen is the classic *mass-spring-damper* equation.
+The first equation (after re-arranging) it can be seen is the classic *mass-spring-damper* equation.
 
 ```math
 m \cdot \ddot{x} + d \cdot \dot{x} + k \cdot x = f

@@ -474,7 +474,7 @@ The simplest way to choose ``h`` is to make it proportional to the current error
 q = \frac{LTE}{TOL}
 ```
 
-* If ``q < 1``, then ``TOL > LTE`` and therefore we should not accept this step as doing so will make a step beyond the user's tolerance. And note that this would void our warrenty on the global error being bounded, since we need the LTE is "bounded" (at least approximately) at every step to then have any statement about the global error. Thus the calculation with the current $h$ is rejected, the $h$ is changed to $qh$ and the step is recomputed with this smaller time step.
+* If ``q < 1``, then ``TOL > LTE`` and therefore we should not accept this step as doing so will make a step beyond the user's tolerance. And note that this would void our warranty on the global error being bounded, since we need the LTE is "bounded" (at least approximately) at every step to then have any statement about the global error. Thus the calculation with the current $h$ is rejected, the $h$ is changed to $qh$ and the step is recomputed with this smaller time step.
 * If ``q \geq 1``, then ``TOL \leq LTE`` and thus the step is good. Therefore we accept the step and grow ``h``, for example making the new ``h`` equal to ``qh``.
 
 Importantly, this means that rejection is way more expensive than acceptance, and therefore it's always good to be a little conservative with step growth. Thus generally the changes are done with a factor, ``Cqh``, where this ``C = 0.9`` or 0.8 or similar.
