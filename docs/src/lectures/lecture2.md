@@ -290,9 +290,9 @@ odesys_ṁ1
 Notice that now, with a simple change of the system input variable, `structural_simplify()` outputs a system with 4 states to be solved.  We can find the initial conditions needed for these states from `sol_x` and solve.
 
 ```@example l2
-u0 = [sol_x[s][1] for s in unknowns(odesys_ṁ1)]
-prob_ṁ1 = ODEProblem(odesys_ṁ1, u0, (0, t_end))
-@time sol_ṁ1 = solve(prob_ṁ1; initializealg=NoInit());
+u0 = [s => sol_x[s][1] for s in unknowns(odesys_ṁ1)]
+prob_ṁ1 = ODEProblem(odesys_ṁ1, u0, (0, t_end); build_initializeprob = false)
+@time sol_ṁ1 = solve(prob_ṁ1; initializealg=SciMLBase.NoInit());
 nothing # hide
 ```
 
@@ -307,8 +307,8 @@ If we now solve for case 2, we can study the impact the compressibility derivati
 
 ```@example l2
 @mtkbuild odesys_ṁ2 = ODESystem(eqs_ṁ2, t, vars, pars)
-prob_ṁ2 = ODEProblem(odesys_ṁ2, u0, (0, t_end))
-@time sol_ṁ2 = solve(prob_ṁ2; initializealg=NoInit());
+prob_ṁ2 = ODEProblem(odesys_ṁ2, u0, (0, t_end); build_initializeprob = false)
+@time sol_ṁ2 = solve(prob_ṁ2; initializealg=SciMLBase.NoInit());
 nothing # hide
 ```
 
@@ -333,13 +333,13 @@ plot(time, (sol_ṁ1(time)[x] .- sol_ṁ2(time)[x])/1e-3,
 Also note the difference in computation.  
 
 ```@repl l2
-sol_ṁ1.destats
+sol_ṁ1.stats
 ```
 
 As can be seen, including the detail of full compressibility resulted in more computation: more function evaluations, Jacobians, solves, and steps.
 
 ```@repl l2
-sol_ṁ2.destats
+sol_ṁ2.stats
 ```
 
 ### ModelingToolkitStandardLibrary.jl
@@ -349,6 +349,8 @@ Now let's re-create this example using components from the ModelingToolkitStanda
 import ModelingToolkitStandardLibrary.Mechanical.Translational as T
 import ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible as IC
 import ModelingToolkitStandardLibrary.Blocks as B
+
+include("volume.jl") # <-- moving-wall `Volume` component
 
 using DataInterpolations
 mass_flow_fun = LinearInterpolation(sol_x[ṁ], sol_x.t)
@@ -370,9 +372,9 @@ function MassVolume(; name, dx, drho, dm)
     vars = []
     systems = @named begin
         fluid = IC.HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
-        mass = T.Mass(;v=dx,m=M,g=-g)
-        vol = IC.Volume(;area=A, x=x₀, p=p_int, dx, drho, dm) 
-        mass_flow = IC.MassFlow(;p_int)
+        mass = T.Mass(;m=M,g=-g)
+        vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm) 
+        mass_flow = IC.MassFlow()
         mass_flow_input = B.TimeVaryingFunction(;f = mass_flow_fun)
     end
 
@@ -383,7 +385,8 @@ function MassVolume(; name, dx, drho, dm)
         connect(mass_flow.port, fluid)
     ]
 
-    return ODESystem(eqs, t, vars, pars; systems, name)
+    return ODESystem(eqs, t, vars, pars; systems, name,
+        initial_conditions = [mass.v => dx, mass.s => x₀])
 end
 
 dx = sol_x[ẋ][1]

@@ -86,6 +86,7 @@ Then we can solve by specifying the method, in this case we specify `NewtonRaphs
 
 ```@example l1
 using DifferentialEquations
+using NonlinearSolve
 
 p  = xᵢ₋₁ = 0.0 # initial condition if i=2, x[1]=0 
 u0 = xᵢ = xᵢ₋₁  # guess value for x[i]
@@ -186,6 +187,7 @@ ModelingToolkit.jl uses symbolic math from Symbolics.jl to provide automatic ind
 ```@example l1
 using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
+using SciCompDSL # provides the `@connector`/`@mtkmodel` component DSL
 nothing # hide
 ```
 
@@ -238,9 +240,8 @@ Notice how the 2nd derivative term `ẍ(t)` has been automatically determined fr
 We can now assemble a problem and solve it.  The initial conditions do not need to be supplied here because the `sys` contains the variable defaults from `vars`.  The solution object `sol` can now be indexed symbolically from any symbol of the system regardless if it's a solved variable, observable, or even a parameter.  This way, if for example doing a batch of simulations, each respective solution object can easily retrieve all respective information about the simulation.
 
 ```@example l1
-u0 = [] # <-- used to override defaults of ODESystem variables
-p = [] # <-- used to override defaults of ODESystem parameters
-prob = ODEProblem(odesys, u0, tspan, p)
+op = [] # <-- symbolic map used to override defaults of ODESystem variables and parameters
+prob = ODEProblem(odesys, op, tspan)
 sol = solve(prob; abstol=tol)
 plot(sol; idxs=ẍ, xlabel="time [s]", ylabel="ẍ [m/s^2]")
 ```
@@ -368,7 +369,7 @@ nothing # hide
 Now the `Mass` and `Damper` components can be assembled in a system and connected together (note: the `connect` equation).  Also note the parameters `v`, `m`, and `d` are defined to expose the properties which can be set as keyword arguments of the same name.  
 
 ```@example l1 
-@mtkmodel System begin
+@mtkmodel MassDamperSystem begin
     @parameters begin
         v
         m
@@ -383,7 +384,7 @@ Now the `Mass` and `Damper` components can be assembled in a system and connecte
     end
 end
 
-@mtkbuild sys = System(;v=100, m=5, d=3)
+@mtkbuild sys = MassDamperSystem(;v=100, m=5, d=3)
 nothing # hide
 ```
 
@@ -533,7 +534,7 @@ As with the `Reference` component, the force is a boundary condition and is leav
 Now let's assemble a *mass-spring-damper* system with the full collection of components.
 
 ```@example l1 
-@mtkmodel System begin
+@mtkmodel MassSpringDamperSystem begin
     @parameters begin
         v=0
         x=0
@@ -555,7 +556,7 @@ Now let's assemble a *mass-spring-damper* system with the full collection of com
     end
 end
 
-@mtkbuild sys = System()
+@mtkbuild sys = MassSpringDamperSystem()
 ```
 
 ![mass-spring-damper](../img/System2.png)
@@ -638,7 +639,7 @@ nothing # hide
 As an example, the `MassSpringDamper` component can be connected in series to make a complex system.  One can imagine then how this enables easy construction of complex models that can be quickly modified, extremely useful for the application of model based design.  
 
 ```@example l1
-@mtkmodel System begin
+@mtkmodel SeriesSystem begin
     @parameters begin
         v = 0
         x = 0
@@ -658,7 +659,7 @@ As an example, the `MassSpringDamper` component can be connected in series to ma
     end
 end
 
-@mtkbuild sys = System()
+@mtkbuild sys = SeriesSystem()
 nothing #hide
 ```
 

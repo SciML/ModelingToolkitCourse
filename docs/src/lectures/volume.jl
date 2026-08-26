@@ -32,7 +32,7 @@ using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_de
     end
 
     systems = @named begin
-        port = HydraulicPort(; p_int = p)
+        port = HydraulicPort()
         flange = MechanicalPort(; f, v = dx)
     end
 
@@ -53,5 +53,8 @@ using ModelingToolkitStandardLibrary.Hydraulic.IsothermalCompressible: liquid_de
         dm ~ drho * x * area + rho * dx * area
     ]
 
-    ODESystem(eqs, t, vars, pars; name, systems, defaults = [rho => liquid_density(port)])
+    ODESystem(
+        eqs, t, vars, pars; name, systems,
+        initial_conditions = [rho => liquid_density(port)]
+    )
 end
