@@ -256,7 +256,7 @@ eqs = [
 @named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
-prob_ir = ODEProblem(ss, [ModelingToolkit.missing_variable_defaults(ss); x => 1], (0.0, 25.0), [g => 1])
+prob_ir = ODEProblem(ss, [x => 1, g => 1], (0.0, 25.0))
 sol = solve(prob_ir, Rodas5P())
 plot(sol, idxs = (x, y), lab = "pendulum", aspect_ratio = 1)
 ```
@@ -288,7 +288,7 @@ eqs = [
 @named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
-prob_ir = ODEProblem(ss, ModelingToolkit.missing_variable_defaults(ss), (0.0, 25.0), [g => 1])
+prob_ir = ODEProblem(ss, [g => 1], (0.0, 25.0))
 sol = solve(prob_ir, Rodas5P())
 plot(sol, idxs = (x, y), lab = "pendulum", aspect_ratio = 1)
 ```
@@ -333,16 +333,14 @@ eqs = [
 @named pend = ODESystem(eqs,t)
 pend = complete(pend)
 ss = structural_simplify(pend)
-prob_ir = ODEProblem(ss,
-                     [ModelingToolkit.missing_variable_defaults(ss); θ2=>1.4],
-                     (0.0, 25.0), [g => 1])
+prob_ir = ODEProblem(ss, [θ2 => 1.4, g => 1], (0.0, 25.0))
 sol = solve(prob_ir, Rodas5P(), reltol=1e-7, abstol=1e-9)
 plot(sol, idxs = (x1, y1))
 plot!(sol, idxs = (x2, y2), xlab = "x", ylab = "y", aspect_ratio=1, dpi=400)
 ```
 
 ```@example l8
-plot(sol, idxs = [T+V-sol[T+V, 1]])
+plot(sol, idxs = [T+V-(sol[T, 1]+sol[V, 1])])
 ```
 ![](../img/double_pendulum.mp4)
 

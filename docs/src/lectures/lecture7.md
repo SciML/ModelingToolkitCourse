@@ -14,6 +14,7 @@ numerical solvers and ModelingToolkit behave.
 ```@example l7
 using DifferentialEquations, Sundials, ModelingToolkit, Plots, LinearAlgebra
 using ModelingToolkit: t_nounits as t, D_nounits as D
+using OrdinaryDiffEqBDF # DFBDF
 
 function f!(out, du, u, p, t)
     # u[1]: x, du[1]: x'

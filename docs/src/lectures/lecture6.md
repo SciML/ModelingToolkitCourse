@@ -17,6 +17,8 @@ It is not always the case, but for most models, the unsimplified system should g
 ```@example l6
 using ModelingToolkit, DifferentialEquations, Plots
 using ModelingToolkit: t_nounits as t, D_nounits as D
+using OrdinaryDiffEqNonlinearSolve # ShampineCollocationInit, NLNewton
+using OrdinaryDiffEqSDIRK # ImplicitEuler
 
 pars = @parameters m = 1 g = 1 L = 1 Φ=0
 
@@ -62,7 +64,7 @@ If we attempt to solve this system we can see that it only solves up to the poin
 
 ```@example l6
 sys = complete(structural_simplify(pendulum))
-prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 10))
+prob = ODEProblem(sys, [], (0, 10))
 sol = solve(prob)# gives retcode: DtLessThanMin
 plot(sol; idxs=[x,y])
 ```
@@ -95,7 +97,7 @@ eqs = [
 
 @named stiffness_pendulum = ODESystem(eqs, t, vars, pars)
 sys = structural_simplify(stiffness_pendulum)
-prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 10))
+prob = ODEProblem(sys, [], (0, 10))
 sol = solve(prob)# Success
 plot(sol; idxs=[x,y])
 ```
@@ -107,7 +109,7 @@ In some cases we can apply `dae_index_lowering()` to further simplify the proble
 
 ```@example l6
 sys = structural_simplify(dae_index_lowering(pendulum))
-prob = ODEProblem(sys, ModelingToolkit.missing_variable_defaults(sys), (0, 10))
+prob = ODEProblem(sys, [], (0, 10))
 ref = solve(prob)
 plot(ref; idxs=x, label="dae_index_lowering")
 plot!(sol; idxs=x, label="compliance")
@@ -157,9 +159,9 @@ function MassVolume(solves_force = true; name)
     vars = []
     systems = @named begin
         fluid = IC.HydraulicFluid(; density = 876, bulk_modulus = 1.2e9)
-        mass = T.Mass(;v=dx,m=M,g=-g)
+        mass = T.Mass(;m=M,g=-g)
         vol = Volume(;area=A, x=x₀, p=p_int, dx, drho, dm) # <-- missing Volume component from MTKSL (will be released in new version)
-        mass_flow = IC.Open(;p_int)
+        mass_flow = IC.Open(;p=p_int)
         position = T.Position(solves_force)
         position_input = B.TimeVaryingFunction(;f = t -> amp*sin(2π*t*f) + x₀)
     end
@@ -170,7 +172,8 @@ function MassVolume(solves_force = true; name)
         connect(position.s, position_input.output)
     ]
 
-    return ODESystem(eqs, t, vars, pars; systems, name)
+    return ODESystem(eqs, t, vars, pars; systems, name,
+        initial_conditions = [mass.v => dx])
 end
 
 @named odesys = MassVolume()
@@ -194,151 +197,160 @@ The reason for the mismatch is that the input boundary condition `Position()` ne
 It's very difficult to identify what is wrong with a model if it's not outputting any data.  This section discusses ways to force a model solution.  It's still possible that something with the model is wrong, but the best way to know that is to see what the equations are outputting.  For example if the model is simulating negative pressure, but negative pressure is impossible, then this is a good clue of what is wrong with the model!  The strategies for forcing a model solve will come from a simple hydraulic system that is attempting to start a hydraulic cylinder at a high pressure differential.  See [ModelingToolkit Industrial Example](https://github.com/bradcarman/ModelingToolkitWebinar) for more information about the model.
 
 ```@example l6
-@mtkmodel System begin
-    @parameters begin
-        res₁₊Cₒ = 2.7
-        res₁₊Aₒ = 0.00094
-        res₁₊ρ₀ = 1000
-        res₁₊p′ = 3.0e7
-        res₂₊Cₒ = 2.7
-        res₂₊Aₒ = 0.00094
-        res₂₊ρ₀ = 1000
-        res₂₊p′ = 0
-        act₊p₁′ = 3.0e7
-        act₊p₂′ = 0
-        act₊vol₁₊A = 0.1
-        act₊vol₁₊ρ₀ = 1000
-        act₊vol₁₊β = 2.0e9
-        act₊vol₁₊direction = -1
-        act₊vol₁₊p′ = act₊p₁′
-        act₊vol₁₊x′ = 0.5
-        act₊vol₂₊A = 0.1
-        act₊vol₂₊ρ₀ = 1000
-        act₊vol₂₊β = 2.0e9
-        act₊vol₂₊direction = 1
-        act₊vol₂₊p′ = act₊p₂′
-        act₊vol₂₊x′ = 0.5
-        act₊mass₊m = 100
-        act₊mass₊f′ = 0.1(-act₊p₁′ + act₊p₂′)
-        src₊p′ = 3.0e7
-        snk₊p′ = 0
-        dmp₊c = 1000
-    end
-    @variables begin
-        res₁₊ṁ(t) = 0
-        res₁₊p₁(t) = res₁₊p′
-        res₁₊p₂(t) = res₁₊p′
-        res₁₊port₁₊p(t) = res₁₊p′
-        res₁₊port₁₊ṁ(t) = 0
-        res₁₊port₂₊p(t) = res₁₊p′
-        res₁₊port₂₊ṁ(t) = 0
-        res₂₊ṁ(t) = 0
-        res₂₊p₁(t) = res₂₊p′
-        res₂₊p₂(t) = res₂₊p′
-        res₂₊port₁₊p(t) = res₂₊p′
-        res₂₊port₁₊ṁ(t) = 0
-        res₂₊port₂₊p(t) = res₂₊p′
-        res₂₊port₂₊ṁ(t) = 0
-        act₊port₁₊p(t) = act₊p₁′
-        act₊port₁₊ṁ(t) = 0
-        act₊port₂₊p(t) = act₊p₂′
-        act₊port₂₊ṁ(t) = 0
-        act₊vol₁₊p(t) = act₊vol₁₊p′
-        act₊vol₁₊x(t) = act₊vol₁₊x′
-        act₊vol₁₊ṁ(t) = 0
-        act₊vol₁₊f(t) = act₊vol₁₊A * act₊vol₁₊p′
-        act₊vol₁₊ẋ(t) = 0
-        act₊vol₁₊r(t) = act₊vol₁₊ρ₀ * (1 + act₊vol₁₊p′ / act₊vol₁₊β)
-        act₊vol₁₊ṙ(t) = 0
-        act₊vol₁₊port₊p(t) = act₊vol₁₊p′
-        act₊vol₁₊port₊ṁ(t) = 0
-        act₊vol₁₊flange₊ẋ(t) = 0
-        act₊vol₁₊flange₊f(t) = -act₊vol₁₊A * act₊vol₁₊direction * act₊vol₁₊p′
-        act₊vol₂₊p(t) = act₊vol₂₊p′
-        act₊vol₂₊x(t) = act₊vol₂₊x′
-        act₊vol₂₊ṁ(t) = 0
-        act₊vol₂₊f(t) = act₊vol₂₊A * act₊vol₂₊p′
-        act₊vol₂₊ẋ(t) = 0
-        act₊vol₂₊r(t) = act₊vol₂₊ρ₀ * (1 + act₊vol₂₊p′ / act₊vol₂₊β)
-        act₊vol₂₊ṙ(t) = 0
-        act₊vol₂₊port₊p(t) = act₊vol₂₊p′
-        act₊vol₂₊port₊ṁ(t) = 0
-        act₊vol₂₊flange₊ẋ(t) = 0
-        act₊vol₂₊flange₊f(t) = -act₊vol₂₊A * act₊vol₂₊direction * act₊vol₂₊p′
-        act₊mass₊f(t) = act₊mass₊f′
-        act₊mass₊x(t) = 0
-        act₊mass₊ẋ(t) = 0
-        act₊mass₊ẍ(t) = act₊mass₊f′ / act₊mass₊m
-        act₊mass₊flange₊ẋ(t) = 0
-        act₊mass₊flange₊f(t) = act₊mass₊f′
-        act₊flange₊ẋ(t) = 0
-        act₊flange₊f(t) = 0
-        src₊port₊p(t) = src₊p′
-        src₊port₊ṁ(t) = 0
-        snk₊port₊p(t) = snk₊p′
-        snk₊port₊ṁ(t) = 0
-        dmp₊flange₊ẋ(t) = 0
-        dmp₊flange₊f(t) = 0
-    end
-    @equations begin
-        res₁₊ṁ ~ res₁₊port₁₊ṁ
-        res₁₊ṁ ~ -res₁₊port₂₊ṁ
-        res₁₊p₁ ~ res₁₊port₁₊p
-        res₁₊p₂ ~ res₁₊port₂₊p
-        -res₁₊p₂ + res₁₊p₁ ~ 0.5res₁₊Cₒ * res₁₊ρ₀ * ((res₁₊ṁ / (res₁₊Aₒ * res₁₊ρ₀))^2)
-        res₂₊ṁ ~ res₂₊port₁₊ṁ
-        res₂₊ṁ ~ -res₂₊port₂₊ṁ
-        res₂₊p₁ ~ res₂₊port₁₊p
-        res₂₊p₂ ~ res₂₊port₂₊p
-        -res₂₊p₂ + res₂₊p₁ ~ 0.5res₂₊Cₒ * res₂₊ρ₀ * ((res₂₊ṁ / (res₂₊Aₒ * res₂₊ρ₀))^2)
-        D(act₊vol₁₊x) ~ act₊vol₁₊ẋ
-        D(act₊vol₁₊r) ~ act₊vol₁₊ṙ
-        act₊vol₁₊p ~ act₊vol₁₊port₊p
-        act₊vol₁₊ṁ ~ act₊vol₁₊port₊ṁ
-        act₊vol₁₊f ~ -act₊vol₁₊direction * act₊vol₁₊flange₊f
-        act₊vol₁₊ẋ ~ act₊vol₁₊direction * act₊vol₁₊flange₊ẋ
-        act₊vol₁₊r ~ act₊vol₁₊ρ₀ * (1 + act₊vol₁₊p / act₊vol₁₊β)
-        act₊vol₁₊ṁ ~ act₊vol₁₊A * act₊vol₁₊ẋ * act₊vol₁₊r + act₊vol₁₊A * act₊vol₁₊x * act₊vol₁₊ṙ
-        act₊vol₁₊f ~ act₊vol₁₊A * act₊vol₁₊p
-        D(act₊vol₂₊x) ~ act₊vol₂₊ẋ
-        D(act₊vol₂₊r) ~ act₊vol₂₊ṙ
-        act₊vol₂₊p ~ act₊vol₂₊port₊p
-        act₊vol₂₊ṁ ~ act₊vol₂₊port₊ṁ
-        act₊vol₂₊f ~ -act₊vol₂₊direction * act₊vol₂₊flange₊f
-        act₊vol₂₊ẋ ~ act₊vol₂₊direction * act₊vol₂₊flange₊ẋ
-        act₊vol₂₊r ~ act₊vol₂₊ρ₀ * (1 + act₊vol₂₊p / act₊vol₂₊β)
-        act₊vol₂₊ṁ ~ act₊vol₂₊A * act₊vol₂₊r * act₊vol₂₊ẋ + act₊vol₂₊A * act₊vol₂₊ṙ * act₊vol₂₊x
-        act₊vol₂₊f ~ act₊vol₂₊A * act₊vol₂₊p
-        D(act₊mass₊x) ~ act₊mass₊ẋ
-        D(act₊mass₊ẋ) ~ act₊mass₊ẍ
-        act₊mass₊f ~ act₊mass₊flange₊f
-        act₊mass₊ẋ ~ act₊mass₊flange₊ẋ
-        act₊mass₊m * act₊mass₊ẍ ~ act₊mass₊f
-        src₊port₊p ~ src₊p′
-        snk₊port₊p ~ snk₊p′
-        dmp₊flange₊f ~ dmp₊c * dmp₊flange₊ẋ
-        src₊port₊p ~ res₁₊port₁₊p
-        0 ~ res₁₊port₁₊ṁ + src₊port₊ṁ
-        res₁₊port₂₊p ~ act₊port₁₊p
-        0 ~ act₊port₁₊ṁ + res₁₊port₂₊ṁ
-        act₊port₂₊p ~ res₂₊port₁₊p
-        0 ~ act₊port₂₊ṁ + res₂₊port₁₊ṁ
-        res₂₊port₂₊p ~ snk₊port₊p
-        0 ~ res₂₊port₂₊ṁ + snk₊port₊ṁ
-        dmp₊flange₊ẋ ~ act₊flange₊ẋ
-        0 ~ act₊flange₊f + dmp₊flange₊f
-        act₊port₁₊p ~ act₊vol₁₊port₊p
-        0 ~ act₊vol₁₊port₊ṁ - act₊port₁₊ṁ
-        act₊port₂₊p ~ act₊vol₂₊port₊p
-        0 ~ -act₊port₂₊ṁ + act₊vol₂₊port₊ṁ
-        act₊vol₁₊flange₊ẋ ~ act₊vol₂₊flange₊ẋ
-        act₊vol₁₊flange₊ẋ ~ act₊mass₊flange₊ẋ
-        act₊vol₁₊flange₊ẋ ~ act₊flange₊ẋ
-        0 ~ act₊vol₁₊flange₊f - act₊flange₊f + act₊vol₂₊flange₊f + act₊mass₊flange₊f
-    end
+pars = @parameters begin
+    res₁_Cₒ = 2.7
+    res₁_Aₒ = 0.00094
+    res₁_ρ₀ = 1000
+    res₁_p′ = 3.0e7
+    res₂_Cₒ = 2.7
+    res₂_Aₒ = 0.00094
+    res₂_ρ₀ = 1000
+    res₂_p′ = 0
+    act_p₁′ = 3.0e7
+    act_p₂′ = 0
+    act_vol₁_A = 0.1
+    act_vol₁_ρ₀ = 1000
+    act_vol₁_β = 2.0e9
+    act_vol₁_direction = -1
+    act_vol₁_p′ = act_p₁′
+    act_vol₁_x′ = 0.5
+    act_vol₂_A = 0.1
+    act_vol₂_ρ₀ = 1000
+    act_vol₂_β = 2.0e9
+    act_vol₂_direction = 1
+    act_vol₂_p′ = act_p₂′
+    act_vol₂_x′ = 0.5
+    act_mass_m = 100
+    act_mass_f′ = 0.1(-act_p₁′ + act_p₂′)
+    src_p′ = 3.0e7
+    snk_p′ = 0
+    dmp_c = 1000
 end
 
-@mtkbuild sys = System()
+vars = @variables begin
+    res₁_ṁ(t) = 0
+    res₁_p₁(t) = res₁_p′
+    res₁_p₂(t) = res₁_p′
+    res₁_port₁_p(t) = res₁_p′
+    res₁_port₁_ṁ(t) = 0
+    res₁_port₂_p(t) = res₁_p′
+    res₁_port₂_ṁ(t) = 0
+    res₂_ṁ(t) = 0
+    res₂_p₁(t) = res₂_p′
+    res₂_p₂(t) = res₂_p′
+    res₂_port₁_p(t) = res₂_p′
+    res₂_port₁_ṁ(t) = 0
+    res₂_port₂_p(t) = res₂_p′
+    res₂_port₂_ṁ(t) = 0
+    act_port₁_p(t) = act_p₁′
+    act_port₁_ṁ(t) = 0
+    act_port₂_p(t) = act_p₂′
+    act_port₂_ṁ(t) = 0
+    act_vol₁_p(t) = act_vol₁_p′
+    act_vol₁_x(t)
+    act_vol₁_ṁ(t) = 0
+    act_vol₁_f(t) = act_vol₁_A * act_vol₁_p′
+    act_vol₁_ẋ(t) = 0
+    act_vol₁_r(t)
+    act_vol₁_ṙ(t) = 0
+    act_vol₁_port_p(t) = act_vol₁_p′
+    act_vol₁_port_ṁ(t) = 0
+    act_vol₁_flange_ẋ(t) = 0
+    act_vol₁_flange_f(t) = -act_vol₁_A * act_vol₁_direction * act_vol₁_p′
+    act_vol₂_p(t) = act_vol₂_p′
+    act_vol₂_x(t)
+    act_vol₂_ṁ(t) = 0
+    act_vol₂_f(t) = act_vol₂_A * act_vol₂_p′
+    act_vol₂_ẋ(t) = 0
+    act_vol₂_r(t)
+    act_vol₂_ṙ(t) = 0
+    act_vol₂_port_p(t) = act_vol₂_p′
+    act_vol₂_port_ṁ(t) = 0
+    act_vol₂_flange_ẋ(t) = 0
+    act_vol₂_flange_f(t) = -act_vol₂_A * act_vol₂_direction * act_vol₂_p′
+    act_mass_f(t) = act_mass_f′
+    act_mass_x(t) = 0
+    act_mass_ẋ(t) = 0
+    act_mass_ẍ(t) = act_mass_f′ / act_mass_m
+    act_mass_flange_ẋ(t) = 0
+    act_mass_flange_f(t) = act_mass_f′
+    act_flange_ẋ(t) = 0
+    act_flange_f(t) = 0
+    src_port_p(t) = src_p′
+    src_port_ṁ(t) = 0
+    snk_port_p(t) = snk_p′
+    snk_port_ṁ(t) = 0
+    dmp_flange_ẋ(t) = 0
+    dmp_flange_f(t) = 0
+end
+
+eqs = [
+    res₁_ṁ ~ res₁_port₁_ṁ
+    res₁_ṁ ~ -res₁_port₂_ṁ
+    res₁_p₁ ~ res₁_port₁_p
+    res₁_p₂ ~ res₁_port₂_p
+    -res₁_p₂ + res₁_p₁ ~ 0.5res₁_Cₒ * res₁_ρ₀ * ((res₁_ṁ / (res₁_Aₒ * res₁_ρ₀))^2)
+    res₂_ṁ ~ res₂_port₁_ṁ
+    res₂_ṁ ~ -res₂_port₂_ṁ
+    res₂_p₁ ~ res₂_port₁_p
+    res₂_p₂ ~ res₂_port₂_p
+    -res₂_p₂ + res₂_p₁ ~ 0.5res₂_Cₒ * res₂_ρ₀ * ((res₂_ṁ / (res₂_Aₒ * res₂_ρ₀))^2)
+    D(act_vol₁_x) ~ act_vol₁_ẋ
+    D(act_vol₁_r) ~ act_vol₁_ṙ
+    act_vol₁_p ~ act_vol₁_port_p
+    act_vol₁_ṁ ~ act_vol₁_port_ṁ
+    act_vol₁_f ~ -act_vol₁_direction * act_vol₁_flange_f
+    act_vol₁_ẋ ~ act_vol₁_direction * act_vol₁_flange_ẋ
+    act_vol₁_r ~ act_vol₁_ρ₀ * (1 + act_vol₁_p / act_vol₁_β)
+    act_vol₁_ṁ ~ act_vol₁_A * act_vol₁_ẋ * act_vol₁_r + act_vol₁_A * act_vol₁_x * act_vol₁_ṙ
+    act_vol₁_f ~ act_vol₁_A * act_vol₁_p
+    D(act_vol₂_x) ~ act_vol₂_ẋ
+    D(act_vol₂_r) ~ act_vol₂_ṙ
+    act_vol₂_p ~ act_vol₂_port_p
+    act_vol₂_ṁ ~ act_vol₂_port_ṁ
+    act_vol₂_f ~ -act_vol₂_direction * act_vol₂_flange_f
+    act_vol₂_ẋ ~ act_vol₂_direction * act_vol₂_flange_ẋ
+    act_vol₂_r ~ act_vol₂_ρ₀ * (1 + act_vol₂_p / act_vol₂_β)
+    act_vol₂_ṁ ~ act_vol₂_A * act_vol₂_r * act_vol₂_ẋ + act_vol₂_A * act_vol₂_ṙ * act_vol₂_x
+    act_vol₂_f ~ act_vol₂_A * act_vol₂_p
+    D(act_mass_x) ~ act_mass_ẋ
+    D(act_mass_ẋ) ~ act_mass_ẍ
+    act_mass_f ~ act_mass_flange_f
+    act_mass_ẋ ~ act_mass_flange_ẋ
+    act_mass_m * act_mass_ẍ ~ act_mass_f
+    src_port_p ~ src_p′
+    snk_port_p ~ snk_p′
+    dmp_flange_f ~ dmp_c * dmp_flange_ẋ
+    src_port_p ~ res₁_port₁_p
+    0 ~ res₁_port₁_ṁ + src_port_ṁ
+    res₁_port₂_p ~ act_port₁_p
+    0 ~ act_port₁_ṁ + res₁_port₂_ṁ
+    act_port₂_p ~ res₂_port₁_p
+    0 ~ act_port₂_ṁ + res₂_port₁_ṁ
+    res₂_port₂_p ~ snk_port_p
+    0 ~ res₂_port₂_ṁ + snk_port_ṁ
+    dmp_flange_ẋ ~ act_flange_ẋ
+    0 ~ act_flange_f + dmp_flange_f
+    act_port₁_p ~ act_vol₁_port_p
+    0 ~ act_vol₁_port_ṁ - act_port₁_ṁ
+    act_port₂_p ~ act_vol₂_port_p
+    0 ~ -act_port₂_ṁ + act_vol₂_port_ṁ
+    act_vol₁_flange_ẋ ~ act_vol₂_flange_ẋ
+    act_vol₁_flange_ẋ ~ act_mass_flange_ẋ
+    act_vol₁_flange_ẋ ~ act_flange_ẋ
+    0 ~ act_vol₁_flange_f - act_flange_f + act_vol₂_flange_f + act_mass_flange_f
+]
+
+# Initial conditions given as expressions of parameters are supplied separately, since a
+# symbolic default in `@variables` is a binding that cannot be overridden later on.
+ics = [
+    act_vol₁_x => act_vol₁_x′
+    act_vol₁_r => act_vol₁_ρ₀ * (1 + act_vol₁_p′ / act_vol₁_β)
+    act_vol₂_x => act_vol₂_x′
+    act_vol₂_r => act_vol₂_ρ₀ * (1 + act_vol₂_p′ / act_vol₂_β)
+]
+
+@mtkbuild sys = ODESystem(eqs, t, vars, pars; initial_conditions = ics)
 prob = ODEProblem(sys, [], (0, 0.1))
 sol = solve(prob)
 ```
@@ -350,11 +362,11 @@ First, let's check the initial conditions to see if at time 0 we are starting wi
 
 ```@example l6
 eqs = full_equations(sys)
-defs = ModelingToolkit.defaults(sys)
+defs = merge(Dict(ModelingToolkit.bindings(sys)), Dict(ModelingToolkit.initial_conditions(sys)))
 residuals = Float64[]
 for eq in eqs
     if !ModelingToolkit.isdifferential(eq.lhs)
-        push!(residuals, ModelingToolkit.fixpoint_sub(eq.rhs, defs))
+        push!(residuals, ModelingToolkit.value(ModelingToolkit.fixpoint_sub(eq.rhs, defs)))
     end
 end
 residuals
@@ -371,12 +383,12 @@ The `ShampineCollocationInit` solves the initial conditions by essentially takin
 
 ```@example l6
 prob = ODEProblem(sys, [], (0, dt))
-sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); dt, adaptive=false)
+sol = solve(prob, ImplicitEuler(nlsolve=OrdinaryDiffEqNonlinearSolve.NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); dt, adaptive=false)
 
 # update u0 with the ImplicitEuler non-adaptive step
-prob′ = ODEProblem(sys, sol[2], (0, 0.1))
-sol = solve(prob′);
-plot(sol; idxs=sys.act₊mass₊ẋ)
+prob′ = ODEProblem(sys, unknowns(sys) .=> sol.u[2], (0, 0.1))
+sol = solve(prob′; initializealg=SciMLBase.NoInit());
+plot(sol; idxs=sys.act_mass_ẋ)
 ```
 
 As can be seen, now we have a successful solve.  We can see the change to the initial conditions is very minimal.  As can be seen, the solver needs the derivative terms to be offset by a small amount.
@@ -388,12 +400,12 @@ println(join(["$s : $(round(x; digits=3)) -> $(round(y; digits=3))" for (s,x,y) 
 Another strategy that can help issues with initial conditions is to offset or perturb any initial conditions from 0 by a small value.  
 
 ### Adjust tolerance
-Here we get a solve by increasing the `abstol` and `reltol` to very large values.  This is therefore understood to give us a very low resolution solution that is far from the true solution, but we can now at least see if the model is calculating generally correct values, at least with the correct sign.  Here we expect the `act₊mass₊ẋ` to be around -1 and that's exactly what we get.  However, as can be seen the tolerance is too open to resolve the dynamics.  
+Here we get a solve by increasing the `abstol` and `reltol` to very large values.  This is therefore understood to give us a very low resolution solution that is far from the true solution, but we can now at least see if the model is calculating generally correct values, at least with the correct sign.  Here we expect the `act_mass_ẋ` to be around -1 and that's exactly what we get.  However, as can be seen the tolerance is too open to resolve the dynamics.  
 
 ```@example l6
 prob = ODEProblem(sys, [], (0, 0.1))
 sol = solve(prob, ImplicitEuler(); abstol=10000.0, reltol=100.0)
-plot(sol; idxs=sys.act₊mass₊ẋ)
+plot(sol; idxs=sys.act_mass_ẋ)
 ```
 
 
@@ -402,8 +414,8 @@ Another strategy similar to adjusting tolerance is to turn off adaptivity.  This
 
 ```@example l6
 prob = ODEProblem(sys, [], (0, 0.1))
-sol = solve(prob, ImplicitEuler(nlsolve=NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); initializealg=NoInit(), adaptive=false, dt=1e-6)
-plot(sol; idxs=sys.act₊mass₊ẋ)
+sol = solve(prob, ImplicitEuler(nlsolve=OrdinaryDiffEqNonlinearSolve.NLNewton(check_div=false, always_new=true, relax=4/10, max_iter=100)); initializealg=SciMLBase.NoInit(), adaptive=false, dt=1e-6)
+plot(sol; idxs=sys.act_mass_ẋ)
 ```
 
 Note the use of keywords: 
@@ -494,7 +506,7 @@ Implementing this for the hydraulic system works well, giving an adaptive time s
 odesys = dae_to_ode(sys)
 prob = ODEProblem(odesys, [], (0,0.1))
 sol = solve(prob)
-plot(sol; idxs=sys.act₊mass₊ẋ)
+plot(sol; idxs=sys.act_mass_ẋ)
 ```
 
 Note this problem, as we've seen, has a lot of trouble with initialization.  Note how the first 200 steps are taken with a very small time step.  The `Tsit5` solver is able to successfully push through the model initialization and then solve the remaining steps at a reasonable time step.  
