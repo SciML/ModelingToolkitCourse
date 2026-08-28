@@ -22,6 +22,7 @@ makedocs(
     linkcheck_ignore = [
         "https://epubs.siam.org/doi/10.1137/0903023",
         "https://link.springer.com/book/10.1007/978-3-642-05221-7",
+        "https://www.mathworks.com/help/simscape/ref/variablehydraulicchamber.html",
         "http://www.siam.org/journals/auth-info.php",
     ],
     format = Documenter.HTML(
