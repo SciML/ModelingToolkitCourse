@@ -32,7 +32,7 @@ makedocs(
     pages = pages
 )
 
-#= 
+#=
 using LiveServer
 serve(dir="build")
 =#
