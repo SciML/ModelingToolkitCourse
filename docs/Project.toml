@@ -18,7 +18,7 @@ Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
-DataInterpolations = "5, 6, 8.10, 9.0"
+DataInterpolations = "5, 6, 8.10, 9.0, 10.1"
 DifferentialEquations = "8"
 Documenter = "1"
 ForwardDiff = "0.10, 1.4"
