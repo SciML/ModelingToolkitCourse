@@ -42,8 +42,19 @@ sol1 = solve(prob, IDA())
 sol2 = solve(prob, DFBDF())
 println(&quot;[sol1: &quot;, sol1.retcode, &quot;]&quot;,
 &quot;\n&quot;, &quot;[sol2 &quot;, sol2.retcode, &quot;: y(100pi)=&quot;, sol2[2, end], &quot; steps: &quot;, length(sol2.t), &quot;]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ERROR][rank 0][/workspace/srcdir/sundials/src/idas/idas.c:5732][IDAHandleFailure] At t = 16.3350066796078 and h = 8.49321175485411e-06, the error test failed repeatedly or with |h| = hmin.
+<span class="sgr33"><span class="sgr1">┌ Warning: </span></span>Verbosity toggle: dt_epsilon
+<span class="sgr33"><span class="sgr1">│ </span></span> At t=215.1887474846123, dt was forced below floating point epsilon 2.842170943040401e-14. Aborting. There is either an error in your model specification or the true solution is unstable (or it cannot be represented in Float64 precision).
+<span class="sgr33"><span class="sgr1">│ </span></span>
+<span class="sgr33"><span class="sgr1">│ </span></span>Diagnostics:
+<span class="sgr33"><span class="sgr1">│ </span></span>
+<span class="sgr33"><span class="sgr1">│ </span></span>Error Analysis:
+<span class="sgr33"><span class="sgr1">│ </span></span>  step error estimate EEst = 487.3 (a step is accepted when EEst &lt;= 1)
+<span class="sgr33"><span class="sgr1">│ </span></span>  largest contributors to EEst = internalnorm(atmp), where atmp is the tolerance-weighted local error per state component:
+<span class="sgr33"><span class="sgr1">│ </span></span>    atmp[2] = 1.866e-22, u[2] = 0.01899, uprev[2] = 0.01006
+<span class="sgr33"><span class="sgr1">│ </span></span>    atmp[1] = 0, u[1] = 0.9999, uprev[1] = 0.9999
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ DiffEqBase ~/.julia/packages/DiffEqBase/2YsuI/src/check_error.jl:37</span>
 [sol1: Unstable]
-[sol2 Success: y(100pi)=1.0001424225647229 steps: 1884]</code></pre><p>To better understand the numerical behavior, let&#39;s analyze the variable step size behavior of the implicit Euler method of the original system. The local truncation error for <span>$y$</span> is</p><p class="math-container">\[\begin{align}
+[sol2 Unstable: y(100pi)=0.010060574186709942 steps: 4275]</code></pre><p>To better understand the numerical behavior, let&#39;s analyze the variable step size behavior of the implicit Euler method of the original system. The local truncation error for <span>$y$</span> is</p><p class="math-container">\[\begin{align}
 &amp;\text{lte} = \frac{\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}}
 {h_{n} + h_{n-1}} (h_{n} + h_{n-1}) h_n \\
 =&amp; \left(\frac{y(t_n) - y(t_{n-1})}{h_n} - \frac{y(t_{n-1}) - y(t_{n-2})}{h_{n-1}}\right) h_n
@@ -65,41 +76,41 @@ t: 999997-element Vector{Float64}:
   5.066400748064235e-7
   8.704094571293117e-7
   1.28469413144087e-6
-  1.7269006030851373e-6
-  2.183866812258824e-6
-  2.6485025583750106e-6
-  3.117129805172498e-6
+  1.7269006030851375e-6
+  2.1838668122588243e-6
+  2.648502558375011e-6
+  3.1171298051724985e-6
   ⋮
- 83.2449361651439
- 83.24494657613553
- 83.24495698712717
- 83.2449673981188
- 83.24497780911044
- 83.24498822010207
- 83.24499863109371
- 83.24500904208534
- 83.24501945307698
+ 83.24497917668045
+ 83.24498958630397
+ 83.2449999959275
+ 83.24501040555103
+ 83.24502081517456
+ 83.24503122479808
+ 83.24504163442161
+ 83.24505204404514
+ 83.24506245366867
 u: 999997-element Vector{Vector{Float64}}:
  [0.0, 1.0]
  [5.912225922611848e-8, 0.9999999999999996]
  [2.2607179664839815e-7, 0.9999999999999887]
  [5.066400748064018e-7, 0.9999999999999295]
  [8.704094571292018e-7, 0.9999999999997575]
- [1.2846941314405073e-6, 0.9999999999993516]
- [1.726900603084257e-6, 0.9999999999987549]
- [2.183866812257088e-6, 0.999999999998127]
- [2.64850255837191e-6, 0.9999999999970514]
- [3.117129805167443e-6, 0.999999999995812]
+ [1.2846941314405073e-6, 0.9999999999993514]
+ [1.7269006030842572e-6, 0.9999999999987549]
+ [2.1838668122570883e-6, 0.9999999999981274]
+ [2.6485025583719105e-6, 0.9999999999970509]
+ [3.1171298051674434e-6, 0.9999999999958116]
  ⋮
- [0.9999735798092361, 0.007274296325017681]
- [0.9999736554334884, 0.0072638856110637876]
- [0.9999737309493548, 0.007253474897109894]
- [0.9999738063568353, 0.007243064172492051]
- [0.9999738816559299, 0.0072326534585381574]
- [0.9999739568466387, 0.007222242744584264]
- [0.9999740319289614, 0.007211832009302471]
- [0.9999741069028983, 0.007201421306012527]
- [0.9999741817684492, 0.007191010570730734]</code></pre><p>Let&#39;s replace the first equation with the differentiated equation and solve it numerically,</p><pre><code class="language-julia hljs">function g!(out, du, u, p, t)
+ [0.9999738915390362, 0.007231285236660277]
+ [0.9999739667056357, 0.0072208758847899495]
+ [0.9999740417638777, 0.007210466532919622]
+ [0.9999741167137622, 0.0072000571703839415]
+ [0.9999741915552894, 0.007189647829178966]
+ [0.9999742662884591, 0.007179238466643287]
+ [0.9999743409132713, 0.007168829114772958]
+ [0.9999744154297261, 0.007158419762902631]
+ [0.9999744898378233, 0.007148010400366951]</code></pre><p>Let&#39;s replace the first equation with the differentiated equation and solve it numerically,</p><pre><code class="language-julia hljs">function g!(out, du, u, p, t)
     # u[1]: x, du[1]: x&#39;
     # u[2]: y, du[2]: y&#39;
     out[1] = du[1] - cos(t)
@@ -110,8 +121,8 @@ sol1_diff = solve(prob, IDA())
 sol2_diff = solve(prob, DFBDF())
 println(&quot;[sol1_diff: &quot;, sol1_diff.retcode, &quot;: y(100pi)=&quot;, sol1_diff[2, end], &quot; steps: &quot;, length(sol1_diff.t), &quot;]&quot;,
 &quot;\n&quot;, &quot;[sol2_diff &quot;, sol2_diff.retcode, &quot;: y(100pi)=&quot;, sol2_diff[2, end], &quot; steps: &quot;, length(sol2_diff.t), &quot;]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[sol1_diff: Success: y(100pi)=1.0000000000000002 steps: 1837]
-[sol2_diff Success: y(100pi)=1.0 steps: 1420]</code></pre><p>We can see that it takes far fewer iterations to solve the system, and the numerical solution is much closer to the analytical solution <span>$y(100\pi) = 1$</span>. If we check the residual of the original constraint, we get</p><pre><code class="language-julia hljs">plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = &quot;IDA&quot;)
-plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="9cd12708.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables x(t) y(t)
+[sol2_diff Success: y(100pi)=0.999999990046557 steps: 1415]</code></pre><p>We can see that it takes far fewer iterations to solve the system, and the numerical solution is much closer to the analytical solution <span>$y(100\pi) = 1$</span>. If we check the residual of the original constraint, we get</p><pre><code class="language-julia hljs">plot(sol1_diff.t, sol1_diff[1, :] - sin.(sol1_diff.t), lab = &quot;IDA&quot;)
+plot!(sol2_diff.t, sol2_diff[1, :] - sin.(sol2_diff.t), lab = &quot;DFBDF&quot;)</code></pre><img src="9d164dd3.svg" alt="Example block output"/><p>We see a significant numerical drift from the original constraint for both DAE solvers. Again, let&#39;s see how ModelingToolkit does.</p><pre><code class="language-julia hljs">@variables x(t) y(t)
 eqs = [
     x ~ sin(t)
     D(x) ~ y
@@ -127,7 +138,7 @@ println(&quot;[sol: &quot;, sol.retcode, &quot;: y(100pi)=&quot;, sol[y, end], &
 <span class="sgr33"><span class="sgr1">│ </span></span>Call `analyze_initialization_jacobian(prob)` on the constructed problem to see which equations are redundant (and which unknowns, if any, remain underdetermined).
 <span class="sgr33"><span class="sgr1">│ </span></span>
 <span class="sgr33"><span class="sgr1">│ </span></span>To suppress this warning, pass `warn_initialize_determined = false`. To turn this warning into an error, pass `fully_determined = true`.
-<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ ModelingToolkit ~/.julia/packages/ModelingToolkit/brqnn/src/initialization.jl:22</span>
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ ModelingToolkit ~/.julia/packages/ModelingToolkit/ZgEKM/src/initialization.jl:22</span>
 [sol: InitialFailure: y(100pi)=1.0 steps: 2]</code></pre><pre><code class="language-julia hljs">norm(sol[x, :] - sin.(sol.t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0</code></pre><p>We can see that ModelingToolkit handles this DAE system perfectly. <span>$y(t)$</span> is completely accurate, the original constraints are satisfied without drift, and the numerical solver needs to take minimal steps. In my following lectures, we will study how ModelingToolkit handles this example system.</p><h2 id="Numerical-Integrability-Criterion-for-DAEs"><a class="docs-heading-anchor" href="#Numerical-Integrability-Criterion-for-DAEs">Numerical Integrability Criterion for DAEs</a><a id="Numerical-Integrability-Criterion-for-DAEs-1"></a><a class="docs-heading-anchor-permalink" href="#Numerical-Integrability-Criterion-for-DAEs" title="Permalink"></a></h2><p>There are both differential equations and algebraic equations in acausal models. Thus, a generic acausal model is a system of differential-algebraic equations (DAEs). In general, additional processing steps are required to simulate DAEs. To see this more clearly, we will analyze the implicit Euler algorithm which is the most basic form of both Runge-Kutta and linear multistep methods for DAEs.</p><p>Given the DAE of the form</p><p class="math-container">\[\begin{equation}
 0 = F(u&#39;(t), u(t), p, t),
 \end{equation}\]</p><p>where <span>$F: (\mathbb{R}^n, \mathbb{R}^n, \mathbb{R}^m, \mathbb{R}) \rightarrow \mathbb{R}^n$</span>. The implicit Euler solves for <span>$u(t+h)$</span> from</p><p class="math-container">\[\begin{equation}
@@ -303,4 +314,4 @@ f_2(x&#39;, y&#39;, t)
         var_eq_matching[var] = unassigned
     end
     return var_eq_matching
-end</code></pre><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><a class="docs-footer-nextpage" href="../lecture8/">Dummy Derivatives and Reordering of Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Wednesday 23 September 2026 17:15">Wednesday 23 September 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Curious readers can read the original Pantelides paper for ideas to prove this.</li><li class="footnote" id="footnote-Pantelides1988"><a class="tag is-link" href="#citeref-Pantelides1988">Pantelides1988</a>Pantelides, Constantinos C. &quot;The consistent initialization of differential-algebraic systems.&quot; SIAM Journal on scientific and statistical computing 9.2 (1988): 213-231.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../lecture6/">« Debugging difficult stiff ODE/DAE models</a><a class="docs-footer-nextpage" href="../lecture8/">Dummy Derivatives and Reordering of Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Wednesday 30 September 2026 16:54">Wednesday 30 September 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
