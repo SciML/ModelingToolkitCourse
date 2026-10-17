@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: '9 16 * * 3'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build:
     name: "Documentation"
